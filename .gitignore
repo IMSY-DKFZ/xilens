@@ -1,0 +1,138 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# profiling files
+*.lprof
+*.nvprof
+*.nvvp
+
+# Distribution / packaging
+.Python
+env/
+*.env
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.idea/
+*snapshot*/
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# NVIDIA profiler
+*.nvvp
+*.prof
+
+# Visual Studio Code workspace
+*.code-workspace
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+python_tests_xml/
+*.lprof
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+doc/_build/
+doc/
+
+# PyBuilder
+target/
+
+#Ipython Notebook
+.ipynb_checkpoints
+
+#Pycharm files
+*.iml
+
+# merging stuff
+*.orig
+*~
+
+# Paths in repository
+mcml.py
+mcmlpath.py
+tutorials/data/*
+
+# images etc
+*.tif
+*.tiff
+*.png
+*.csv
+*.ico
+*.mci
+*.txt
+*.h5
+*.nrrd
+*.caffemodel
+*.pyc
+*/__pycache__/*
+*.so
+*.solverstate
+*.dat
+*.prototxt
+*.sh
+*.pkl
+
+# C++ stuff
+build*
+*.o
+*.ii
+*.user
+*.json
+# Vscode ignore list
+.vscode/*
+*.solverstate
+*.gv
+*.mp4
+
+# simulations stuff
+*.mco
+*mcmlpath.py
+.*config.py
+*.sm_20
+*.gpu
+*.stub.c
+*.cudafe1.*
+*.fatbin*
+*.module_id
+*.ptx
+*.cubin
+*.cu_o
