@@ -38,14 +38,16 @@ ELSE()
   add_definitions(-DBOOST_LOG_DYN_LINK)
 ENDIF()
 
+set(CMAKE_CXX_FLAGS "-luuid")
+
 # qt
 find_package(Qt5Widgets)
 # opencv
 set(OpenCV_STATIC ON)
-find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui contrib)
+find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # boost
-find_package(Boost REQUIRED system thread timer chrono log filesystem)
+find_package(Boost REQUIRED python system thread timer chrono log filesystem)
 include_directories (${Boost_INCLUDE_DIRS})
 #caffe
 find_package(Caffe)
@@ -60,13 +62,17 @@ include_directories (${Ximea_Include_Dir})
 ######################
 ##### susiCamLib #####
 ######################
+include(version.cmake)
 
 set (susiCamLib_src ${PROJECT_SOURCE_DIR}/mainwindow.cpp
+                  ${PROJECT_SOURCE_DIR}/version.cpp
                   ${PROJECT_SOURCE_DIR}/camera_interface.cpp
                   ${PROJECT_SOURCE_DIR}/caffe_interface.cpp
                   ${PROJECT_SOURCE_DIR}/display.cpp
                   ${PROJECT_SOURCE_DIR}/displayRaw.cpp
                   ${PROJECT_SOURCE_DIR}/displayCaffe.cpp
+                  ${PROJECT_SOURCE_DIR}/displaySaturation.cpp
+                  ${PROJECT_SOURCE_DIR}/displayDemo.cpp
                   ${PROJECT_SOURCE_DIR}/image_container.cpp                  
                   ${PROJECT_SOURCE_DIR}/util.cpp)
 set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
@@ -75,6 +81,8 @@ set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
                   ${PROJECT_SOURCE_DIR}/display.h
                   ${PROJECT_SOURCE_DIR}/displayRaw.h
                   ${PROJECT_SOURCE_DIR}/displayCaffe.h
+                  ${PROJECT_SOURCE_DIR}/displaySaturation.h
+                  ${PROJECT_SOURCE_DIR}/displayDemo.h
                   ${PROJECT_SOURCE_DIR}/image_container.h
                   ${PROJECT_SOURCE_DIR}/util.h
                   ${PROJECT_SOURCE_DIR}/default_defines.h)
