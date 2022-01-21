@@ -64,7 +64,7 @@ DisplayerCaffe::~DisplayerCaffe()
 }
 
 
-void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap)
+void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap)
 {
     if (do_scaling)
     {
@@ -92,6 +92,38 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
     bgr_image*=255./last_norm;
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
+
+void NormalizeRGBImage(cv::Mat& bgr_image)
+{
+    cvtColor(bgr_image, bgr_image, cv::COLOR_RGB2Lab);
+
+    //ectract L channel
+    std::vector<cv::Mat> lab_planes(3);
+    cv::split(bgr_image, lab_planes);
+
+    //create clahe and set treshold for constast limiting
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+    clahe->setClipLimit(4);
+
+    //apply clahe
+
+
+    clahe->apply(bgr_image, bgr_image);
+
+
+    //merge color planes back to bgr_image and convert back to rgb
+    bgr_image.copyTo(lab_planes[0]);
+    cv::merge(lab_planes, bgr_image);
+    cv::Mat image_clahe;
+    cv::cvtColor(bgr_image, image_clahe, cv::COLOR_Lab2RGB);
+}
+
+
+bool IsFunctional(DisplayImageType displayImageType)
+{
+    return (displayImageType == OXY || displayImageType == VHB);
+}
+
 
 
 void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist)
@@ -123,11 +155,6 @@ void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, boo
     });
 }
 
-
-bool IsFunctional(DisplayImageType displayImageType)
-{
-    return (displayImageType == OXY || displayImageType == VHB);
-}
 
 
 void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
@@ -170,10 +197,23 @@ void DisplayerCaffe::Display(XI_IMG& image)
             PrepareRawImage(band_image.at(0), 4, m_mainWindow->GetNormalize());
             DisplayImage(band_image.at(0), DISPLAY_WINDOW_NAME);
 
-            static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
-            cv::merge(bgr_image, bgr_composed);
-            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
-            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+//            static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
+//            cv::merge(bgr_image, bgr_composed);
+//            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
+//            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+            
+            cv::Mat rgb_image;
+            std::vector<unsigned> bands{3, 15, 11};
+            m_network->GetBands(rgb_image, bands);
+            if (m_mainWindow->GetRGBNorm())
+            {
+                // do notmralization
+                cv::Mat bgr_image;
+                NormalizeRGBImage(bgr_image);
+            }
+
+            DisplayImage(rgb_image, BGR_WINDOW_NAME);
+           
 
             PrepareFunctionalImage(physParam_image.at(0), VHB, m_mainWindow->DoParamterScaling(), m_mainWindow->GetUpperLowerBoundsVhb(), cv::COLORMAP_JET);
             DisplayImage(physParam_image.at(0), VHB_WINDOW_NAME);
