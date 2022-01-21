@@ -88,12 +88,15 @@ private:
      */
     void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
 
+
 };
 
 // helper function to do proper formatting of functional image
 void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap);
 
 void PrepareRGBImage(cv::Mat& rgb_image, int rgb_norm);
+
+void NormalizeRGBImage(cv::Mat& bgr_image);
 
 void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
 
