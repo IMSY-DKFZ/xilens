@@ -2,6 +2,7 @@
 
 #include <caffe_interface.h>
 
+#include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -19,6 +20,7 @@
 #include <utility>
 #include <iostream>
 #include <stdexcept>
+#include "util.h"
 #include "time.h"
 
 using namespace caffe;  // NOLINT(build/namespaces)
@@ -301,6 +303,28 @@ void Network::GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr)
 
 }
 
+void Network::GetBands(cv::Mat& rgb_image, std::vector<unsigned>& bands)
+{
+    if (NetworkReady())
+    {
+        std::vector<cv::Mat> channels;
+        std::vector<cv::Mat> channel;
+        bands = {3, 15, 11};
+        for (std::size_t i = 0; i < bands.size(); ++i)
+        {
+            this ->GetBand(channel, bands.at(0));
+            channels.push_back(channel.at(0));
+        }
+        cv::merge(channels, rgb_image);
+    }
+    else
+    {
+        throw std::runtime_error("network not initialized, cannot return band image");
+    }
+}
+
+
+
 void Network::GetBGR(std::vector<cv::Mat>& bgr)
 {
     if (NetworkReady())
@@ -343,7 +367,7 @@ cv::Size Network::GetGeometry()
 Network::~Network()
 {
     // destroy streams for pushing the data
-    for (int i=0; i < streams.size(); i++)
+    for (std::string::size_type i=0; i < streams.size(); i++)
     {
         CUDA_CHECK(cudaStreamDestroy(streams.at(i)));
     }
@@ -357,7 +381,7 @@ void test_save_layer(std::string output_folder, std::vector<cv::Mat>& layer_imag
 
     if (!as_rgb)
     {
-        for (int i=0; i < layer_images.size(); i++)
+        for (std::string::size_type i=0; i < layer_images.size(); i++)
         {
             stringstream ss;
             ss << output_folder << i << prefix << ".tif";
