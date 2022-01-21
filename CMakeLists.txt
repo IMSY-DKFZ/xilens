@@ -41,6 +41,7 @@ ENDIF()
 set(CMAKE_CXX_FLAGS "-luuid")
 
 # qt
+find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets)
 # opencv
 set(OpenCV_STATIC ON)
