@@ -93,29 +93,42 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
 
+/**
+ * NormalizeRGBImage normalizes the bgr_image using clahe.
+ *
+ * We define the matrix lab_images and convert the color bgr to lab.
+ * We define a vector lab_planes and split the lab_image into lab_planes.
+ * We define a pointer clahe, create clahe and set a treshold for constant limiting.
+ * We define a matrix dest apply clate to the vector lab_planed and save it in de matrix dest.
+ * We copy matrix dest into the vector lab_planes. Then we merge lab_planes into lab_image.
+ * We convert the color lab to bgr and save it in bgr_image.
+ *
+ * @param[in] matrix bgr_image
+ * @param[out] matrix bgr_image
+ */
 void NormalizeRGBImage(cv::Mat& bgr_image)
 {
-    cvtColor(bgr_image, bgr_image, cv::COLOR_RGB2Lab);
+    cv::Mat lab_image;
+    cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
 
     //ectract L channel
     std::vector<cv::Mat> lab_planes(3);
-    cv::split(bgr_image, lab_planes);
+    cv::split(lab_image, lab_planes);
 
     //create clahe and set treshold for constast limiting
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
     clahe->setClipLimit(4);
 
-    //apply clahe
+    //apply clahe to the L channel and save it in dst
+    cv::Mat dst;
+    clahe->apply(lab_planes[0], dst);
 
+    //merge color planes back to bgr_image
+    dst.copyTo(lab_planes[0]);
+    cv::merge(lab_planes, lab_image);
 
-    clahe->apply(bgr_image, bgr_image);
-
-
-    //merge color planes back to bgr_image and convert back to rgb
-    bgr_image.copyTo(lab_planes[0]);
-    cv::merge(lab_planes, bgr_image);
-    cv::Mat image_clahe;
-    cv::cvtColor(bgr_image, image_clahe, cv::COLOR_Lab2RGB);
+    //convert back to rgb
+    cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
 }
 
 
@@ -170,6 +183,12 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 }
 
 
+/**
+ * DisplayerCaffe calls functions.
+ *
+ * @param[in] struct XI_IMG pointing to image
+ * @param[out] matrix
+ */
 void DisplayerCaffe::Display(XI_IMG& image)
 {
     static int selected_display = 0;
@@ -207,9 +226,8 @@ void DisplayerCaffe::Display(XI_IMG& image)
             m_network->GetBands(rgb_image, bands);
             if (m_mainWindow->GetRGBNorm())
             {
-                // do notmralization
-                cv::Mat bgr_image;
-                NormalizeRGBImage(bgr_image);
+                // do normalization
+                NormalizeRGBImage(rgb_image);
             }
 
             DisplayImage(rgb_image, BGR_WINDOW_NAME);
