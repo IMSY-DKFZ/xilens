@@ -99,8 +99,8 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
  * We define the matrix lab_images and convert the color bgr to lab.
  * We define a vector lab_planes and split the lab_image into lab_planes.
  * We define a pointer clahe, create clahe and set a treshold for constant limiting.
- * We define a matrix dest apply clate to the vector lab_planed and save it in de matrix dest.
- * We copy matrix dest into the vector lab_planes. Then we merge lab_planes into lab_image.
+ * We define a matrix dest apply clate to the vector lab_planed and save it in the same vector.
+ * We merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
  *
  * @param[in] matrix bgr_image
@@ -119,12 +119,10 @@ void NormalizeRGBImage(cv::Mat& bgr_image)
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
     clahe->setClipLimit(4);
 
-    //apply clahe to the L channel and save it in dst
-    cv::Mat dst;
-    clahe->apply(lab_planes[0], dst);
+    //apply clahe to the L channel and save it in lab_planes
+    clahe->apply(lab_planes[0], lab_planes[0]);
 
     //merge color planes back to bgr_image
-    dst.copyTo(lab_planes[0]);
     cv::merge(lab_planes, lab_image);
 
     //convert back to rgb
@@ -184,7 +182,15 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 
 
 /**
- * DisplayerCaffe calls functions.
+ * DisplayerCaffe calls methods and shows images on the display.
+ *
+ * We define a static int, set it's value zero and increment.
+ * If the value equals one or is bigger than 10 and if we skip every 100th frame we run the network.
+ * We define vectors which we use in the methods we are calling from the network.
+ * We prepare the raw image from XIMEA camera to be displayed then we display the image.
+ * We define a matrix, vector and int to be used in the method calling from the network.
+ * If normalization is checked in the ui we normalize the image and then display the image.
+ * We also display the functional image.
  *
  * @param[in] struct XI_IMG pointing to image
  * @param[out] matrix
@@ -223,7 +229,8 @@ void DisplayerCaffe::Display(XI_IMG& image)
             
             cv::Mat rgb_image;
             std::vector<unsigned> bands{3, 15, 11};
-            m_network->GetBands(rgb_image, bands);
+            int scaling_factor = 0;
+            m_network->GetBands(rgb_image, bands, scaling_factor);
             if (m_mainWindow->GetRGBNorm())
             {
                 // do normalization
