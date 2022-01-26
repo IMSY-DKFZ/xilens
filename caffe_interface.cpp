@@ -303,7 +303,20 @@ void Network::GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr)
 
 }
 
-void Network::GetBands(cv::Mat& rgb_image, std::vector<unsigned>& bands)
+/**
+ * Get bands takes bands, iterates through them, takes 3 bands and merge them into the rgb_image.
+ *
+ * We check if the network is ready.
+ * If network is ready we define the vectores channels and channel and set the three bands we want to use.
+ * We iterate through the bands, call the function GetBands and add the three bands to the vector channels.
+ * We merge the vector channels into the matrix rgb_image.
+ * We divide the matrix by a scaling_factor and convert the 10 bit to 8 bit rgb_image which uses 3 channels.
+ *
+ * @param[in] matrix pointing to rgb_image, unsigned vector pointing to bands, int scaling_factor
+ * @param[out] matrix
+ * @throws runtime error if network is not initialized
+ */
+void Network::GetBands(cv::Mat& rgb_image, std::vector<unsigned>& bands, int scaling_factor)
 {
     if (NetworkReady())
     {
@@ -316,6 +329,9 @@ void Network::GetBands(cv::Mat& rgb_image, std::vector<unsigned>& bands)
             channels.push_back(channel.at(0));
         }
         cv::merge(channels, rgb_image);
+        //convert 10 bit to 8 bit
+        rgb_image /= scaling_factor;
+        rgb_image.convertTo(rgb_image, CV_8UC3);
     }
     else
     {
