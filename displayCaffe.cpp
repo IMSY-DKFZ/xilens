@@ -115,15 +115,10 @@ void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
 
-    //get clip limit
-    clahe->getClipLimit();
-
-    //set clip limit
-    clahe->setClipLimit(3);
 
     //apply clahe to the L channel and save it in lab_planes
     cv::Mat dst;
-    clahe->apply(lab_planes[0], dst);
+    this->clahe->apply(lab_planes[0], dst);
     dst.copyTo(lab_planes[0]);
 
     //merge color planes back to bgr_image
@@ -242,9 +237,6 @@ void DisplayerCaffe::Display(XI_IMG& image)
                 std::cout << "This works";
                 // do normalization
                 NormalizeRGBImage(rgb_image);
-            }
-            else {
-                throw std::runtime_error("calling the normalization method does not work");
             }
 
             DisplayImage(rgb_image, BGR_WINDOW_NAME);
