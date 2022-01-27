@@ -88,6 +88,8 @@ private:
      */
     void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
 
+    void NormalizeRGBImage(cv::Mat& bgr_image);
+
 
 };
 
@@ -95,8 +97,6 @@ private:
 void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap);
 
 void PrepareRGBImage(cv::Mat& rgb_image, int rgb_norm);
-
-void NormalizeRGBImage(cv::Mat& bgr_image);
 
 void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
 
