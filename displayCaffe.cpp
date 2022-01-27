@@ -99,14 +99,14 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
  * We define the matrix lab_images and convert the color bgr to lab.
  * We define a vector lab_planes and split the lab_image into lab_planes.
  * We define a pointer clahe, create clahe and set a treshold for constant limiting.
- * We define a matrix dest apply clate to the vector lab_planed and save it in the same vector.
+ * We define a matrix dest apply clate to the vector lab_planes and save it in the same vector.
  * We merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
  *
  * @param[in] matrix bgr_image
  * @param[out] matrix bgr_image
  */
-void NormalizeRGBImage(cv::Mat& bgr_image)
+void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
@@ -115,18 +115,23 @@ void NormalizeRGBImage(cv::Mat& bgr_image)
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
 
-    //create clahe and set treshold for constast limiting
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
-    clahe->setClipLimit(4);
+    //get clip limit
+    clahe->getClipLimit();
+
+    //set clip limit
+    clahe->setClipLimit(3);
 
     //apply clahe to the L channel and save it in lab_planes
-    clahe->apply(lab_planes[0], lab_planes[0]);
+    cv::Mat dst;
+    clahe->apply(lab_planes[0], dst);
+    dst.copyTo(lab_planes[0]);
 
     //merge color planes back to bgr_image
     cv::merge(lab_planes, lab_image);
 
     //convert back to rgb
     cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
+
 }
 
 
@@ -228,13 +233,18 @@ void DisplayerCaffe::Display(XI_IMG& image)
 //            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
             
             cv::Mat rgb_image;
-            std::vector<unsigned> bands{3, 15, 11};
-            int scaling_factor = 0;
-            m_network->GetBands(rgb_image, bands, scaling_factor);
+            std::vector<int> bands{3, 15, 11};
+            int scaling_factor = 1024;
+            m_network->GetBands(rgb_image, scaling_factor);
             if (m_mainWindow->GetRGBNorm())
             {
+                //test
+                std::cout << "This works";
                 // do normalization
                 NormalizeRGBImage(rgb_image);
+            }
+            else {
+                throw std::runtime_error("calling the normalization method does not work");
             }
 
             DisplayImage(rgb_image, BGR_WINDOW_NAME);
