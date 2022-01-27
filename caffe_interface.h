@@ -66,7 +66,7 @@ public:
 
     void GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr);
 
-    void GetBands(cv::Mat& band_image, std::vector<unsigned>& bands, int scaling_factor);
+    void GetBands(cv::Mat& band_image, int scaling_factor);
 
     void GetBGR(std::vector<cv::Mat>& rgb);
 
