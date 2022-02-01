@@ -19,7 +19,7 @@ message("Found OS_VERSION: ${UBUNTU_VERSION} in Ubuntu")
 
 IF (UBUNTU_VERSION MATCHES "20.04")
     # needed when using ubuntu 20
-    message([STATUS] "UBUNTU")
+    message([STATUS] "UBUNTU version found ${UBUNTU_VERSION}")
     set(CMAKE_CXX_FLAGS "-luuid")
     # boost
     find_package(Boost REQUIRED python system thread timer chrono log filesystem)

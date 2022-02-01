@@ -316,13 +316,13 @@ void Network::GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr)
  * @param[out] matrix
  * @throws runtime error if network is not initialized
  */
-void Network::GetBands(cv::Mat& rgb_image, int scaling_factor)
+void Network::GetBands(cv::Mat& rgb_image)
 {
     if (NetworkReady())
     {
         std::vector<cv::Mat> channels;
         std::vector<cv::Mat> channel;
-        std::vector<int>bands = {3, 15, 11};
+        std::vector<unsigned>bands = {3, 15, 11};
         for (std::size_t i = 0; i < bands.size(); ++i)
         {
             this ->GetBand(channel, bands.at(i));
@@ -333,7 +333,7 @@ void Network::GetBands(cv::Mat& rgb_image, int scaling_factor)
 
         cv::merge(channels, rgb_image);
         //convert 10 bit to 8 bit
-        rgb_image /= scaling_factor;
+        rgb_image /= 1024;
         rgb_image *=255;
         rgb_image.convertTo(rgb_image, CV_8UC3);
     }

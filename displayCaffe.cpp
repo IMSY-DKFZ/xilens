@@ -110,7 +110,6 @@ void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
-
     //ectract L channel
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
@@ -228,10 +227,8 @@ void DisplayerCaffe::Display(XI_IMG& image)
 //            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
             
             cv::Mat rgb_image;
-            std::vector<int> bands{3, 15, 11};
-            int scaling_factor = 1024;
-            m_network->GetBands(rgb_image, scaling_factor);
-            if (m_mainWindow->GetRGBNorm())
+            m_network->GetBands(rgb_image);
+            if (m_mainWindow->GetNormalize())
             {
                 //test
                 std::cout << "This works";
