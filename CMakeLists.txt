@@ -1,9 +1,5 @@
-
-
 cmake_minimum_required (VERSION 3.1)
 project (susiCam)
-
-
 
 #################################
 ##### compiler fiddling     #####
@@ -17,6 +13,23 @@ project (susiCam)
 #################################
 
 # platform specific settings
+
+cmake_host_system_information(RESULT UBUNTU_VERSION QUERY OS_VERSION)
+message("Found OS_VERSION: ${UBUNTU_VERSION} in Ubuntu")
+
+IF (UBUNTU_VERSION MATCHES "20.04")
+    # needed when using ubuntu 20
+    message([STATUS] "UBUNTU")
+    set(CMAKE_CXX_FLAGS "-luuid")
+    # boost
+    find_package(Boost REQUIRED python system thread timer chrono log filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+ELSE()
+    # boost
+    find_package(Boost REQUIRED system thread timer chrono log filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+ENDIF()
+
 IF (WIN32)
   # if on windows: enter the path to your qt here.
   set (CMAKE_PREFIX_PATH "C:\\Qt\\5.6\\msvc2015_64\\")
@@ -37,8 +50,6 @@ ELSE()
   # maybe, boost needs to be setup a little differently
   add_definitions(-DBOOST_LOG_DYN_LINK)
 ENDIF()
-
-set(CMAKE_CXX_FLAGS "-luuid")
 
 # qt
 find_package(Qt5Widgets)
