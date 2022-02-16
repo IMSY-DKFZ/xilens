@@ -368,6 +368,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="OldRGB">
+            <property name="text">
+             <string>Old RGB</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLCDNumber" name="lcdNumberTimer">
             <property name="smallDecimalPoint">
              <bool>false</bool>
