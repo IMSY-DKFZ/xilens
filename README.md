@@ -17,24 +17,28 @@ sudo apt-get install libatlas-base-dev cmake cmake-gui
 
 WARNING: The `gcc` version that you have installed depends on the Ubuntu version you have. Recent versions of Ubuntu have `gcc 9` by default. You will need to install `gcc-6` and `g++-6` in order to build susicam. This can be done by `sudo apt install gcc-6 g++-6` and then doing `export CC=/usr/bin/gcc-6 && export CXX=/usr/bin/g++-6`. You might need to remove the `build` directory from `caffe` and re-create it if you already attempted to build with another `gcc` version.
 
-copy the `caffe` library from network drives to any desired location. You can find the library in `E130-Projekte/Biophotonics/Software/caffe`. From the `caffe` folder do the following:
+copy the `caffe` library from network drives to any desired location. You can find the library in `E130-Projekte/Biophotonics/Software/caffe`. 
+Once you have copied it, navigate to the `caffe` folder and do the following.
 
-```bash
-rm -r build && mkdir build && cd build
-cmake ..
-```
-
-If there are no errors then proceed to the following
-```bash
-make all -j
-```
-If you encounter errors during the building process, checkout the FAQ section below. If the building procedure finished you can proceed to the next step
+WARNING: Your `protoc` version might differ from the original one with which `caffe` was designed and and error might occur during the build.
+To fix this, you just need to regenerate the `caffe.pb.h` header as follows:
 ```bash
 protoc src/caffe/proto/caffe.proto --cpp_out=.
 mkdir include/caffe/proto
 mv src/caffe/proto/caffe.pb.h include/caffe/proto
 ```
 
+Now you need to create the build directory and configure it. 
+
+```bash
+rm -r build && mkdir build && cd build
+cmake -D BUILD_python=OFF -D USE_OPENCV=OFF ..
+```
+
+If there are no errors then proceed to the following
+```bash
+make all -j
+```
 
 **Installation of Qt version 5.14.2**
 The building process has been tested with Qt 5.14.2, to install it you need to do the following:
