@@ -127,3 +127,12 @@ the following code:
 #define CUDART_CB
 #endif
 ```
+
+5. Error: Linking error of `libuuid`
+```bash
+can not link -luuid
+```
+You most likely are missing the `uuid-dev` package, to fix this you cna install it via:
+```bash
+sudo apt install uuid-dev
+```
