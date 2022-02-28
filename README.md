@@ -136,3 +136,17 @@ You most likely are missing the `uuid-dev` package, to fix this you cna install 
 ```bash
 sudo apt install uuid-dev
 ```
+
+6. Error: Number of XIMAE devices found:0
+
+```bash
+number of ximea devices found: 0
+xiAPI: ---- xiOpenDevice API:V4.25.03.00 started ----
+xiAPI: EAL_DeviceEnumerator::OpenDevice - no camera with index 0 is available
+xiAPI: EAL_DeviceEnumerator::OpenDevice - can not find device by ID 00000000
+xiAPI: xiAPI error: Expected XI_OK in:../API/xiFAPI/interfaces/01_top/xifapi_Top.cpp xiOpenDevice/Line:86
+```
+This is due to the fact that your user is not a member of the correct group `plugdev`. To fix this issue, run the following command and restart your PC. 
+```bash
+sudo usermod -aG plugdev $(whoami)
+```
