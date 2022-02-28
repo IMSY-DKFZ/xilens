@@ -22,6 +22,7 @@ Once you have copied it, navigate to the `caffe` folder and do the following.
 
 WARNING: Your `protoc` version might differ from the original one with which `caffe` was designed and and error might occur during the build.
 To fix this, you just need to regenerate the `caffe.pb.h` header as follows:
+
 ```bash
 protoc src/caffe/proto/caffe.proto --cpp_out=.
 mkdir include/caffe/proto
