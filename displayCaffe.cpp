@@ -94,17 +94,15 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
 }
 
 /**
- * NormalizeRGBImage normalizes the bgr_image using clahe.
- *
+ * @brief DisplayerCaffe::NormalizeRGBImage normalizes the bgr_image using clahe.
+ * @param bgr_image input
  * We define the matrix lab_images and convert the color bgr to lab.
  * We define a vector lab_planes and split the lab_image into lab_planes.
  * We define a pointer clahe, create clahe and set a treshold for constant limiting.
- * We define a matrix dest apply clate to the vector lab_planes and save it in the same vector.
- * We merge lab_planes into lab_image.
+ * We define a matrix dest, set the clip limit by calling the method GetRGBNorm, apply clahe to the vector lab_planes
+ * and save it in the matrix dest.
+ * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
- *
- * @param[in] matrix bgr_image
- * @param[out] matrix bgr_image
  */
 void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
 {
@@ -117,6 +115,7 @@ void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
 
     //apply clahe to the L channel and save it in lab_planes
     cv::Mat dst;
+    this->clahe->setClipLimit(m_mainWindow->GetRGBNorm());
     this->clahe->apply(lab_planes[0], dst);
     dst.copyTo(lab_planes[0]);
 
@@ -181,18 +180,19 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 
 
 /**
- * DisplayerCaffe calls methods and shows images on the display.
- *
- * We define a static int, set it's value zero and increment.
- * If the value equals one or is bigger than 10 and if we skip every 100th frame we run the network.
- * We define vectors which we use in the methods we are calling from the network.
- * We prepare the raw image from XIMEA camera to be displayed then we display the image.
+ * @brief DisplayerCaffe::Display calls methods and shows images on the display.
+ * @param image
+ * We define a static int selected_display, set it's value zero and increment.
+ * If the value equals one or is bigger than 10, if we skip every 100th frame we run the network.
+ * We define vectors band_image, physParam and bgr_image which we when the calling the methods GetBands, GetPhysiologicalParameters
+ * and GetGBRfrom the network.
+ * We prepare the raw image from XIMEA camera and calling the method GetBands then we display the image.
  * We define a matrix, vector and int to be used in the method calling from the network.
- * If normalization is checked in the ui we normalize the image and then display the image.
- * We also display the functional image.
- *
- * @param[in] struct XI_IMG pointing to image
- * @param[out] matrix
+ * If RGBMatrixTransform is checked in the ui we normalize the image by using a transformation matrix and merging the image and
+ * the matrix then display the image.
+ * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeRGBImage if GetNormalize is checked.
+ * Then we display the image.
+ * We also display the functional image of VHB and OXY.
  */
 void DisplayerCaffe::Display(XI_IMG& image)
 {
@@ -225,19 +225,27 @@ void DisplayerCaffe::Display(XI_IMG& image)
 //            cv::merge(bgr_image, bgr_composed);
 //            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
 //            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
-            
-            cv::Mat rgb_image;
-            m_network->GetBands(rgb_image);
-            if (m_mainWindow->GetNormalize())
-            {
+
+            if (this->m_mainWindow->GetRGBMatrixTransform()){
+                std::cout << "RGBMatrixTransform works";
+                static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
+                cv::merge(bgr_image, bgr_composed);
+                PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
+                DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+            }
+            else{
+                cv::Mat rgb_image;
+                m_network->GetBands(rgb_image);
+                if (m_mainWindow->GetNormalize())
+                {
                 //test
-                std::cout << "This works";
+                std::cout << "Normalization works";
                 // do normalization
                 NormalizeRGBImage(rgb_image);
-            }
+                }
 
             DisplayImage(rgb_image, BGR_WINDOW_NAME);
-           
+            }
 
             PrepareFunctionalImage(physParam_image.at(0), VHB, m_mainWindow->DoParamterScaling(), m_mainWindow->GetUpperLowerBoundsVhb(), cv::COLORMAP_JET);
             DisplayImage(physParam_image.at(0), VHB_WINDOW_NAME);
