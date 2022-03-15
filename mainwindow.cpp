@@ -286,8 +286,8 @@ void MainWindow::on_recordButton_clicked(bool checked)
     }
     else
     {
-       this->StopRecording();
-       ui->recordButton->setStyleSheet(original_colour);
+        this->StopRecording();
+        ui->recordButton->setStyleSheet(original_colour);
     }
 }
 
@@ -341,6 +341,11 @@ bool MainWindow::GetNormalize() const
     return this->ui->normalizeCheckbox->isChecked();
 }
 
+
+bool MainWindow::GetRGBMatrixTransform() const
+{
+    return this->ui->rgbMatrixTransformCheckBox->isChecked();
+}
 
 
 bool MainWindow::DoParamterScaling() const
@@ -699,9 +704,23 @@ void MainWindow::on_radioButtonDemo_clicked()
     m_display = new DisplayerDemo(this, &m_network);
 }
 
+/**
+ * @brief MainWindow::lowExposureRecording
+ *
+ * We definde a static QString for the original color, a string sub_folder_name, an int original_exposure, a string prefix,
+ * a vector exp_time and an int waitTime and set it zero.
+ * We set the background color of the button recLowExposureImages to red and set exposureSlider and label_exp to false.
+ * We call the methof on_recordButton_clocked and set it to false.
+ * We define a Qstring tmp_topFolderName, wait 2* original_exposure and set m_topFolderName as nullptr.
+ * We iterate through exp_time in a for-loop. Within this loop we iterate through the lowExposureImages in a second loop
+ * and call the method RecordImage(subfolder) to save the images.
+ * Then we set the color of the button recLowExposureImages to original color, m_topFolderName back to QString and
+ * method on_recordButtol_clicked, exposureSlider and lab_exp back to true.
+ * Then we synchronize the sliders and textedits dis´playing the current exposure setting.
+ */
 void MainWindow::lowExposureRecording()
 {
-    static QString original_colour = ui->recordButton->styleSheet();
+    static QString original_colour = ui->recLowExposureImages->styleSheet();
     std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
     std::string prefix = "low_exposure";
@@ -711,6 +730,12 @@ void MainWindow::lowExposureRecording()
     ui->recLowExposureImages->setStyleSheet("background-color: rgb(255, 0, 0)");
     ui->exposureSlider->setEnabled(false);
     ui->label_exp->setEnabled(false);
+
+    this->on_recordButton_clicked(false);
+    QString tmp_topFolderName = m_topFolderName;
+    wait(2 * original_exposure);
+    m_topFolderName = nullptr;
+
 
     for (int i=0; i < exp_time.size(); i++)
     {
@@ -725,6 +750,10 @@ void MainWindow::lowExposureRecording()
     m_camInterface.SetExposureMs(original_exposure);
     wait(2 * original_exposure);
     ui->recLowExposureImages->setStyleSheet(original_colour);
+
+    m_topFolderName = tmp_topFolderName;
+    this->on_recordButton_clicked(true);
+
     ui->exposureSlider->setEnabled(true);
     ui->label_exp->setEnabled(true);
     UpdateExposure();
