@@ -153,7 +153,7 @@
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Sub-folder: before_clmaping...</string>
+             <string>Sub-folder: before_clamping...</string>
             </property>
            </widget>
           </item>
@@ -364,6 +364,16 @@
            <widget class="QCheckBox" name="AutoexposureCheckbox">
             <property name="text">
              <string>Autoexposure</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="rgbMatrixTransformCheckBox">
+            <property name="text">
+             <string>RGB Matrix T.</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>

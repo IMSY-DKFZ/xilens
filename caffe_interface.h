@@ -66,6 +66,10 @@ public:
 
     void GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr);
 
+    void GetBands(cv::Mat& rgb_image);
+
+    std::vector<unsigned>bands = {3, 15, 11};
+
     void GetBGR(std::vector<cv::Mat>& rgb);
 
     void GetPhysiologicalParameters(std::vector<cv::Mat>& physParam);
