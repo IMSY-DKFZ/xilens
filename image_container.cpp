@@ -44,7 +44,6 @@ ImageContainer::~ImageContainer()
 void ImageContainer::PollImage(HANDLE camHandle, int pollingRate)
 {
     static unsigned lastImageId = 0;
-
     while (m_PollImage)
     {
         int stat = XI_OK;

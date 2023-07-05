@@ -292,12 +292,12 @@
           <item>
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Delay (ms)</string>
+             <string>skip frames</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="delaySpinBox">
+           <widget class="QSpinBox" name="skipFramesSpinBox">
             <property name="toolTip">
              <string>Time to wait between consecutive recording frames</string>
             </property>
