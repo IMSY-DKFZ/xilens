@@ -6,6 +6,9 @@ version.cpp
 # C extensions
 *.so
 
+# caffe files
+caffe
+
 # used defined
 version.cpp
 cmake-build*

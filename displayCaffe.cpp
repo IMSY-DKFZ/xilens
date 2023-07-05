@@ -227,7 +227,6 @@ void DisplayerCaffe::Display(XI_IMG& image)
 //            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
 
             if (this->m_mainWindow->GetRGBMatrixTransform()){
-                std::cout << "RGBMatrixTransform works";
                 static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
                 cv::merge(bgr_image, bgr_composed);
                 PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
@@ -238,8 +237,6 @@ void DisplayerCaffe::Display(XI_IMG& image)
                 m_network->GetBands(rgb_image);
                 if (m_mainWindow->GetNormalize())
                 {
-                //test
-                std::cout << "Normalization works";
                 // do normalization
                 NormalizeRGBImage(rgb_image);
                 }

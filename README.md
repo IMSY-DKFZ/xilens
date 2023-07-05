@@ -2,7 +2,14 @@ The susicam library is only supported in Linux systems, more support is provided
 
 NOTE: You will need `CUDA` library and drivers installed in your computer in order to use susicam.
 
-## Build susicam
+## Build docker image
+
+```bash
+docker compose --verbose build --progress plain
+docker run -it --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --gpus all --device /dev/bus/usb/ -e QT_X11_NO_MITSHM=1 -e QT_GRAPHICSSYSTEM="native" susicam
+```
+
+## Build susicam from source
 
 The library `caffe` is planned to be removed from `susicam`, if the version you are using still depends on `caffe` then you can build `caffe` by following the next steps.
 
@@ -20,7 +27,7 @@ WARNING: The `gcc` version that you have installed depends on the Ubuntu version
 copy the `caffe` library from network drives to any desired location. You can find the library in `E130-Projekte/Biophotonics/Software/caffe`. 
 Once you have copied it, navigate to the `caffe` folder and do the following.
 
-WARNING: Your `protoc` version might differ from the original one with which `caffe` was designed and and error might occur during the build.
+WARNING: Your `protoc` version might differ from the original one with which `caffe` was designed and error might occur during the build.
 To fix this, you just need to regenerate the `caffe.pb.h` header as follows:
 
 ```bash
@@ -45,7 +52,7 @@ make all -j
 The building process has been tested with Qt 5.14.2, to install it you need to do the following:
 
 ```bash
-wget http://download.qt.io/official_releases/qt/5.14/5.14.2/qt-opensource-linux-x64-5.14.2.run
+wget https://download.qt.io/archive/qt/5.14/5.14.2/qt-opensource-linux-x64-5.14.2.run
 chmod +x qt-opensource-linux-x64-5.14.2.run 
 ./qt-opensource-linux-x64-5.14.2.run 
 ```

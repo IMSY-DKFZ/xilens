@@ -110,6 +110,8 @@ private slots:
 
     void on_recLowExposureImages_clicked();
 
+    void on_skipFramesSpinBox_valueChanged();
+
 private:
     Ui::MainWindow *ui;
 

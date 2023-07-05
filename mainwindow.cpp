@@ -253,9 +253,10 @@ void MainWindow::on_exposureSlider_valueChanged(int value)
 void MainWindow::UpdateExposure()
 {
     int exp_ms = m_camInterface.GetExposureMs();
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 //    const QSignalBlocker blocker_label(ui->label_exp);
     ui->label_exp->setText(QString::number((int) exp_ms));
-    ui->label_hz->setText(QString::number((int) (1000 / exp_ms)));
+    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 
     // need to block the signals to make sure the event is not immediately
     // thrown back to label_exp.
@@ -406,32 +407,32 @@ void MainWindow::ThreadedRecordImage()
 void MainWindow::RecordImage()
 {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    int delayTime = ui->delaySpinBox->value();
     static long last_id = image.acq_nframe;
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 
     if ((image.acq_nframe==last_id) || (image.acq_nframe > last_id+1))
     { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
         m_skippedCounter++;
     }
     last_id = image.acq_nframe;
+    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
+        ++m_recordedCount;
 
-    ++m_recordedCount;
+        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
+        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
 
-    std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-    QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
-
-    // TODO SW: this is not nice code so far, nicen it up with RAII
-    FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-    fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
-    fclose(imageFile);
-    wait(delayTime);
+        // TODO SW: this is not nice code so far, nicen it up with RAII
+        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
+        fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
+        fclose(imageFile);
+    }
 }
 
 void MainWindow::RecordImage(std::string subFolder)
 {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    int delayTime = ui->delaySpinBox->value();
     static long last_id = image.acq_nframe;
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 
     if ((image.acq_nframe==last_id) || (image.acq_nframe > last_id+1))
     { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
@@ -439,16 +440,17 @@ void MainWindow::RecordImage(std::string subFolder)
     }
     last_id = image.acq_nframe;
 
-    ++m_recordedCount;
+    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
+        ++m_recordedCount;
 
-    std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-    QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
+        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
+        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
 
-    // TODO SW: this is not nice code so far, nicen it up with RAII
-    FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-    fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
-    fclose(imageFile);
-    wait(delayTime);
+        // TODO SW: this is not nice code so far, nicen it up with RAII
+        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
+        fwrite(image.bp, image.width * image.height, sizeof(UINT16), imageFile);
+        fclose(imageFile);
+    }
 }
 
 void MainWindow::updateTimer(){
@@ -817,4 +819,15 @@ void MainWindow::on_triggerText_returnPressed()
     ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggerText->clear();
+}
+
+/*
+ * updates frames per second label in GUI when number of skipped frames is modified
+ */
+void MainWindow::on_skipFramesSpinBox_valueChanged()
+{
+    int exp_ms = m_camInterface.GetExposureMs();
+    int n_skip_frames = ui->skipFramesSpinBox->value();
+    const QSignalBlocker blocker_label(ui->label_hz);
+    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 }
