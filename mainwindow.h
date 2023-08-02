@@ -1,20 +1,3 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -100,8 +83,6 @@ private slots:
 
     void on_radioButtonRaw_clicked();
 
-    void on_radioButtonSaturation_clicked();
-
     void on_triggerText_textEdited(const QString &arg1);
 
     void on_triggerText_returnPressed();
@@ -169,16 +150,6 @@ private:
     void UpdateVhbSao2Validators();
 
     /**
-     * @brief UpdateWhiteDarkCorrection Convenience method for white/dark correction setting
-     *
-     * white dark/image is determined and set in the network.
-     * Also, the raw images are stored so they can be recomputed in offline analysis under dark/white
-     *
-     * @param imagetype what should it be, dark or white correction?
-     */
-    void UpdateWhiteDarkCorrection(enum Network::InputImage imagetype);
-
-    /**
      * @brief UpdateExposure Synchronizes the sliders and textedits displaying the current exposure setting
      */
     void UpdateExposure();
@@ -214,7 +185,6 @@ private:
 
     ImageContainer m_imageContainer;
     CameraInterface m_camInterface;
-    Network m_network;
     Displayer* m_display;
 
     // if testmode is on, recording will always be saved to the same filename. This allows long time testing

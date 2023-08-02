@@ -39,7 +39,6 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "default_defines.h"
-#include "caffe_interface.h"
 
 
 const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";

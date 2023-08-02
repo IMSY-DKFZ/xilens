@@ -1,9 +1,9 @@
 services:
-  caffe-base:
+  susicam-base:
     build:
       context: .
       dockerfile: base.Dockerfile
-    image: caffe-base
+    image: susicam-base
     environment:
       - PATH_E130_Projekte=/dkfz/E130-Projekte
     volumes:
@@ -11,7 +11,7 @@ services:
   susicam:
     build: .
     depends_on:
-      - caffe-base
+      - susicam-base
     image: susicam
     container_name: susicam
     network_mode: host  # e.g. for Jupyter Lab

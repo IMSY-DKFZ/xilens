@@ -36,7 +36,7 @@ class DisplayerDemo : public Displayer
 
 public:
 
-    explicit DisplayerDemo(MainWindow* mainWindow, Network* network);
+    explicit DisplayerDemo(MainWindow* mainWindow);
     ~DisplayerDemo();
 
 protected:
@@ -69,7 +69,6 @@ private:
     // reference to mainwindow, necessary to detect if normalization is turned on / which band to display
     const MainWindow  * const m_mainWindow;
     // network needed to calculate the data for displaying
-    Network* const m_network;
 
     boost::mutex mtx_; // explicit mutex declaration
 };

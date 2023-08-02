@@ -29,7 +29,6 @@
 #include "xiApi.h"
 
 class MainWindow;
-class Network;
 
 enum DisplayImageType {RAW=0, RGB=1, VHB=2, OXY=3};
 
@@ -39,7 +38,7 @@ class DisplayerCaffe : public Displayer
 
 public:
 
-    explicit DisplayerCaffe(MainWindow* mainWindow, Network* network);
+    explicit DisplayerCaffe(MainWindow* mainWindow);
     ~DisplayerCaffe();
 
 protected:
@@ -73,8 +72,6 @@ private:
 
     // reference to mainwindow, necessary to detect if normalization is turned on / which band to display
     const MainWindow  * const m_mainWindow;
-    // network needed to calculate the data for displaying
-    Network* const m_network;
 
     boost::mutex mtx_; // explicit mutex declaration
 
@@ -90,6 +87,7 @@ private:
 
     void NormalizeRGBImage(cv::Mat& bgr_image);
 
+    void GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr);
 
 };
 

@@ -46,10 +46,8 @@
 #include "camera_interface.h"
 #include "image_container.h"
 #include "default_defines.h"
-#include "caffe_interface.h"
 #include "displayCaffe.h"
 #include "displayRaw.h"
-#include "displaySaturation.h"
 #include "displayDemo.h"
 
 
@@ -76,10 +74,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
-    m_display = new DisplayerCaffe(this, &m_network);
+    m_display = new DisplayerCaffe(this);
 
-    // hack until susi has proper resource management
-    QPixmap pix("/home/susi/DKFZ/susi/susiCam/resources/jet_photo.jpg");
+    // hack until we implement proper resource management
+    QPixmap pix(":/resources/jet_photo.jpg");
     ui->jet_sao2->setPixmap(pix);
     ui->jet_vhb->setPixmap(pix);
 
@@ -87,26 +85,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_baseFolderLoc =  QDir::cleanPath(QDir::currentPath() + QDir::separator() + QString::fromStdString(g_commandLineArguments.output_folder));
 
     ui->baseFolderLoc->insert(this->GetBaseFolder());
-
-    // initialize caffe deep net
-    BOOST_LOG_TRIVIAL(info) << "Start initializing deep net\n" << std::flush;
-    m_network.Intialize(g_commandLineArguments.model_file, g_commandLineArguments.trained_file);
-    // and load standard dark and white balance
-    try
-    {
-        std::cout << "Set dark...\n" << std::flush;
-        m_network.SetDark(g_commandLineArguments.dark_file);
-        std::cout << "Set white...\n" << std::flush;
-        m_network.SetWhite(g_commandLineArguments.white_file);
-    }
-    catch (std::runtime_error)
-    {
-        BOOST_LOG_TRIVIAL(warning) << "did not set white and/or dark correction, because files are not on disk";
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "Running net once to acquire memory" << std::flush;
-    m_network.Run();
-    BOOST_LOG_TRIVIAL(info) << " ...done\n" << std::flush;
 
     // synchronize slider and exposure checkbox
     QSlider* slider = ui->exposureSlider;
@@ -576,61 +554,14 @@ void MainWindow::on_AutoexposureCheckbox_clicked(bool checked)
 }
 
 
-void MainWindow::UpdateWhiteDarkCorrection(enum Network::InputImage imagetype)
-{
-    const int nr_images_recorded = 100;
-    int last_acq_nframe;
-    std::string name;
-
-    if (imagetype == Network::WHITE)
-        name = "white";
-    else if (imagetype == Network::DARK)
-        name = "dark";
-    else
-        throw std::runtime_error("imagetype should be either Network::DARK or Network::WHITE");
-
-    cv::Mat meanWhite = cv::Mat::zeros(m_network.GetGeometry(), CV_32S);
-    cv::Mat temp;
-    cv::Mat temp_32S;
-
-    for (int i=0; i < nr_images_recorded; i++)
-    {
-        int exp_time = m_camInterface.GetExposureMs();
-        std::stringstream name_i;
-        name_i << name << i;
-        this->SaveCurrentImage(name_i.str(), name);
-        // wait 2x exposure time to be sure to save new image
-        XI_IMG current_image = m_imageContainer.GetCurrentImage();
-        XIIMGtoMat(current_image, temp);
-        temp.convertTo(temp_32S, CV_32S);
-        meanWhite += temp_32S;
-        last_acq_nframe = current_image.acq_nframe;
-
-        int waitTime = 2 * exp_time;
-        wait(waitTime);
-    }
-    meanWhite /= nr_images_recorded;
-    meanWhite.convertTo(meanWhite, CV_16U);
-
-    double min, max;
-    cv::minMaxLoc(meanWhite, &min, &max);
-    std::cout << "MeanWhite: min: " << (unsigned) min << " -- max: " << (unsigned) max;
-
-    // also save the calculated summarized white/dark image
-    QString fullPath = GetFullFilenameStandardFormat(name + "_summary", last_acq_nframe, ".tif");
-    cv::imwrite(fullPath.toStdString(), meanWhite);
-
-    m_network.SetImage(meanWhite, imagetype);
-}
-
 void MainWindow::on_whiteBalanceButton_clicked()
 {
-    boost::thread(&MainWindow::UpdateWhiteDarkCorrection, this, Network::WHITE);
+
 }
 
 void MainWindow::on_darkCorrectionButton_clicked()
 {
-    boost::thread(&MainWindow::UpdateWhiteDarkCorrection, this, Network::DARK);
+
 }
 
 void MainWindow::on_min_vhb_line_edit_editingFinished()
@@ -684,7 +615,7 @@ void MainWindow::on_recPrefixlineEdit_textEdited(const QString &arg1)
 void MainWindow::on_caffeRadioButton_clicked()
 {
     delete m_display;
-    m_display = new DisplayerCaffe(this, &m_network);
+    m_display = new DisplayerCaffe(this);
 }
 
 void MainWindow::on_radioButtonRaw_clicked()
@@ -693,17 +624,10 @@ void MainWindow::on_radioButtonRaw_clicked()
     m_display = new DisplayerRaw(this);
 }
 
-void MainWindow::on_radioButtonSaturation_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerSaturation(this);
-
-}
-
 void MainWindow::on_radioButtonDemo_clicked()
 {
     delete m_display;
-    m_display = new DisplayerDemo(this, &m_network);
+    m_display = new DisplayerDemo(this);
 }
 
 /**

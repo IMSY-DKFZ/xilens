@@ -40,14 +40,13 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "default_defines.h"
-#include "caffe_interface.h"
 #include "displayCaffe.h"
 
 
 const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";
 
-DisplayerDemo::DisplayerDemo(MainWindow* mainWindow, Network* network) :
-    Displayer(), m_mainWindow(mainWindow), m_network(network)
+DisplayerDemo::DisplayerDemo(MainWindow* mainWindow) :
+    Displayer(), m_mainWindow(mainWindow)
 {
     CreateWindows();
 }
@@ -98,9 +97,6 @@ void DisplayerDemo::Display(XI_IMG& image)
 
             std::vector<cv::Mat> band_image, physParam_image, bgr_image;
 
-            m_network->GetPhysiologicalParameters(physParam_image);
-            m_network->GetBGR(bgr_image);
-
             static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
             cv::merge(bgr_image, bgr_composed);
             PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
@@ -116,8 +112,7 @@ void DisplayerDemo::Display(XI_IMG& image)
 void DisplayerDemo::RunNetwork(XI_IMG& image)
 {
     cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-    m_network->SetImage(currentImage, Network::IMAGE);
-    m_network->Run();
+
 }
 
 

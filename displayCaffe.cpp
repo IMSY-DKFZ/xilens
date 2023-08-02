@@ -41,7 +41,6 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "default_defines.h"
-#include "caffe_interface.h"
 
 
 const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";
@@ -51,8 +50,8 @@ const std::string BGR_WINDOW_NAME = "RGB estimate";
 typedef cv::Point3_<uint8_t> Pixel;
 
 
-DisplayerCaffe::DisplayerCaffe(MainWindow* mainWindow, Network* network) :
-    Displayer(), m_mainWindow(mainWindow), m_network(network)
+DisplayerCaffe::DisplayerCaffe(MainWindow* mainWindow) :
+    Displayer(), m_mainWindow(mainWindow)
 {
     CreateWindows();
 }
@@ -178,6 +177,22 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
     cv::imshow(windowName.c_str(), image);
 }
 
+void DisplayerCaffe::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
+    // Create the kernel (filter)
+    cv::Mat kernel = (cv::Mat_<int>(4,4) <<
+            0,  0,  0,  0,
+            0,  0,  0,  0,
+            0,  0,  0,  0,
+            0,  0,  0,  0);
+    int patch_size = 4;
+    int row = (band_nr - 1) % patch_size;
+    int col = (band_nr - 1) / patch_size;
+    kernel.at<float>(row, col) = 1;
+
+    // Apply convolution
+    cv::filter2D(image, band_image, -1, kernel);
+}
+
 
 /**
  * @brief DisplayerCaffe::Display calls methods and shows images on the display.
@@ -207,58 +222,17 @@ void DisplayerCaffe::Display(XI_IMG& image)
         // every 100th frame
         if (selected_display % 100 > 0)
         {
-
             boost::lock_guard<boost::mutex> guard(mtx_);
 
-            RunNetwork(image);
+            cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
+            cv::Mat band_image;
 
-            std::vector<cv::Mat> band_image, physParam_image, bgr_image;
+            this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
 
-            m_network->GetBand(band_image, m_mainWindow->GetBand());
-            m_network->GetPhysiologicalParameters(physParam_image);
-            m_network->GetBGR(bgr_image);
-
-            PrepareRawImage(band_image.at(0), 4, m_mainWindow->GetNormalize());
-            DisplayImage(band_image.at(0), DISPLAY_WINDOW_NAME);
-
-//            static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
-//            cv::merge(bgr_image, bgr_composed);
-//            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
-//            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
-
-            if (this->m_mainWindow->GetRGBMatrixTransform()){
-                static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
-                cv::merge(bgr_image, bgr_composed);
-                PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
-                DisplayImage(bgr_composed, BGR_WINDOW_NAME);
-            }
-            else{
-                cv::Mat rgb_image;
-                m_network->GetBands(rgb_image);
-                if (m_mainWindow->GetNormalize())
-                {
-                // do normalization
-                NormalizeRGBImage(rgb_image);
-                }
-
-            DisplayImage(rgb_image, BGR_WINDOW_NAME);
-            }
-
-            PrepareFunctionalImage(physParam_image.at(0), VHB, m_mainWindow->DoParamterScaling(), m_mainWindow->GetUpperLowerBoundsVhb(), cv::COLORMAP_JET);
-            DisplayImage(physParam_image.at(0), VHB_WINDOW_NAME);
-
-            PrepareFunctionalImage(physParam_image.at(1), OXY, m_mainWindow->DoParamterScaling(), m_mainWindow->GetUpperLowerBoundsSao2(), cv::COLORMAP_JET);
-            DisplayImage(physParam_image.at(1), SAO2_WINDOW_NAME);
+            PrepareRawImage(band_image, 4, m_mainWindow->GetNormalize());
+            DisplayImage(band_image, DISPLAY_WINDOW_NAME);
         }
     }
-}
-
-
-void DisplayerCaffe::RunNetwork(XI_IMG& image)
-{
-    cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-    m_network->SetImage(currentImage, Network::IMAGE);
-    m_network->Run();
 }
 
 

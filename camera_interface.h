@@ -27,7 +27,6 @@
 #include <image_container.h>
 #include <QObject>
 #include <QString>
-#include <caffe_interface.h>
 
 
 class CameraInterface : public QObject
