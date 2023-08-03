@@ -178,19 +178,19 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 }
 
 void DisplayerCaffe::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
-    // Create the kernel (filter)
-    cv::Mat kernel = (cv::Mat_<int>(4,4) <<
-            0,  0,  0,  0,
-            0,  0,  0,  0,
-            0,  0,  0,  0,
-            0,  0,  0,  0);
-    int patch_size = 4;
-    int row = (band_nr - 1) % patch_size;
-    int col = (band_nr - 1) / patch_size;
-    kernel.at<float>(row, col) = 1;
-
-    // Apply convolution
-    cv::filter2D(image, band_image, -1, kernel);
+    // compute location of first value
+    int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
+    int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
+    // select data from specific band
+    int row = 0;
+    for (int i = init_row; i <= image.rows; i += MOSAIC_SHAPE[0]){
+        int col = 0;
+        for (int j = init_col; j <= image.cols; j += MOSAIC_SHAPE[1]){
+            band_image.at<ushort>(row,col) = image.at<ushort>(i,j);
+            col ++;
+        }
+        row ++;
+    }
 }
 
 
@@ -225,7 +225,7 @@ void DisplayerCaffe::Display(XI_IMG& image)
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat band_image;
+            cv::Mat band_image(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1, image.bp);
 
             this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
 

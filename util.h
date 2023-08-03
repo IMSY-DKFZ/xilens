@@ -52,6 +52,8 @@ const char* libfive_git_revision(void);
 
 const char* libfive_git_branch(void);
 
+const std::vector<int> MOSAIC_SHAPE = {4, 4};
+
 void initLogging(enum boost::log::trivial::severity_level severity);
 
 float clip(float n, float lower, float upper);
