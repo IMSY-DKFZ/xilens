@@ -80,7 +80,6 @@ set (susiCamLib_src ${PROJECT_SOURCE_DIR}/mainwindow.cpp
         ${PROJECT_SOURCE_DIR}/displayDemo.cpp
         ${PROJECT_SOURCE_DIR}/image_container.cpp
         ${PROJECT_SOURCE_DIR}/util.cpp
-        ${PROJECT_SOURCE_DIR}/resources.qrc
 )
 set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
         ${PROJECT_SOURCE_DIR}/camera_interface.h
@@ -115,5 +114,6 @@ target_link_libraries(susiCamLib ${Ximea_Lib})
 ###################
 
 set (susiCamBin_src ${PROJECT_SOURCE_DIR}/mainSusiCam.cpp)
+qt5_add_resources(susiCamBin_src ${PROJECT_SOURCE_DIR}/resources.qrc)
 add_executable(susiCam ${susiCamBin_src})
 target_link_libraries(susiCam susiCamLib)
