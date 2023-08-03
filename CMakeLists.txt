@@ -72,29 +72,27 @@ include_directories (${Ximea_Include_Dir})
 include(version.cmake)
 
 set (susiCamLib_src ${PROJECT_SOURCE_DIR}/mainwindow.cpp
-                  ${PROJECT_SOURCE_DIR}/version.cpp
-                  ${PROJECT_SOURCE_DIR}/camera_interface.cpp
+        ${PROJECT_SOURCE_DIR}/version.cpp
+        ${PROJECT_SOURCE_DIR}/camera_interface.cpp
         ${PROJECT_SOURCE_DIR}/display.cpp
-                  ${PROJECT_SOURCE_DIR}/displayRaw.cpp
-                  ${PROJECT_SOURCE_DIR}/displayCaffe.cpp
+        ${PROJECT_SOURCE_DIR}/displayRaw.cpp
+        ${PROJECT_SOURCE_DIR}/displayCaffe.cpp
         ${PROJECT_SOURCE_DIR}/displayDemo.cpp
-                  ${PROJECT_SOURCE_DIR}/image_container.cpp                  
-                  ${PROJECT_SOURCE_DIR}/util.cpp)
+        ${PROJECT_SOURCE_DIR}/image_container.cpp
+        ${PROJECT_SOURCE_DIR}/util.cpp
+        ${PROJECT_SOURCE_DIR}/resources.qrc
+)
 set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
         ${PROJECT_SOURCE_DIR}/camera_interface.h
-                  ${PROJECT_SOURCE_DIR}/display.h
-                  ${PROJECT_SOURCE_DIR}/displayRaw.h
-                  ${PROJECT_SOURCE_DIR}/displayCaffe.h
+        ${PROJECT_SOURCE_DIR}/display.h
+        ${PROJECT_SOURCE_DIR}/displayRaw.h
+        ${PROJECT_SOURCE_DIR}/displayCaffe.h
         ${PROJECT_SOURCE_DIR}/displayDemo.h
-                  ${PROJECT_SOURCE_DIR}/image_container.h
-                  ${PROJECT_SOURCE_DIR}/util.h
-                  ${PROJECT_SOURCE_DIR}/default_defines.h)
+        ${PROJECT_SOURCE_DIR}/image_container.h
+        ${PROJECT_SOURCE_DIR}/util.h
+        ${PROJECT_SOURCE_DIR}/default_defines.h)
 set (susiCamLib_ui  ${PROJECT_SOURCE_DIR}/mainwindow.ui)
 
-qt5_add_resources(susiCamLib
-        PREFIX "/resources"
-        FILES resources/jet_photo.jpg
-)
 qt5_wrap_cpp(susiCamLib_hdr_moc ${susiCamLib_hdr})
 qt5_wrap_ui (susiCamLib_ui_moc  ${susiCamLib_ui})
 
