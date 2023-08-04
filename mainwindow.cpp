@@ -229,7 +229,6 @@ void MainWindow::UpdateExposure()
 {
     int exp_ms = m_camInterface.GetExposureMs();
     int n_skip_frames = ui->skipFramesSpinBox->value();
-//    const QSignalBlocker blocker_label(ui->label_exp);
     ui->label_exp->setText(QString::number((int) exp_ms));
     ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 
@@ -258,14 +257,15 @@ void MainWindow::on_recordButton_clicked(bool checked)
         this->m_elapsedTimer.start();
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
-        ui->recordButton->setStyleSheet("background-color: rgb(255, 0, 0)");
-        ui->recLowExposureImagesButton->setEnabled(true);
+        // create invocation to method to trigger changes in UI from the main thread
+        QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
+        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
     else
     {
         this->StopRecording();
-        ui->recordButton->setStyleSheet(original_colour);
-        ui->recLowExposureImagesButton->setEnabled(false);
+        QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
+        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
 }
 
@@ -426,10 +426,12 @@ void MainWindow::RecordImage(std::string subFolder)
         std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
         QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
 
-        // TODO SW: this is not nice code so far, nicen it up with RAII
-        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-        fwrite(image.bp, image.width * image.height, sizeof(UINT16), imageFile);
-        fclose(imageFile);
+        try {
+            FileImage f(fullPath.toStdString().c_str(), "wb");
+            f.write(image);
+        } catch (const std::runtime_error&e) {
+            BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
+        }
     }
 }
 
@@ -463,9 +465,9 @@ void MainWindow::StopRecording()
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
     this->stopTimer();
-    std::cout << "Total of frames recorded: " << m_recordedCount << std::endl;
-    std::cout << "Total of frames dropped : " << m_imageCounter - m_recordedCount << std::endl;
-    std::cout << "Estimate for frames skipped: " << m_skippedCounter << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Total of frames recorded: " << m_recordedCount;
+    BOOST_LOG_TRIVIAL(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
+    BOOST_LOG_TRIVIAL(info) << "Estimate for frames skipped: " << m_skippedCounter;
 }
 
 
@@ -490,7 +492,7 @@ void MainWindow::CreateFolderIfNeccessary(QString folder)
     {
         if (folderDir.mkpath(folder))
         {
-            std::cout << "Directory created: " << folder.toStdString() << "\n" << std::flush;
+            BOOST_LOG_TRIVIAL(info) << "Directory created: " << folder.toStdString();
         }
     }
 }
@@ -532,7 +534,7 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
     } catch (const std::runtime_error&e) {
         BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
     }
-    std::cout << "image " << fullPath.toStdString() << " saved\n" << std::flush;
+    BOOST_LOG_TRIVIAL(info) << "image " << fullPath.toStdString();
 }
 
 void MainWindow::StartPollingThread()
@@ -645,6 +647,10 @@ void MainWindow::on_radioButtonRaw_clicked()
 void MainWindow::lowExposureRecording()
 {
     static QString original_colour = ui->recLowExposureImagesButton->styleSheet();
+    // store original skip frame value and disable spin box
+    int n_skip_frames = ui->skipFramesSpinBox->value();
+    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
+    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
     std::string prefix = "low_exposure";
@@ -680,6 +686,9 @@ void MainWindow::lowExposureRecording()
 
     ui->exposureSlider->setEnabled(true);
     ui->label_exp->setEnabled(true);
+    // re-enable skip frames spin box
+    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, n_skip_frames));
+    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     UpdateExposure();
 }
 
