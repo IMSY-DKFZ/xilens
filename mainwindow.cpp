@@ -31,7 +31,7 @@
 #include <boost/chrono.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -71,7 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_imageCounter(0),
     m_skippedCounter(0)
 {
-
     ui->setupUi(this);
 
     m_display = new DisplayerCaffe(this);

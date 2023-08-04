@@ -43,13 +43,6 @@
          </layout>
         </item>
         <item>
-         <widget class="QRadioButton" name="radioButtonSaturation">
-          <property name="text">
-           <string>Saturation display</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QRadioButton" name="radioButtonRaw">
           <property name="text">
            <string>Raw display</string>
@@ -201,7 +194,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>Rec (binary)</string>
+           <string>Record (.dat)</string>
           </property>
           <property name="checkable">
            <bool>true</bool>

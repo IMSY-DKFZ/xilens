@@ -35,6 +35,8 @@
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 
+#include <QGuiApplication>
+#include <QScreen>
 
 #include "mainwindow.h"
 #include "util.h"
@@ -172,9 +174,13 @@ cv::Mat DisplayerRaw::PrepareImageToDisplay(cv::Mat& image)
 
 void GetDesktopResolution(int& width, int& height)
 {
-    QRect rec = QApplication::desktop()->screenGeometry();
-    height = rec.height();
-    width = rec.width();
+    // get the screen
+    QScreen *screen = QGuiApplication::primaryScreen();
+
+    // get the screen geometry
+    QRect screenGeometry = screen->geometry();
+    height = screenGeometry.height();
+    width = screenGeometry.width();
 }
 
 
