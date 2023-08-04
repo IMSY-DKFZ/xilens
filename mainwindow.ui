@@ -300,7 +300,13 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QPushButton" name="recLowExposureImages">
+           <widget class="QPushButton" name="recLowExposureImagesButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="toolTip">
+             <string>Start recording to enable this button</string>
+            </property>
             <property name="text">
              <string>Record low exposure images</string>
             </property>

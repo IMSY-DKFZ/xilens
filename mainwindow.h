@@ -87,7 +87,7 @@ private slots:
 
     void on_triggerText_returnPressed();
 
-    void on_recLowExposureImages_clicked();
+    void on_recLowExposureImagesButton_clicked();
 
     void on_skipFramesSpinBox_valueChanged();
 
@@ -177,7 +177,6 @@ private:
     QString m_triggerText;
     QString m_baseFolderLoc;
     std::string m_recBaseName;
-    QString m_date;
     QElapsedTimer m_elapsedTimer;
     float m_elapsedTime;
 

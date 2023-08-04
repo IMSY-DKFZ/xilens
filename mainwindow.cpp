@@ -95,7 +95,6 @@ MainWindow::MainWindow(QWidget *parent) :
     expEdit->setText(initialExpString);
     UpdateVhbSao2Validators();
 
-    m_date = (QDate::currentDate()).toString("yyyyMMdd_");
     // create threadpool
     for (int i = 0; i < 2; i++) // put 2 threads in threadpool
     {
@@ -260,11 +259,13 @@ void MainWindow::on_recordButton_clicked(bool checked)
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
         ui->recordButton->setStyleSheet("background-color: rgb(255, 0, 0)");
+        ui->recLowExposureImagesButton->setEnabled(true);
     }
     else
     {
         this->StopRecording();
         ui->recordButton->setStyleSheet(original_colour);
+        ui->recLowExposureImagesButton->setEnabled(false);
     }
 }
 
@@ -507,8 +508,8 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
         int exp_time = m_camInterface.GetExposureMs();
         QString exp_time_str("exp" + QString::number(exp_time) + "ms");
         QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-        fileName = QString::fromStdString(filename) + "_" + m_date  + curr_time + "_"
-                +  exp_time_str + "_" + QString::number(frameNumber);
+        QString date = (QDate::currentDate()).toString("yyyyMMdd_");
+        fileName = QString::fromStdString(filename) + "_" + date + curr_time + "_" +  exp_time_str + "_" + QString::number(frameNumber);
     }
     else
     {
@@ -643,14 +644,14 @@ void MainWindow::on_radioButtonRaw_clicked()
  */
 void MainWindow::lowExposureRecording()
 {
-    static QString original_colour = ui->recLowExposureImages->styleSheet();
+    static QString original_colour = ui->recLowExposureImagesButton->styleSheet();
     std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
     std::string prefix = "low_exposure";
     std::vector<int> exp_time = {5, 10, 20, 40, 60, 80, 100, 150};
 
     int waitTime = 0;
-    ui->recLowExposureImages->setStyleSheet("background-color: rgb(255, 0, 0)");
+    ui->recLowExposureImagesButton->setStyleSheet("background-color: rgb(255, 0, 0)");
     ui->exposureSlider->setEnabled(false);
     ui->label_exp->setEnabled(false);
 
@@ -672,7 +673,7 @@ void MainWindow::lowExposureRecording()
     }
     m_camInterface.SetExposureMs(original_exposure);
     wait(2 * original_exposure);
-    ui->recLowExposureImages->setStyleSheet(original_colour);
+    ui->recLowExposureImagesButton->setStyleSheet(original_colour);
 
     m_topFolderName = tmp_topFolderName;
     this->on_recordButton_clicked(true);
@@ -682,7 +683,7 @@ void MainWindow::lowExposureRecording()
     UpdateExposure();
 }
 
-void MainWindow::on_recLowExposureImages_clicked()
+void MainWindow::on_recLowExposureImagesButton_clicked()
 {
     boost::thread(&MainWindow::lowExposureRecording, this);
 }
