@@ -397,10 +397,13 @@ void MainWindow::RecordImage()
         std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
         QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
 
-        // TODO SW: this is not nice code so far, nicen it up with RAII
-        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-        fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
-        fclose(imageFile);
+        try {
+            FileImage f(fullPath.toStdString().c_str(), "wb");
+            f.write(image);
+        } catch (const std::runtime_error&e) {
+            BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
+        }
+
     }
 }
 
@@ -521,12 +524,13 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
 void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolder)
 {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    cv::Mat currentImage;
-    XIIMGtoMat(image, currentImage);
-
-    QString fullPath = GetFullFilenameStandardFormat(baseName, image.acq_nframe, ".tif", specialFolder);
-
-    cv::imwrite(fullPath.toStdString(), currentImage);
+    QString fullPath = GetFullFilenameStandardFormat(baseName, image.acq_nframe, ".dat", specialFolder);
+    try {
+        FileImage f(fullPath.toStdString().c_str(), "wb");
+        f.write(image);
+    } catch (const std::runtime_error&e) {
+        BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
+    }
     std::cout << "image " << fullPath.toStdString() << " saved\n" << std::flush;
 }
 

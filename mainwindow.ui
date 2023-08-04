@@ -86,7 +86,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Snapshot (tif)</string>
+           <string>Snapshot (.dat)</string>
           </property>
           <property name="checkable">
            <bool>false</bool>

@@ -1,19 +1,3 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
 
 #ifndef UTIL_H
 #define UTIL_H
@@ -22,6 +6,8 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+
+#include "xiApi.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -38,6 +24,17 @@ enum{
     CV_EVENT_LBUTTONUP = cv::EVENT_LBUTTONUP,
 };
 #endif
+
+class FileImage
+{
+    FILE* file;
+public:
+    FileImage(const char* filename, const char* mode);
+
+    ~FileImage();
+
+    void write(XI_IMG image);
+};
 
 extern "C"
 {

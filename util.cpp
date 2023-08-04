@@ -25,6 +25,20 @@
 #include <boost/log/expressions.hpp>
 #include <opencv2/imgproc.hpp>
 
+FileImage::FileImage(const char* filename, const char* mode){
+    file = fopen(filename, mode);
+    if (!file)
+        throw std::runtime_error("Could not open the file.");
+}
+
+FileImage::~FileImage(){
+    fclose(file);
+}
+
+void FileImage::write(XI_IMG image) {
+    fwrite(image.bp, image.width*image.height, sizeof(UINT16), file);
+}
+
 const char* libfive_git_version(void)
 {
     return GIT_TAG;
