@@ -28,12 +28,12 @@
            <enum>QLayout::SetDefaultConstraint</enum>
           </property>
           <item>
-           <widget class="QRadioButton" name="caffeRadioButton">
+           <widget class="QRadioButton" name="functionalRadioButton">
             <property name="enabled">
              <bool>true</bool>
             </property>
             <property name="text">
-             <string>Caffe display</string>
+             <string>Functional display</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -46,13 +46,6 @@
          <widget class="QRadioButton" name="radioButtonRaw">
           <property name="text">
            <string>Raw display</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="radioButtonDemo">
-          <property name="text">
-           <string>Demo display</string>
           </property>
          </widget>
         </item>

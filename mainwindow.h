@@ -79,15 +79,13 @@ private slots:
 
     void on_folderLowExposureImages_textEdited(const QString &arg1);
 
-    void on_caffeRadioButton_clicked();
+    void on_functionalRadioButton_clicked();
 
     void on_radioButtonRaw_clicked();
 
     void on_triggerText_textEdited(const QString &arg1);
 
     void on_triggerText_returnPressed();
-
-    void on_radioButtonDemo_clicked();
 
     void on_recLowExposureImages_clicked();
 

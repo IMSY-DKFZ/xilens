@@ -1,22 +1,6 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
 
-
-#ifndef DISPLAYCAFFE_H
-#define DISPLAYCAFFE_H
+#ifndef DISPLAYFUNCTIONAL_H
+#define DISPLAYFUNCTIONAL_H
 
 
 #include <QObject>
@@ -32,14 +16,14 @@ class MainWindow;
 
 enum DisplayImageType {RAW=0, RGB=1, VHB=2, OXY=3};
 
-class DisplayerCaffe : public Displayer
+class DisplayerFunctional : public Displayer
 {
     Q_OBJECT
 
 public:
 
-    explicit DisplayerCaffe(MainWindow* mainWindow);
-    ~DisplayerCaffe();
+    explicit DisplayerFunctional(MainWindow* mainWindow);
+    ~DisplayerFunctional();
 
 protected:
 

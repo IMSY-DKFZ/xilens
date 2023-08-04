@@ -76,8 +76,7 @@ set (susiCamLib_src ${PROJECT_SOURCE_DIR}/mainwindow.cpp
         ${PROJECT_SOURCE_DIR}/camera_interface.cpp
         ${PROJECT_SOURCE_DIR}/display.cpp
         ${PROJECT_SOURCE_DIR}/displayRaw.cpp
-        ${PROJECT_SOURCE_DIR}/displayCaffe.cpp
-        ${PROJECT_SOURCE_DIR}/displayDemo.cpp
+        ${PROJECT_SOURCE_DIR}/displayFunctional.cpp
         ${PROJECT_SOURCE_DIR}/image_container.cpp
         ${PROJECT_SOURCE_DIR}/util.cpp
 )
@@ -85,8 +84,7 @@ set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
         ${PROJECT_SOURCE_DIR}/camera_interface.h
         ${PROJECT_SOURCE_DIR}/display.h
         ${PROJECT_SOURCE_DIR}/displayRaw.h
-        ${PROJECT_SOURCE_DIR}/displayCaffe.h
-        ${PROJECT_SOURCE_DIR}/displayDemo.h
+        ${PROJECT_SOURCE_DIR}/displayFunctional.h
         ${PROJECT_SOURCE_DIR}/image_container.h
         ${PROJECT_SOURCE_DIR}/util.h
         ${PROJECT_SOURCE_DIR}/default_defines.h)

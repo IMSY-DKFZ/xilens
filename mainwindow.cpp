@@ -46,9 +46,8 @@
 #include "camera_interface.h"
 #include "image_container.h"
 #include "default_defines.h"
-#include "displayCaffe.h"
+#include "displayFunctional.h"
 #include "displayRaw.h"
-#include "displayDemo.h"
 
 
 /**
@@ -73,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    m_display = new DisplayerCaffe(this);
+    m_display = new DisplayerFunctional(this);
 
     // hack until we implement proper resource management
     QPixmap pix(":/resources/jet_photo.jpg");
@@ -611,10 +610,10 @@ void MainWindow::on_recPrefixlineEdit_textEdited(const QString &arg1)
     }
 }
 
-void MainWindow::on_caffeRadioButton_clicked()
+void MainWindow::on_functionalRadioButton_clicked()
 {
     delete m_display;
-    m_display = new DisplayerCaffe(this);
+    m_display = new DisplayerFunctional(this);
 }
 
 void MainWindow::on_radioButtonRaw_clicked()
@@ -623,11 +622,6 @@ void MainWindow::on_radioButtonRaw_clicked()
     m_display = new DisplayerRaw(this);
 }
 
-void MainWindow::on_radioButtonDemo_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerDemo(this);
-}
 
 /**
  * @brief MainWindow::lowExposureRecording

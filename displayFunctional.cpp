@@ -1,21 +1,5 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
 
-
-#include "displayCaffe.h"
+#include "displayFunctional.h"
 
 #include <iostream>
 #include <string>
@@ -50,14 +34,14 @@ const std::string BGR_WINDOW_NAME = "RGB estimate";
 typedef cv::Point3_<uint8_t> Pixel;
 
 
-DisplayerCaffe::DisplayerCaffe(MainWindow* mainWindow) :
+DisplayerFunctional::DisplayerFunctional(MainWindow* mainWindow) :
     Displayer(), m_mainWindow(mainWindow)
 {
     CreateWindows();
 }
 
 
-DisplayerCaffe::~DisplayerCaffe()
+DisplayerFunctional::~DisplayerFunctional()
 {
     DestroyWindows();
 }
@@ -93,7 +77,7 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
 }
 
 /**
- * @brief DisplayerCaffe::NormalizeRGBImage normalizes the bgr_image using clahe.
+ * @brief DisplayerFunctional::NormalizeRGBImage normalizes the bgr_image using clahe.
  * @param bgr_image input
  * We define the matrix lab_images and convert the color bgr to lab.
  * We define a vector lab_planes and split the lab_image into lab_planes.
@@ -103,7 +87,7 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
  * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
  */
-void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
+void DisplayerFunctional::NormalizeRGBImage(cv::Mat& bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
@@ -134,7 +118,7 @@ bool IsFunctional(DisplayImageType displayImageType)
 
 
 
-void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist)
+void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist)
 {
     raw_image /= scaling_factor; // 10 bit to 8 bit
     raw_image.convertTo(raw_image, CV_8UC1);
@@ -165,7 +149,7 @@ void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, boo
 
 
 
-void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
+void DisplayerFunctional::DisplayImage(cv::Mat& image, const std::string windowName)
 {
     if (image.channels() != 1 && image.channels() != 3)
     {
@@ -177,7 +161,7 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
     cv::imshow(windowName.c_str(), image);
 }
 
-void DisplayerCaffe::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
+void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
     // compute location of first value
     int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
     int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
@@ -195,7 +179,7 @@ void DisplayerCaffe::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
 
 
 /**
- * @brief DisplayerCaffe::Display calls methods and shows images on the display.
+ * @brief DisplayerFunctional::Display calls methods and shows images on the display.
  * @param image
  * We define a static int selected_display, set it's value zero and increment.
  * If the value equals one or is bigger than 10, if we skip every 100th frame we run the network.
@@ -209,7 +193,7 @@ void DisplayerCaffe::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
  * Then we display the image.
  * We also display the functional image of VHB and OXY.
  */
-void DisplayerCaffe::Display(XI_IMG& image)
+void DisplayerFunctional::Display(XI_IMG& image)
 {
     static int selected_display = 0;
 
@@ -236,7 +220,7 @@ void DisplayerCaffe::Display(XI_IMG& image)
 }
 
 
-void DisplayerCaffe::CreateWindows()
+void DisplayerFunctional::CreateWindows()
 {
     // create windows to display result
     cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
@@ -251,7 +235,7 @@ void DisplayerCaffe::CreateWindows()
 }
 
 
-void DisplayerCaffe::DestroyWindows()
+void DisplayerFunctional::DestroyWindows()
 {
     cv::destroyAllWindows();
 }
