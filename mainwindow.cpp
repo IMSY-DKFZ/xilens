@@ -1,20 +1,3 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
-
 #include <iostream>
 #include <string>
 #include <stdlib.h>     //for using the function sleep
@@ -71,6 +54,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_skippedCounter(0)
 {
     ui->setupUi(this);
+    // populate available cameras
+    QStringList cameraList = GetAvailableCameraModels();
+    ui->cameraListComboBox->addItems(cameraList);
 
     m_display = new DisplayerFunctional(this);
 
@@ -646,6 +632,7 @@ void MainWindow::on_radioButtonRaw_clicked()
  */
 void MainWindow::lowExposureRecording()
 {
+    int waitTime;
     static QString original_colour = ui->recLowExposureImagesButton->styleSheet();
     // store original skip frame value and disable spin box
     int n_skip_frames = ui->skipFramesSpinBox->value();
@@ -653,24 +640,21 @@ void MainWindow::lowExposureRecording()
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
-    std::string prefix = "low_exposure";
     std::vector<int> exp_time = {5, 10, 20, 40, 60, 80, 100, 150};
-
-    int waitTime = 0;
-    ui->recLowExposureImagesButton->setStyleSheet("background-color: rgb(255, 0, 0)");
-    ui->exposureSlider->setEnabled(false);
-    ui->label_exp->setEnabled(false);
+    // change style of record low exposure images button and disable exposure components
+    QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, "background-color: rgb(255, 0, 0);"));
+    QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->label_exp, "setEnabled", Q_ARG(bool, false));
 
     this->on_recordButton_clicked(false);
     QString tmp_topFolderName = m_topFolderName;
     wait(2 * original_exposure);
     m_topFolderName = nullptr;
 
-
-    for (int i=0; i < exp_time.size(); i++)
+    for (int i : exp_time)
     {
-        m_camInterface.SetExposureMs(exp_time[i]);
-        waitTime = 2 * exp_time[i];
+        m_camInterface.SetExposureMs(i);
+        waitTime = 2 * i;
         wait(waitTime);
         for (int j=0; j < ui->nLowExposureImages->value(); j++)
         {
@@ -679,13 +663,12 @@ void MainWindow::lowExposureRecording()
     }
     m_camInterface.SetExposureMs(original_exposure);
     wait(2 * original_exposure);
-    ui->recLowExposureImagesButton->setStyleSheet(original_colour);
-
+    QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, original_colour));
+    QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->label_exp, "setEnabled", Q_ARG(bool, true));
+    // restore record button state
     m_topFolderName = tmp_topFolderName;
     this->on_recordButton_clicked(true);
-
-    ui->exposureSlider->setEnabled(true);
-    ui->label_exp->setEnabled(true);
     // re-enable skip frames spin box
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, n_skip_frames));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -761,4 +744,27 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
     int n_skip_frames = ui->skipFramesSpinBox->value();
     const QSignalBlocker blocker_label(ui->label_hz);
     ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
+}
+
+
+QStringList MainWindow::GetAvailableCameraModels()
+{
+    QStringList cameraModels;
+    // DWORD and HANDLE are defined by xiAPI
+    DWORD dwCamCount = 0;
+    xiGetNumberDevices(&dwCamCount);
+
+    for(DWORD i=0; i<dwCamCount; i++) {
+        HANDLE hDevice = INVALID_HANDLE_VALUE;
+        xiOpenDevice(i, &hDevice);
+
+        char model[256] = { 0 };
+        xiGetParamString(hDevice, XI_PRM_DEVICE_MODEL_ID, model, sizeof(model));
+
+        cameraModels.append(QString::fromUtf8(model));
+
+        xiCloseDevice(hDevice);
+    }
+
+    return cameraModels;
 }

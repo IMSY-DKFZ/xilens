@@ -37,6 +37,8 @@ public:
     cv::Range GetUpperLowerBoundsVhb() const;
     cv::Range GetUpperLowerBoundsSao2() const;
 
+    QStringList GetAvailableCameraModels();
+
 protected:
     void closeEvent (QCloseEvent *event);
 
