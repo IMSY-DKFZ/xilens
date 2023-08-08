@@ -27,6 +27,8 @@
 #include <image_container.h>
 #include <QObject>
 #include <QString>
+#include <QtCore>
+#include <QtCore>
 
 
 class CameraInterface : public QObject
@@ -47,16 +49,20 @@ public:
   int GetExposureMs();
   void AutoExposure(bool on);
 
-  int OpenDevice();
-  int StartAcquisition();
+  int OpenDevice(const char* camera_sn);
+  int StartAcquisition(QString camera_name);
   int StopAcquisition();
   void CloseDevice();
 
   HANDLE GetHandle();
 
+  QMap<QString, const char*> m_availableCameras;
+  QStringList GetAvailableCameraModels();
+
 
 private:
   int InitializeCamera();
+
 
   HANDLE m_camHandle;
 };

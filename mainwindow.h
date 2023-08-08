@@ -37,7 +37,7 @@ public:
     cv::Range GetUpperLowerBoundsVhb() const;
     cv::Range GetUpperLowerBoundsSao2() const;
 
-    QStringList GetAvailableCameraModels();
+    void EnableUi(bool enable);
 
 protected:
     void closeEvent (QCloseEvent *event);
@@ -92,6 +92,8 @@ private slots:
     void on_recLowExposureImagesButton_clicked();
 
     void on_skipFramesSpinBox_valueChanged();
+
+    void on_cameraListComboBox_selectionChanged(int index);
 
 private:
     Ui::MainWindow *ui;
@@ -178,8 +180,8 @@ private:
     QString m_folderLowExposureImages;
     QString m_triggerText;
     QString m_baseFolderLoc;
-    std::string m_recBaseName;
     QElapsedTimer m_elapsedTimer;
+    std::string m_recBaseName;
     float m_elapsedTime;
 
     ImageContainer m_imageContainer;
@@ -196,6 +198,8 @@ private:
     boost::thread_group m_threadpool;
     boost::asio::io_service::work m_work;
     boost::mutex mtx_;
+
+    void StartImageAcquisition(QString camera_name);
 };
 
 #endif // MAINWINDOW_H

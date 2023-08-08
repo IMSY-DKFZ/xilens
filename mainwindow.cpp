@@ -22,6 +22,7 @@
 #include <QDir>
 #include <QDateTime>
 #include <QTextStream>
+#include <utility>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -55,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     // populate available cameras
-    QStringList cameraList = GetAvailableCameraModels();
+    QStringList cameraList = m_camInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItems(cameraList);
 
     m_display = new DisplayerFunctional(this);
@@ -65,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->jet_sao2->setPixmap(pix);
     ui->jet_vhb->setPixmap(pix);
 
-    // set the basefolder loc
+    // set the base folder loc
     m_baseFolderLoc =  QDir::cleanPath(QDir::currentPath() + QDir::separator() + QString::fromStdString(g_commandLineArguments.output_folder));
 
     ui->baseFolderLoc->insert(this->GetBaseFolder());
@@ -81,16 +82,20 @@ MainWindow::MainWindow(QWidget *parent) :
     expEdit->setText(initialExpString);
     UpdateVhbSao2Validators();
 
-    // create threadpool
-    for (int i = 0; i < 2; i++) // put 2 threads in threadpool
+    // create thread pool
+    for (int i = 0; i < 2; i++) // put 2 threads in thread pool
     {
         m_threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &m_io_service));
     }
 
     BOOST_LOG_TRIVIAL(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
+    EnableUi(false);
+}
+
+void MainWindow::StartImageAcquisition(QString camera_name) {
     try {
-        m_camInterface.StartAcquisition();
+        m_camInterface.StartAcquisition(std::move(camera_name));
 
         this->StartPollingThread();
 
@@ -105,6 +110,16 @@ MainWindow::MainWindow(QWidget *parent) :
     catch (std::runtime_error& error)
     {
         BOOST_LOG_TRIVIAL(warning) << "could not start camera, got error " << error.what();
+    }
+}
+
+void MainWindow::EnableUi(bool enable)
+{
+    for(int i = 0; i < ui->mainUiVerticalLayout->count(); i++){
+        QWidget* widget = ui->mainUiVerticalLayout->itemAt(i)->widget();
+        if(widget && (widget->objectName() != "recLowExposureImagesButton")){
+            widget->setEnabled(enable);
+        }
     }
 }
 
@@ -747,24 +762,11 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
 }
 
 
-QStringList MainWindow::GetAvailableCameraModels()
+
+
+void MainWindow::on_cameraListComboBox_selectionChanged(int index)
 {
-    QStringList cameraModels;
-    // DWORD and HANDLE are defined by xiAPI
-    DWORD dwCamCount = 0;
-    xiGetNumberDevices(&dwCamCount);
-
-    for(DWORD i=0; i<dwCamCount; i++) {
-        HANDLE hDevice = INVALID_HANDLE_VALUE;
-        xiOpenDevice(i, &hDevice);
-
-        char model[256] = { 0 };
-        xiGetParamString(hDevice, XI_PRM_DEVICE_MODEL_ID, model, sizeof(model));
-
-        cameraModels.append(QString::fromUtf8(model));
-
-        xiCloseDevice(hDevice);
-    }
-
-    return cameraModels;
+    on_recordButton_clicked(false);
+    this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+    this->EnableUi(true);
 }
