@@ -1,3 +1,7 @@
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 

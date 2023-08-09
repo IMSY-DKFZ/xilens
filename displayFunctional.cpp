@@ -1,10 +1,11 @@
-
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #include "displayFunctional.h"
 
 #include <iostream>
 #include <string>
-#include <stdlib.h>     //for using the function sleep
-#include <stdio.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -18,13 +19,11 @@
 #  define opencv2_has_contrib 0
 #endif
 
-#include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 
 
 #include "mainwindow.h"
 #include "util.h"
-#include "default_defines.h"
 
 
 const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";

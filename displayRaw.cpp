@@ -1,27 +1,13 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #include "displayRaw.h"
 #include <iostream>
 #include <string>
-#include <stdlib.h>     //for using the function sleep
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #if CV_VERSION_MAJOR==3
 #include <opencv2/videoio.hpp>
@@ -32,15 +18,12 @@
 #  define opencv2_has_contrib 0
 #endif
 
-#include <boost/chrono.hpp>
-#include <boost/thread.hpp>
 
 #include <QGuiApplication>
 #include <QScreen>
 
 #include "mainwindow.h"
 #include "util.h"
-#include "default_defines.h"
 
 
 const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";

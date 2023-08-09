@@ -1,4 +1,7 @@
-
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef DISPLAYFUNCTIONAL_H
 #define DISPLAYFUNCTIONAL_H
 

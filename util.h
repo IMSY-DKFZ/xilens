@@ -1,4 +1,7 @@
-
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef UTIL_H
 #define UTIL_H
 

@@ -1,7 +1,0 @@
-
-#ifndef DEFAULTDEFINES_H
-#define DEFAULTDEFINES_H
-
-//#define DEBUG_THIS
-
-#endif // DEFAULTDEFINES_H

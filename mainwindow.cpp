@@ -1,9 +1,11 @@
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #include <iostream>
 #include <string>
-#include <stdlib.h>     //for using the function sleep
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #if CV_VERSION_MAJOR==3
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -14,7 +16,6 @@
 #include <boost/chrono.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/bind/bind.hpp>
 
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -27,9 +28,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "util.h"
-#include "camera_interface.h"
 #include "image_container.h"
-#include "default_defines.h"
 #include "displayFunctional.h"
 #include "displayRaw.h"
 
@@ -53,7 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_testMode(g_commandLineArguments.test_mode),
     m_imageCounter(0),
     m_skippedCounter(0),
-    m_elapsedTimeTextStream(&m_elapsedTimeText)
+    m_elapsedTimeTextStream(&m_elapsedTimeText),
+    m_elapsedTime(0)
 {
     ui->setupUi(this);
     // populate available cameras
@@ -87,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // create thread pool
     for (int i = 0; i < 2; i++) // put 2 threads in thread pool
     {
-        m_threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &m_io_service));
+        m_threadpool.create_thread([ObjectPtr = &m_io_service] { return ObjectPtr->run(); });
     }
 
     BOOST_LOG_TRIVIAL(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
@@ -285,7 +285,6 @@ void MainWindow::on_recordButton_clicked(bool checked)
 
 void MainWindow::closeEvent (QCloseEvent *event)
 {
-    bool m_running;
     this->StopPollingThread();
     QMainWindow::closeEvent(event);
 }
@@ -351,7 +350,7 @@ cv::Range MainWindow::GetUpperLowerBoundsVhb() const
     uchar lower, upper;
     lower = this->ui->min_vhb_line_edit->text().toInt();
     upper = this->ui->max_vhb_line_edit->text().toInt();
-    return cv::Range(lower, upper);
+    return {lower, upper};
 }
 
 cv::Range MainWindow::GetUpperLowerBoundsSao2() const
@@ -391,7 +390,7 @@ QString MainWindow::GetBaseFolder() const
 
 void MainWindow::ThreadedRecordImage()
 {
-    m_io_service.post(boost::bind(&MainWindow::RecordImage, this));
+    m_io_service.post([this] { RecordImage(); });
 }
 
 
@@ -449,15 +448,33 @@ void MainWindow::RecordImage(std::string subFolder)
     }
 }
 
+/**
+ * @brief Updates the timer in the main window.
+ *
+ * This function is responsible for updating the timer displayed in the main window.
+ * It should be called periodically to ensure the timer is always up-to-date.
+ *
+ * @note This function does not return any value.
+ *
+ * @par Usage
+ *
+ * @code{.cpp}
+ * updateTimer();
+ * @endcode
+ *
+ * @par Thread Safety
+ *
+ * This function is not thread-safe. It is expected to be called from the main thread.
+ *
+ * @see MainWindow
+ */
+
 void MainWindow::updateTimer(){
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
     int totalSeconds = static_cast<int>(m_elapsedTime);
     int hours = totalSeconds / 3600;
     int minutes = (totalSeconds % 3600) / 60;
     int seconds = totalSeconds % 60;
-
-    std::cout << "hours" << hours << "minutes" << minutes << "seconds" << seconds << "milliseconds " << std::endl;
-
     m_elapsedTimeText.clear();
     m_elapsedTimeTextStream.seek(0);
     m_elapsedTimeTextStream.setFieldWidth(2);  // Set field width to 2 or numbers and 1 for separators
@@ -766,7 +783,6 @@ void MainWindow::on_triggerText_returnPressed()
     QString trigger_message = ui->triggerText->text();
     QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
     QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + "logFile.txt");
-    QString file_content = "";
     QFile file(log_filename);
     file.open(QIODevice::Append);
     QTextStream stream(&file);
@@ -778,7 +794,6 @@ void MainWindow::on_triggerText_returnPressed()
     m_triggerText = curr_time + " " + trigger_message + "\n";
     stream << m_triggerText;
     file.close();
-    m_triggerText = m_triggerText;
     ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggerText->clear();

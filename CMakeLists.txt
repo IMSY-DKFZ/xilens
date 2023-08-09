@@ -87,7 +87,7 @@ set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
         ${PROJECT_SOURCE_DIR}/displayFunctional.h
         ${PROJECT_SOURCE_DIR}/image_container.h
         ${PROJECT_SOURCE_DIR}/util.h
-        ${PROJECT_SOURCE_DIR}/default_defines.h)
+)
 set (susiCamLib_ui  ${PROJECT_SOURCE_DIR}/mainwindow.ui)
 
 qt5_wrap_cpp(susiCamLib_hdr_moc ${susiCamLib_hdr})
