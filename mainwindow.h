@@ -183,6 +183,8 @@ private:
     QElapsedTimer m_elapsedTimer;
     std::string m_recBaseName;
     float m_elapsedTime;
+    QString m_elapsedTimeText;
+    QTextStream m_elapsedTimeTextStream;
 
     ImageContainer m_imageContainer;
     CameraInterface m_camInterface;
@@ -200,6 +202,7 @@ private:
     boost::mutex mtx_;
 
     void StartImageAcquisition(QString camera_name);
+    void StopImageAcquisition();
 };
 
 #endif // MAINWINDOW_H

@@ -52,7 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_recordedCount(0),
     m_testMode(g_commandLineArguments.test_mode),
     m_imageCounter(0),
-    m_skippedCounter(0)
+    m_skippedCounter(0),
+    m_elapsedTimeTextStream(&m_elapsedTimeText)
 {
     ui->setupUi(this);
     // populate available cameras
@@ -112,6 +113,15 @@ void MainWindow::StartImageAcquisition(QString camera_name) {
     {
         BOOST_LOG_TRIVIAL(warning) << "could not start camera, got error " << error.what();
     }
+}
+
+void MainWindow::StopImageAcquisition()
+{
+    this->StopPollingThread();
+    m_camInterface.StopAcquisition();
+    // disconnect slots for image display
+    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
+    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateMinMaxPixelValues);
 }
 
 void MainWindow::EnableUi(bool enable)
@@ -262,12 +272,14 @@ void MainWindow::on_recordButton_clicked(bool checked)
         // create invocation to method to trigger changes in UI from the main thread
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
     else
     {
         this->StopRecording();
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -438,8 +450,21 @@ void MainWindow::RecordImage(std::string subFolder)
 }
 
 void MainWindow::updateTimer(){
-    m_elapsedTime = float(m_elapsedTimer.elapsed()) / 1000.0;
-    ui->lcdNumberTimer->display(QString::number(m_elapsedTime, 'f', 3).rightJustified(7, '0'));
+    m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
+    float milliseconds = (m_elapsedTime - static_cast<int>(m_elapsedTime)) * 1000;
+    int totalSeconds = static_cast<int>(m_elapsedTime);
+    int hours = totalSeconds / 3600;
+    int minutes = (totalSeconds % 3600) / 60;
+    int seconds = totalSeconds % 60;
+
+    m_elapsedTimeText.clear();
+    m_elapsedTimeTextStream.seek(0);
+    m_elapsedTimeTextStream.setFieldWidth(2);  // Set field width to 2
+    m_elapsedTimeTextStream.setPadChar('0');   // Zero-fill numbers
+    m_elapsedTimeTextStream << hours << ":" << minutes << ":" << static_cast<int>(seconds);
+    m_elapsedTimeTextStream.setFieldWidth(3);  // Set field width to 3 for milliseconds
+    m_elapsedTimeTextStream << "." << milliseconds;
+    ui->lcdNumberTimer->display(m_elapsedTimeText);
 }
 
 void MainWindow::stopTimer(){
@@ -768,11 +793,7 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
 
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
 {
-    on_recordButton_clicked(false);
-    this->StopPollingThread();
-    m_camInterface.StopAcquisition();
-    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateMinMaxPixelValues);
+    this->StopImageAcquisition();
     if (index != -1)
     {
         this->StartImageAcquisition(ui->cameraListComboBox->currentText());
