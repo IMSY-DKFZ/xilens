@@ -93,7 +93,7 @@ private slots:
 
     void on_skipFramesSpinBox_valueChanged();
 
-    void on_cameraListComboBox_selectionChanged(int index);
+    void on_cameraListComboBox_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;

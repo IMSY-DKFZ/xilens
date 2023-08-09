@@ -68,6 +68,11 @@ void ImageContainer::StopPolling()
     m_PollImage = false;
 }
 
+void ImageContainer::StartPolling()
+{
+    m_PollImage = true;
+}
+
 
 XI_IMG ImageContainer::GetCurrentImage()
 {

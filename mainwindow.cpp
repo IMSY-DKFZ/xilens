@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // populate available cameras
     QStringList cameraList = m_camInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItems(cameraList);
+    ui->cameraListComboBox->setCurrentIndex(-1);
 
     m_display = new DisplayerFunctional(this);
 
@@ -540,14 +541,15 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
 
 void MainWindow::StartPollingThread()
 {
+    m_imageContainer.StartPolling();
     m_image_container_thread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_camInterface.GetHandle(), 5);
 }
 
 void MainWindow::StopPollingThread()
 {
     m_image_container_thread.interrupt();
-    m_imageContainer.StopPolling();
     m_image_container_thread.join();
+    m_imageContainer.StopPolling();
 }
 
 
@@ -764,9 +766,16 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
 
 
 
-void MainWindow::on_cameraListComboBox_selectionChanged(int index)
+void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
 {
     on_recordButton_clicked(false);
-    this->StartImageAcquisition(ui->cameraListComboBox->currentText());
-    this->EnableUi(true);
+    this->StopPollingThread();
+    m_camInterface.StopAcquisition();
+    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
+    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateMinMaxPixelValues);
+    if (index != -1)
+    {
+        this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+        this->EnableUi(true);
+    }
 }

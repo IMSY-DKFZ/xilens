@@ -196,11 +196,11 @@ int CameraInterface::StopAcquisition()
 }
 
 
-int CameraInterface::OpenDevice(const char* camera_sn)
+int CameraInterface::OpenDevice(DWORD camera_sn)
 {
     int stat = XI_INVALID_HANDLE;
 
-    stat = xiOpenDeviceBy(XI_OPEN_BY_SN, camera_sn, &m_camHandle);
+    stat = xiOpenDevice(camera_sn, &m_camHandle);
     HandleResult(stat, "xiGetNumberDevices");
 
     stat = InitializeCamera();
@@ -270,12 +270,10 @@ QStringList CameraInterface::GetAvailableCameraModels()
         xiOpenDevice(i, &hDevice);
 
         char camera_model[256] = { 0 };
-        char camera_sn[256] = {0};
         xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
-        xiGetParamString(hDevice, XI_PRM_DEVICE_SN, camera_sn, sizeof(camera_sn));
 
         cameraModels.append(QString::fromUtf8(camera_model));
-        m_availableCameras[QString::fromUtf8(camera_model)] = camera_sn;
+        m_availableCameras[QString::fromUtf8(camera_model)] = i;
 
         xiCloseDevice(hDevice);
     }

@@ -34,6 +34,7 @@ public:
     void PollImage(HANDLE camHandle, int pollingRate);
     XI_IMG GetCurrentImage();
     void StopPolling();
+    void StartPolling();
 
 signals:
     void NewImage();
