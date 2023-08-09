@@ -87,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // create thread pool
     for (int i = 0; i < 2; i++) // put 2 threads in thread pool
     {
-        m_threadpool.create_thread([ObjectPtr = &m_io_service] { return ObjectPtr->run(); });
+        m_threadpool.create_thread([&] { return m_io_service.run(); });
     }
 
     BOOST_LOG_TRIVIAL(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
@@ -330,12 +330,6 @@ void MainWindow::on_recPrefixlineEdit_returnPressed()
 bool MainWindow::GetNormalize() const
 {
     return this->ui->normalizeCheckbox->isChecked();
-}
-
-
-bool MainWindow::GetRGBMatrixTransform() const
-{
-    return this->ui->rgbMatrixTransformCheckBox->isChecked();
 }
 
 

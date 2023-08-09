@@ -63,8 +63,10 @@ void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayIm
 }
 
 
-void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
+void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm, int scaling_factor)
 {
+    bgr_image /= scaling_factor; // 10 bit to 8 bit
+    bgr_image.convertTo(bgr_image, CV_8UC1);
     double min, max;
     static double last_norm = 1.;
     cv::minMaxLoc(bgr_image, &min, &max);
@@ -186,8 +188,6 @@ void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_
  * and GetGBRfrom the network.
  * We prepare the raw image from XIMEA camera and calling the method GetBands then we display the image.
  * We define a matrix, vector and int to be used in the method calling from the network.
- * If RGBMatrixTransform is checked in the ui we normalize the image by using a transformation matrix and merging the image and
- * the matrix then display the image.
  * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeRGBImage if GetNormalize is checked.
  * Then we display the image.
  * We also display the functional image of VHB and OXY.
@@ -195,6 +195,7 @@ void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_
 void DisplayerFunctional::Display(XI_IMG& image)
 {
     static int selected_display = 0;
+    cv::Mat bgr_image;
 
     selected_display++;
     // give it some time to draw the first frame. For some reason neccessary.
@@ -214,10 +215,32 @@ void DisplayerFunctional::Display(XI_IMG& image)
 
             PrepareRawImage(band_image, 4, m_mainWindow->GetNormalize());
             DisplayImage(band_image, DISPLAY_WINDOW_NAME);
+
+            this->GetBGRImage(currentImage, bgr_image);
+            if (m_mainWindow->GetNormalize()){
+                NormalizeRGBImage(bgr_image);
+            }
+            else {
+                PrepareRGBImage(bgr_image, m_mainWindow->GetRGBNorm(), 4);
+            }
+            DisplayImage(bgr_image, BGR_WINDOW_NAME);
         }
     }
 }
 
+
+void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
+{
+    std::vector<cv::Mat> channels;
+    cv::Mat band_image;
+    for (int i : m_bgr_channels)
+    {
+        this->GetBand(image, band_image, m_mainWindow->GetBand());
+        channels.push_back(band_image);
+    }
+    // Merge the images
+    cv::merge(channels, bgr_image);
+}
 
 void DisplayerFunctional::CreateWindows()
 {

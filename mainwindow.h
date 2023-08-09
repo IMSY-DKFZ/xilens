@@ -30,8 +30,6 @@ public:
 
     bool GetNormalize() const;
 
-    bool GetRGBMatrixTransform() const;
-
     bool DoParamterScaling() const;
 
     unsigned GetBand() const;

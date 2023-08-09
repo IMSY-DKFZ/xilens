@@ -1,4 +1,4 @@
-set(SUSI_REPO "$ENV{susi}/.git")
+set(SUSI_REPO "${PROJECT_SOURCE_DIR}/.git")
 message("Checking hash of repo: ${SUSI_REPO}")
 execute_process(COMMAND bash -c "git --git-dir=${SUSI_REPO} log --pretty=format:'%h' -n 1"
                 OUTPUT_VARIABLE GIT_REV
