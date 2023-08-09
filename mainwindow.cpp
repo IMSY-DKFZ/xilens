@@ -451,19 +451,26 @@ void MainWindow::RecordImage(std::string subFolder)
 
 void MainWindow::updateTimer(){
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
-    float milliseconds = (m_elapsedTime - static_cast<int>(m_elapsedTime)) * 1000;
     int totalSeconds = static_cast<int>(m_elapsedTime);
     int hours = totalSeconds / 3600;
     int minutes = (totalSeconds % 3600) / 60;
     int seconds = totalSeconds % 60;
 
+    std::cout << "hours" << hours << "minutes" << minutes << "seconds" << seconds << "milliseconds " << std::endl;
+
     m_elapsedTimeText.clear();
     m_elapsedTimeTextStream.seek(0);
-    m_elapsedTimeTextStream.setFieldWidth(2);  // Set field width to 2
+    m_elapsedTimeTextStream.setFieldWidth(2);  // Set field width to 2 or numbers and 1 for separators
     m_elapsedTimeTextStream.setPadChar('0');   // Zero-fill numbers
-    m_elapsedTimeTextStream << hours << ":" << minutes << ":" << static_cast<int>(seconds);
-    m_elapsedTimeTextStream.setFieldWidth(3);  // Set field width to 3 for milliseconds
-    m_elapsedTimeTextStream << "." << milliseconds;
+    m_elapsedTimeTextStream << hours;
+    m_elapsedTimeTextStream.setFieldWidth(1);
+    m_elapsedTimeTextStream<< ":";
+    m_elapsedTimeTextStream.setFieldWidth(2);
+    m_elapsedTimeTextStream<< minutes;
+    m_elapsedTimeTextStream.setFieldWidth(1);
+    m_elapsedTimeTextStream<< ":";
+    m_elapsedTimeTextStream.setFieldWidth(2);
+    m_elapsedTimeTextStream<< static_cast<int>(seconds);
     ui->lcdNumberTimer->display(m_elapsedTimeText);
 }
 
