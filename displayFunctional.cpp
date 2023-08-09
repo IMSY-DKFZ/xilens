@@ -63,32 +63,30 @@ void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayIm
 }
 
 
-void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm, int scaling_factor)
+void PrepareBGRImage(cv::Mat& bgr_image, int bgr_norm)
 {
-    bgr_image /= scaling_factor; // 10 bit to 8 bit
-    bgr_image.convertTo(bgr_image, CV_8UC1);
     double min, max;
     static double last_norm = 1.;
     cv::minMaxLoc(bgr_image, &min, &max);
 
-    last_norm = 0.9*last_norm + (double)rgb_norm*0.01*max;
+    last_norm = 0.9*last_norm + (double)bgr_norm * 0.01 * max;
 
     bgr_image*=255./last_norm;
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
 
 /**
- * @brief DisplayerFunctional::NormalizeRGBImage normalizes the bgr_image using clahe.
+ * @brief DisplayerFunctional::NormalizeBGRImage normalizes the bgr_image using clahe.
  * @param bgr_image input
  * We define the matrix lab_images and convert the color bgr to lab.
  * We define a vector lab_planes and split the lab_image into lab_planes.
  * We define a pointer clahe, create clahe and set a treshold for constant limiting.
- * We define a matrix dest, set the clip limit by calling the method GetRGBNorm, apply clahe to the vector lab_planes
+ * We define a matrix dest, set the clip limit by calling the method GetBGRNorm, apply clahe to the vector lab_planes
  * and save it in the matrix dest.
  * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
  */
-void DisplayerFunctional::NormalizeRGBImage(cv::Mat& bgr_image)
+void DisplayerFunctional::NormalizeBGRImage(cv::Mat& bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
@@ -99,7 +97,7 @@ void DisplayerFunctional::NormalizeRGBImage(cv::Mat& bgr_image)
 
     //apply clahe to the L channel and save it in lab_planes
     cv::Mat dst;
-    this->clahe->setClipLimit(m_mainWindow->GetRGBNorm());
+    this->clahe->setClipLimit(m_mainWindow->GetBGRNorm());
     this->clahe->apply(lab_planes[0], dst);
     dst.copyTo(lab_planes[0]);
 
@@ -119,10 +117,8 @@ bool IsFunctional(DisplayImageType displayImageType)
 
 
 
-void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist)
+void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist)
 {
-    raw_image /= scaling_factor; // 10 bit to 8 bit
-    raw_image.convertTo(raw_image, CV_8UC1);
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
     cv::Mat lut = CreateLut(this->saturation_color, this->dark_color);
@@ -168,14 +164,16 @@ void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_
     int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
     // select data from specific band
     int row = 0;
-    for (int i = init_row; i <= image.rows; i += MOSAIC_SHAPE[0]){
+    for (int i = init_row; i < image.rows; i += MOSAIC_SHAPE[0]){
         int col = 0;
-        for (int j = init_col; j <= image.cols; j += MOSAIC_SHAPE[1]){
+        for (int j = init_col; j < image.cols; j += MOSAIC_SHAPE[1]){
             band_image.at<ushort>(row,col) = image.at<ushort>(i,j);
             col ++;
         }
         row ++;
     }
+    band_image /= m_scaling_factor; // 10 bit to 8 bit
+    band_image.convertTo(band_image, CV_8UC1);
 }
 
 
@@ -188,14 +186,14 @@ void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_
  * and GetGBRfrom the network.
  * We prepare the raw image from XIMEA camera and calling the method GetBands then we display the image.
  * We define a matrix, vector and int to be used in the method calling from the network.
- * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeRGBImage if GetNormalize is checked.
+ * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeBGRImage if GetNormalize is checked.
  * Then we display the image.
  * We also display the functional image of VHB and OXY.
  */
 void DisplayerFunctional::Display(XI_IMG& image)
 {
     static int selected_display = 0;
-    cv::Mat bgr_image;
+    static cv::Mat bgr_image = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_8UC3);
 
     selected_display++;
     // give it some time to draw the first frame. For some reason neccessary.
@@ -209,19 +207,20 @@ void DisplayerFunctional::Display(XI_IMG& image)
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat band_image(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1, image.bp);
+            cv::Mat band_image = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1);
 
             this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
 
-            PrepareRawImage(band_image, 4, m_mainWindow->GetNormalize());
+            PrepareRawImage(band_image, m_mainWindow->GetNormalize());
             DisplayImage(band_image, DISPLAY_WINDOW_NAME);
 
+            // display BGR image
             this->GetBGRImage(currentImage, bgr_image);
             if (m_mainWindow->GetNormalize()){
-                NormalizeRGBImage(bgr_image);
+                NormalizeBGRImage(bgr_image);
             }
             else {
-                PrepareRGBImage(bgr_image, m_mainWindow->GetRGBNorm(), 4);
+                PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
             }
             DisplayImage(bgr_image, BGR_WINDOW_NAME);
         }
@@ -232,14 +231,18 @@ void DisplayerFunctional::Display(XI_IMG& image)
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 {
     std::vector<cv::Mat> channels;
-    cv::Mat band_image;
     for (int i : m_bgr_channels)
     {
-        this->GetBand(image, band_image, m_mainWindow->GetBand());
+        cv::Mat band_image = cv::Mat::zeros(image.rows / MOSAIC_SHAPE[0], image.cols / MOSAIC_SHAPE[1], CV_16UC1);
+        this->GetBand(image, band_image, i);
         channels.push_back(band_image);
     }
     // Merge the images
-    cv::merge(channels, bgr_image);
+    try {
+        cv::merge(channels, bgr_image);
+    } catch (const cv::Exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "OpenCV error: " << e.what();
+    }
 }
 
 void DisplayerFunctional::CreateWindows()

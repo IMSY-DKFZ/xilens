@@ -360,7 +360,7 @@ unsigned MainWindow::GetBand() const
     return this->ui->bandSlider->value();
 }
 
-unsigned MainWindow::GetRGBNorm() const {
+unsigned MainWindow::GetBGRNorm() const {
     return this->ui->rgbNormSlider->value();
 }
 

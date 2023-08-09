@@ -43,6 +43,7 @@ private:
     cv::Vec3b saturation_color = cv::Vec3b(180,105,255);
     cv::Vec3b dark_color = cv::Vec3b(0,0,255);
     std::vector<int> m_bgr_channels = {11, 15, 3};
+    int m_scaling_factor = 4;
 
     // run the deep net to be able to display results
     void RunNetwork(XI_IMG& image);
@@ -71,9 +72,9 @@ private:
      *
      * @param raw_image, the image to be processed
      */
-    void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
+    void PrepareRawImage(cv::Mat& raw_image, bool equalize_hist);
 
-    void NormalizeRGBImage(cv::Mat& bgr_image);
+    void NormalizeBGRImage(cv::Mat& bgr_image);
 
     void GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr);
 
@@ -84,8 +85,8 @@ private:
 // helper function to do proper formatting of functional image
 void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap);
 
-void PrepareRGBImage(cv::Mat& rgb_image, int rgb_norm, int scaling_factor);
+void PrepareBGRImage(cv::Mat& bgr_image, int bgr_norm);
 
-void PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist);
+void PrepareRawImage(cv::Mat& raw_image, bool equalize_hist);
 
 #endif // DISPLAY_H

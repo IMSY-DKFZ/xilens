@@ -34,7 +34,7 @@ public:
 
     unsigned GetBand() const;
 
-    unsigned GetRGBNorm() const;
+    unsigned GetBGRNorm() const;
 
     cv::Range GetUpperLowerBoundsVhb() const;
     cv::Range GetUpperLowerBoundsSao2() const;
