@@ -94,8 +94,18 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="toolTip">
+             <string>Record specified number of individual images on base folder</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(132,222,2)</string>
+            </property>
             <property name="text">
              <string>Snapshot (.dat)</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
             </property>
             <property name="checkable">
              <bool>false</bool>
@@ -189,11 +199,21 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="toolTip">
+             <string>Press to start / stop recording</string>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true">background-color: rgb(132,222,2)</string>
             </property>
             <property name="text">
              <string>Record (.dat)</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -304,6 +324,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
              <widget class="QCheckBox" name="normalizeCheckbox">
+              <property name="toolTip">
+               <string>Select to normalize displayed images</string>
+              </property>
               <property name="text">
                <string>Normalize</string>
               </property>
@@ -314,13 +337,19 @@
             </item>
             <item>
              <widget class="QCheckBox" name="AutoexposureCheckbox">
+              <property name="toolTip">
+               <string>Select to adjust exposure automatically</string>
+              </property>
               <property name="text">
                <string>Autoexposure</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLCDNumber" name="lcdNumberTimer">
+             <widget class="QLCDNumber" name="timerLCDNumber">
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
               <property name="smallDecimalPoint">
                <bool>false</bool>
               </property>
@@ -349,6 +378,9 @@
           </item>
           <item>
            <widget class="QSlider" name="rgbNormSlider">
+            <property name="toolTip">
+             <string>Select the normalizing factor for RGB noormalization</string>
+            </property>
             <property name="minimum">
              <number>1</number>
             </property>
@@ -378,6 +410,9 @@
           </item>
           <item>
            <widget class="QSlider" name="bandSlider">
+            <property name="toolTip">
+             <string>Select displayed spectral band</string>
+            </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
@@ -422,7 +457,10 @@
                <bool>false</bool>
               </property>
               <property name="toolTip">
-               <string>Start recording to enable this button</string>
+               <string>Press &quot;record&quot; button to enable this button</string>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: rgb(132,222,2)</string>
               </property>
               <property name="text">
                <string>Record low exposure images</string>
@@ -602,6 +640,37 @@
               </property>
               <property name="text">
                <string>90</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QProgressBar" name="progressBar">
+              <property name="value">
+               <number>0</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>Recorded images:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLCDNumber" name="recordedImagesLCDNumber">
+              <property name="frameShadow">
+               <enum>QFrame::Raised</enum>
+              </property>
+              <property name="digitCount">
+               <number>7</number>
+              </property>
+              <property name="segmentStyle">
+               <enum>QLCDNumber::Flat</enum>
               </property>
              </widget>
             </item>

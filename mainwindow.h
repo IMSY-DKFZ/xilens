@@ -41,6 +41,8 @@ public:
 
     void EnableUi(bool enable);
 
+    void disableWidgetsInLayout(QLayout *layout, bool enable);
+
 protected:
     void closeEvent (QCloseEvent *event);
 

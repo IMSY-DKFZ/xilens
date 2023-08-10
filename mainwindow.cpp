@@ -58,8 +58,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     // populate available cameras
     QStringList cameraList = m_camInterface.GetAvailableCameraModels();
+    ui->cameraListComboBox->addItem("select camera to enable UI...");
     ui->cameraListComboBox->addItems(cameraList);
-    ui->cameraListComboBox->setCurrentIndex(-1);
+    ui->cameraListComboBox->setCurrentIndex(0);
 
     m_display = new DisplayerFunctional(this);
 
@@ -124,14 +125,26 @@ void MainWindow::StopImageAcquisition()
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateMinMaxPixelValues);
 }
 
-void MainWindow::EnableUi(bool enable)
-{
-    for(int i = 0; i < ui->mainUiVerticalLayout->count(); i++){
-        QWidget* widget = ui->mainUiVerticalLayout->itemAt(i)->widget();
-        if(widget && (widget->objectName() != "recLowExposureImagesButton")){
+void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
+    for (int i = 0; i < layout->count(); ++i) {
+        QLayout *subLayout = layout->itemAt(i)->layout();
+        QWidget *widget = layout->itemAt(i)->widget();
+
+        if (widget && (widget->objectName() != "recLowExposureImagesButton")) {
             widget->setEnabled(enable);
         }
+
+        if (subLayout) {
+            disableWidgetsInLayout(subLayout, enable);
+        }
     }
+}
+
+void MainWindow::EnableUi(bool enable)
+{
+    QLayout *layout = ui->mainUiVerticalLayout->layout();
+    disableWidgetsInLayout(layout, enable);
+    ui->exposureSlider->setEnabled(enable);
 }
 
 
@@ -210,8 +223,9 @@ MainWindow::~MainWindow()
 void MainWindow::Snapshots()
 {
     std::string name = ui->snapshotPrefixlineEdit->text().toUtf8().constData();
+    int nr_images = ui->nrSnapshotsspinBox->value();
 
-    for (int i=0; i < ui->nrSnapshotsspinBox->value(); i++)
+    for (int i=0; i < nr_images; i++)
     {
         int exp_time = m_camInterface.GetExposureMs();
         std::stringstream name_i;
@@ -220,7 +234,10 @@ void MainWindow::Snapshots()
         // wait 2x exposure time to be sure to save new image
         int waitTime = 2 * exp_time;
         wait(waitTime);
+        int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
+        QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
+    QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
 }
 
 
@@ -263,16 +280,19 @@ void MainWindow::on_label_exp_editingFinished()
 void MainWindow::on_recordButton_clicked(bool checked)
 {
     static QString original_colour;
+    static QString original_button_text;
 
     if (checked)
     {
         this->m_elapsedTimer.start();
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
+        original_button_text = ui->recordButton->text();
         // create invocation to method to trigger changes in UI from the main thread
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        ui->recordButton->setText("Stop recording");
     }
     else
     {
@@ -280,6 +300,8 @@ void MainWindow::on_recordButton_clicked(bool checked)
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->recordButton, "setText", Qt::QueuedConnection, Q_ARG(QString, original_button_text));
+        ui->recordButton->setText(original_button_text);
     }
 }
 
@@ -413,6 +435,7 @@ void MainWindow::RecordImage()
         }
 
     }
+    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection, Q_ARG(int, m_recordedCount));
 }
 
 void MainWindow::RecordImage(std::string subFolder)
@@ -440,6 +463,7 @@ void MainWindow::RecordImage(std::string subFolder)
             BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
         }
     }
+    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection, Q_ARG(int, m_recordedCount));
 }
 
 /**
@@ -482,11 +506,11 @@ void MainWindow::updateTimer(){
     m_elapsedTimeTextStream<< ":";
     m_elapsedTimeTextStream.setFieldWidth(2);
     m_elapsedTimeTextStream<< static_cast<int>(seconds);
-    ui->lcdNumberTimer->display(m_elapsedTimeText);
+    ui->timerLCDNumber->display(m_elapsedTimeText);
 }
 
 void MainWindow::stopTimer(){
-    ui->lcdNumberTimer->display(0);
+    ui->timerLCDNumber->display(0);
 }
 
 void MainWindow::CountImages()
@@ -580,6 +604,8 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
         BOOST_LOG_TRIVIAL(error) << "Error: %s\n" <<  e.what();
     }
     BOOST_LOG_TRIVIAL(info) << "image " << fullPath.toStdString();
+    m_recordedCount++;
+    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection, Q_ARG(int, m_recordedCount));
 }
 
 void MainWindow::StartPollingThread()
@@ -710,7 +736,7 @@ void MainWindow::lowExposureRecording()
     QString tmp_topFolderName = m_topFolderName;
     wait(2 * original_exposure);
     m_topFolderName = nullptr;
-
+    int nr_images = ui->nLowExposureImages->value() * exp_time.size();
     for (int i : exp_time)
     {
         m_camInterface.SetExposureMs(i);
@@ -719,8 +745,12 @@ void MainWindow::lowExposureRecording()
         for (int j=0; j < ui->nLowExposureImages->value(); j++)
         {
             RecordImage(sub_folder_name);
+            m_recordedCount ++;
+            int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
+            QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
         }
     }
+    QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     m_camInterface.SetExposureMs(original_exposure);
     wait(2 * original_exposure);
     QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, original_colour));
@@ -810,9 +840,13 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
 {
     this->StopImageAcquisition();
-    if (index != -1)
+    if (index != 0)
     {
         this->StartImageAcquisition(ui->cameraListComboBox->currentText());
         this->EnableUi(true);
+    }
+    else
+    {
+        this->EnableUi(false);
     }
 }
