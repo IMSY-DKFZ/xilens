@@ -20,13 +20,14 @@
 #endif
 
 #include <boost/thread.hpp>
+#include <utility>
 
 
 #include "mainwindow.h"
 #include "util.h"
 
 
-const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";
+const std::string DISPLAY_WINDOW_NAME = "RAW image";
 const std::string VHB_WINDOW_NAME = "Blood volume fraction";
 const std::string SAO2_WINDOW_NAME = "Oxygenation";
 const std::string BGR_WINDOW_NAME = "RGB estimate";
@@ -209,7 +210,14 @@ void DisplayerFunctional::Display(XI_IMG& image)
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
             cv::Mat band_image = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1);
 
-            this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
+            if (m_cameraType == "spectral")
+            {
+                this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
+            } else {
+                band_image = currentImage;
+                band_image /= m_scaling_factor; // 10 bit to 8 bit
+                band_image.convertTo(band_image, CV_8UC1);
+            }
 
             PrepareRawImage(band_image, m_mainWindow->GetNormalize());
             DisplayImage(band_image, DISPLAY_WINDOW_NAME);
@@ -243,6 +251,11 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     } catch (const cv::Exception& e) {
         BOOST_LOG_TRIVIAL(error) << "OpenCV error: " << e.what();
     }
+}
+
+void DisplayerFunctional::SetCameraType(QString camera_type)
+{
+    this->m_cameraType = std::move(camera_type);
 }
 
 void DisplayerFunctional::CreateWindows()

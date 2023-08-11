@@ -16,6 +16,7 @@
 #include <QString>
 #include <QtCore>
 
+extern const QMap<QString, QString> CAMERA_TYPE_MAPPER;
 
 class CameraInterface : public QObject
 {
@@ -44,6 +45,7 @@ public:
 
   QMap<QString, DWORD> m_availableCameras;
   QStringList GetAvailableCameraModels();
+  QString m_cameraModel;
 
 
 private:

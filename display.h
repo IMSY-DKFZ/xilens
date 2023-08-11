@@ -9,6 +9,7 @@
 #include <QObject>
 
 #include "xiApi.h"
+#include <QString>
 
 
 class Displayer : public QObject
@@ -19,6 +20,8 @@ public:
 
     explicit Displayer();
     ~Displayer();
+    QString m_cameraType;
+    virtual void SetCameraType(QString camera_type) = 0;
 
 
 protected:

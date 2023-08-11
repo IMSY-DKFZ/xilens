@@ -200,6 +200,12 @@ void DisplayerRaw::Display(XI_IMG& image)
     }
 }
 
+void DisplayerRaw::SetCameraType(QString camera_type)
+{
+    this->m_cameraType = std::move(camera_type);
+}
+
+
 void DisplayerRaw::CreateWindows()
 {
     // create windows to display result

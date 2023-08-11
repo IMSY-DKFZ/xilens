@@ -26,6 +26,9 @@ public:
     explicit DisplayerRaw(MainWindow* mainWindow);
     void DrawHistogram(const cv::Mat roiImg);
     ~DisplayerRaw();
+    QString m_cameraType;
+    void SetCameraType(QString camera_type);
+
 
 protected:
 

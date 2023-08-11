@@ -222,6 +222,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::Snapshots()
 {
+    static QString original_colour = ui->recordButton->styleSheet();
+    // create invocation to method to trigger changes in UI from the main thread
+    QMetaObject::invokeMethod(ui->snapshotButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
     std::string name = ui->snapshotPrefixlineEdit->text().toUtf8().constData();
     int nr_images = ui->nrSnapshotsspinBox->value();
 
@@ -238,6 +241,7 @@ void MainWindow::Snapshots()
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
+    QMetaObject::invokeMethod(ui->snapshotButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
 }
 
 
@@ -839,9 +843,19 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
 
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
 {
+    boost::lock_guard<boost::mutex> guard(mtx_);
     this->StopImageAcquisition();
+    m_camInterface.CloseDevice();
     if (index != 0)
     {
+        QString cameraModel = ui->cameraListComboBox->currentText();
+        m_camInterface.m_cameraModel = cameraModel;
+        if (CAMERA_TYPE_MAPPER.contains(cameraModel)) {
+            QString cameraType = CAMERA_TYPE_MAPPER.value(cameraModel);
+            m_display->SetCameraType(cameraType);
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "camera model not in CAMERA_TYPE_MAPPER: " << cameraModel.toStdString();
+        }
         this->StartImageAcquisition(ui->cameraListComboBox->currentText());
         this->EnableUi(true);
     }

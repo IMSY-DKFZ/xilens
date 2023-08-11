@@ -52,8 +52,8 @@ ELSE()
 ENDIF()
 
 # qt
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets)
+find_package(Qt6Core REQUIRED)
+find_package(Qt6Widgets)
 # opencv
 set(OpenCV_STATIC ON)
 find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui)
@@ -90,8 +90,8 @@ set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
 )
 set (susiCamLib_ui  ${PROJECT_SOURCE_DIR}/mainwindow.ui)
 
-qt5_wrap_cpp(susiCamLib_hdr_moc ${susiCamLib_hdr})
-qt5_wrap_ui (susiCamLib_ui_moc  ${susiCamLib_ui})
+qt6_wrap_cpp(susiCamLib_hdr_moc ${susiCamLib_hdr})
+qt6_wrap_ui (susiCamLib_ui_moc  ${susiCamLib_ui})
 
 include_directories (${PROJECT_SOURCE_DIR})
 include_directories (${PROJECT_BINARY_DIR})
@@ -102,7 +102,7 @@ add_library (susiCamLib ${LIBTYPE}
     ${susiCamLib_hdr_moc}
     ${susiCamLib_ui_moc}
 )
-target_link_libraries(susiCamLib Qt5::Widgets)
+target_link_libraries(susiCamLib Qt6::Widgets)
 target_link_libraries(susiCamLib ${OpenCV_LIBS} )
 target_link_libraries(susiCamLib ${Boost_LIBRARIES})
 target_link_libraries(susiCamLib ${Ximea_Lib})
@@ -112,6 +112,6 @@ target_link_libraries(susiCamLib ${Ximea_Lib})
 ###################
 
 set (susiCamBin_src ${PROJECT_SOURCE_DIR}/mainSusiCam.cpp)
-qt5_add_resources(susiCamBin_src ${PROJECT_SOURCE_DIR}/resources.qrc)
+qt6_add_resources(susiCamBin_src ${PROJECT_SOURCE_DIR}/resources.qrc)
 add_executable(susiCam ${susiCamBin_src})
 target_link_libraries(susiCam susiCamLib)

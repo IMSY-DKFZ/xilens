@@ -13,6 +13,12 @@
 #include "util.h"
 
 
+const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
+        {"MQ022HG-IM-SM4X4-VIS", "spectral"},
+        {"MQ022HG-IM-SM4X4-VIS3", "spectral"},
+        {"MC050MG-SY-UB", "gray"}
+};
+
 void CameraInterface::AutoExposure(bool on)
 {
     int stat = XI_INVALID_HANDLE;

@@ -27,6 +27,8 @@ public:
 
     explicit DisplayerFunctional(MainWindow* mainWindow);
     ~DisplayerFunctional();
+    QString m_cameraType = "spectral";
+    void SetCameraType(QString camera_type);
 
 protected:
 
@@ -37,6 +39,7 @@ protected:
 public slots:
 
     virtual void Display(XI_IMG& image);
+
 
 private:
 

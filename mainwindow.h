@@ -8,7 +8,8 @@
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QApplication>
-#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QElapsedTimer>
 
 #include <boost/thread.hpp>
