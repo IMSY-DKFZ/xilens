@@ -14,6 +14,7 @@
 #include <boost/thread.hpp>
 
 #include "xiApi.h"
+#include "constants.h"
 
 class MainWindow;
 
@@ -23,11 +24,17 @@ class DisplayerRaw : public Displayer
 
 public:
 
-    explicit DisplayerRaw(MainWindow* mainWindow);
-    void DrawHistogram(const cv::Mat roiImg);
-    ~DisplayerRaw();
     QString m_cameraType;
+
+    explicit DisplayerRaw(MainWindow* mainWindow);
+
+    void DrawHistogram(const cv::Mat roiImg);
+
+    ~DisplayerRaw();
+
     void SetCameraType(QString camera_type);
+
+    void DownsampleImageIfNecessary(cv::Mat& image);
 
 
 protected:

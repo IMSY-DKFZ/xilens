@@ -25,12 +25,8 @@
 
 #include "mainwindow.h"
 #include "util.h"
+#include "constants.h"
 
-
-const std::string DISPLAY_WINDOW_NAME = "RAW image";
-const std::string VHB_WINDOW_NAME = "Blood volume fraction";
-const std::string SAO2_WINDOW_NAME = "Oxygenation";
-const std::string BGR_WINDOW_NAME = "RGB estimate";
 typedef cv::Point3_<uint8_t> Pixel;
 
 
@@ -122,7 +118,7 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist
 {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
-    cv::Mat lut = CreateLut(this->saturation_color, this->dark_color);
+    cv::Mat lut = CreateLut(SATURATION_COLOR, DARK_COLOR);
     cv::LUT(mask, lut, mask);
     if (equalize_hist)
     {
@@ -132,19 +128,18 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist
 
     // Parallel execution on each pixel using C++11 lambda.
     raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
-        if (mask.at<cv::Vec3b>(position[0], position[1]) == this->saturation_color){
-            p.x = this->saturation_color[0];
-            p.y = this->saturation_color[1];
-            p.z = this->saturation_color[2];
+        if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR){
+            p.x = SATURATION_COLOR[0];
+            p.y = SATURATION_COLOR[1];
+            p.z = SATURATION_COLOR[2];
         }
-        else if(mask.at<cv::Vec3b>(position[0], position[1]) == this->dark_color){
-            p.x = this->dark_color[0];
-            p.y = this->dark_color[1];
-            p.z = this->dark_color[2];
+        else if(mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR){
+            p.x = DARK_COLOR[0];
+            p.y = DARK_COLOR[1];
+            p.z = DARK_COLOR[2];
         }
     });
 }
-
 
 
 void DisplayerFunctional::DisplayImage(cv::Mat& image, const std::string windowName)
@@ -158,6 +153,7 @@ void DisplayerFunctional::DisplayImage(cv::Mat& image, const std::string windowN
     cv::resize(image, image, newSize);
     cv::imshow(windowName.c_str(), image);
 }
+
 
 void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
     // compute location of first value
@@ -175,6 +171,19 @@ void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_
     }
     band_image /= m_scaling_factor; // 10 bit to 8 bit
     band_image.convertTo(band_image, CV_8UC1);
+}
+
+
+void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat& image)
+{
+    // Check if the image exceeds the maximum dimensions
+    if(image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW)
+    {
+        double scale = std::min(
+                (double)MAX_WIDTH_DISPLAY_WINDOW / image.cols,
+                (double)MAX_HEIGHT_DISPLAY_WINDOW / image.rows);
+        cv::resize(image, image, cv::Size(), scale, scale, cv::INTER_AREA);
+    }
 }
 
 
@@ -208,19 +217,20 @@ void DisplayerFunctional::Display(XI_IMG& image)
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat band_image = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1);
+            cv::Mat raw_image_to_display = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1);
 
             if (m_cameraType == "spectral")
             {
-                this->GetBand(currentImage, band_image, m_mainWindow->GetBand());
+                this->GetBand(currentImage, raw_image_to_display, m_mainWindow->GetBand());
             } else {
-                band_image = currentImage;
-                band_image /= m_scaling_factor; // 10 bit to 8 bit
-                band_image.convertTo(band_image, CV_8UC1);
+                raw_image_to_display = currentImage;
+                raw_image_to_display /= m_scaling_factor; // 10 bit to 8 bit
+                raw_image_to_display.convertTo(raw_image_to_display, CV_8UC1);
             }
 
-            PrepareRawImage(band_image, m_mainWindow->GetNormalize());
-            DisplayImage(band_image, DISPLAY_WINDOW_NAME);
+            PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
+            DownsampleImageIfNecessary(raw_image_to_display);
+            DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
 
             // display BGR image
             this->GetBGRImage(currentImage, bgr_image);
@@ -230,6 +240,7 @@ void DisplayerFunctional::Display(XI_IMG& image)
             else {
                 PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
             }
+            DownsampleImageIfNecessary(bgr_image);
             DisplayImage(bgr_image, BGR_WINDOW_NAME);
         }
     }

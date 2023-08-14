@@ -24,9 +24,7 @@
 
 #include "mainwindow.h"
 #include "util.h"
-
-
-const std::string DISPLAY_WINDOW_NAME = "SuSI Live Cam";
+#include "constants.h"
 
 
 DisplayerRaw::DisplayerRaw(MainWindow* mainWindow) :
@@ -146,6 +144,19 @@ void mouseHandler(int event, int x, int y, int flags, void* param)
 }
 
 
+void DisplayerRaw::DownsampleImageIfNecessary(cv::Mat& image)
+{
+    // Check if the image exceeds the maximum dimensions
+    if(image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW)
+    {
+        double scale = std::min(
+                (double)MAX_WIDTH_DISPLAY_WINDOW / image.cols,
+                (double)MAX_HEIGHT_DISPLAY_WINDOW / image.rows);
+        cv::resize(image, image, cv::Size(), scale, scale, cv::INTER_AREA);
+    }
+}
+
+
 cv::Mat DisplayerRaw::PrepareImageToDisplay(cv::Mat& image)
 {
     image = image.clone();
@@ -171,13 +182,7 @@ void DisplayerRaw::DisplayImage(cv::Mat& image, const std::string windowName)
 {
     m_rawImage = image.clone();
     m_displayImage = PrepareImageToDisplay(image);
-    int w_heigth = 0;
-    int w_width = 0;
-
-    // resizing windows does not work properly with mouse callback
-    cv::Size newSize(m_displayImage.size().width/4, m_displayImage.size().height/4);
-//    cv::Size newSize(w_width / 4, w_heigth / 4);
-    cv::resize(m_displayImage, m_displayImage, newSize);
+    DownsampleImageIfNecessary(image);
     cv::imshow(windowName.c_str(), m_displayImage);
 }
 

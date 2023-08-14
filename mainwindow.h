@@ -17,7 +17,6 @@
 #include "camera_interface.h"
 #include "display.h"
 
-const QString LOG_FILE_NAME = "logFile.txt";
 
 namespace Ui {
 class MainWindow;

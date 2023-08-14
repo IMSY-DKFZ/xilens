@@ -31,6 +31,7 @@
 #include "image_container.h"
 #include "displayFunctional.h"
 #include "displayRaw.h"
+#include "constants.h"
 
 
 /**

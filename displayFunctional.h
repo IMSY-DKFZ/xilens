@@ -14,6 +14,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "xiApi.h"
+#include "constants.h"
 
 class MainWindow;
 
@@ -26,9 +27,14 @@ class DisplayerFunctional : public Displayer
 public:
 
     explicit DisplayerFunctional(MainWindow* mainWindow);
+
     ~DisplayerFunctional();
-    QString m_cameraType = "spectral";
+
+    QString m_cameraType = SPECTRAL_CAMERA;
+
     void SetCameraType(QString camera_type);
+
+    void DownsampleImageIfNecessary(cv::Mat& image);
 
 protected:
 
@@ -42,9 +48,6 @@ public slots:
 
 
 private:
-
-    cv::Vec3b saturation_color = cv::Vec3b(180,105,255);
-    cv::Vec3b dark_color = cv::Vec3b(0,0,255);
     std::vector<int> m_bgr_channels = {11, 15, 3};
     int m_scaling_factor = 4;
 

@@ -11,6 +11,7 @@
 
 #include "camera_interface.h"
 #include "util.h"
+#include "constants.h"
 
 
 const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
