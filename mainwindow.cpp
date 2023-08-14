@@ -120,6 +120,7 @@ void MainWindow::StartImageAcquisition(QString camera_name) {
 void MainWindow::StopImageAcquisition()
 {
     this->StopPollingThread();
+    this->StopTemperatureThread();
     m_camInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
@@ -215,6 +216,8 @@ MainWindow::~MainWindow()
     m_io_service.stop();
     m_threadpool.join_all();
 
+    this->StopTemperatureThread();
+
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
 
     delete ui;
@@ -225,7 +228,7 @@ void MainWindow::Snapshots()
 {
     static QString original_colour = ui->recordButton->styleSheet();
     // create invocation to method to trigger changes in UI from the main thread
-    QMetaObject::invokeMethod(ui->snapshotButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
+    QMetaObject::invokeMethod(ui->snapshotButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, BUTTON_PRESSED_STYLE));
     std::string name = ui->snapshotPrefixlineEdit->text().toUtf8().constData();
     int nr_images = ui->nrSnapshotsspinBox->value();
 
@@ -251,6 +254,66 @@ void MainWindow::on_snapshotButton_clicked()
     boost::thread(&MainWindow::Snapshots, this);
 }
 
+
+void MainWindow::RecordCameraTemperature()
+{
+    QString message;
+    m_camInterface.UpdateCameraTemperature();
+    for (const QString& key : m_camInterface.m_cameraTemperature.keys()) {
+        float temp = m_camInterface.m_cameraTemperature.value(key);
+        message = QString("\t%1\t%2").arg(key).arg(temp);
+        this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
+    }
+    this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
+}
+
+
+void MainWindow::ScheduleTemperatureThread() {
+    m_temperatureThreadTimer = new boost::asio::steady_timer(m_io_service);
+    m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
+    m_temperatureThreadTimer->async_wait(boost::bind(&MainWindow::HandleTimer, this, m_temperatureThreadTimer, boost::asio::placeholders::error));
+}
+
+void MainWindow::HandleTimer(boost::asio::steady_timer* timer, const boost::system::error_code& error) {
+    if (error) {
+        std::cout << "Timer cancelled. Error: " << error << "\n";
+        delete timer;
+        return;
+    }
+
+    // Do what you need to do every 5 seconds
+    this->RecordCameraTemperature();
+
+    // Reset timer
+    timer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
+    timer->async_wait(boost::bind(&MainWindow::HandleTimer, this, timer, boost::asio::placeholders::error));
+}
+
+void MainWindow::StartTemperatureThread()
+{
+    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
+    QFile file(log_filename);
+    QFileInfo fileInfo(file);
+    if(fileInfo.size() == 0) {
+        this->LogMessage("time\tsensor_location\ttemperature", TEMP_LOG_FILE_NAME, false);
+    }
+    file.close();
+    m_temperatureThread = boost::thread([&]() {
+        ScheduleTemperatureThread();
+        m_io_service.run();
+    });
+}
+
+void MainWindow::StopTemperatureThread()
+{
+    if (m_temperatureThread.joinable())
+    {
+        m_temperatureThreadTimer->cancel();
+        m_temperatureThread.interrupt();
+        m_temperatureThread.join();
+        m_temperatureThreadTimer = nullptr;
+    }
+}
 
 void MainWindow::on_exposureSlider_valueChanged(int value)
 {
@@ -289,20 +352,20 @@ void MainWindow::on_recordButton_clicked(bool checked)
 
     if (checked)
     {
-        this->LogMessage("SUSICAM RECORDING STARTS");
+        this->LogMessage("SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
         this->m_elapsedTimer.start();
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
         original_button_text = ui->recordButton->text();
         // create invocation to method to trigger changes in UI from the main thread
-        QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, "background-color: rgb(255, 0, 0)"));
+        QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, BUTTON_PRESSED_STYLE));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         ui->recordButton->setText("Stop recording");
     }
     else
     {
-        this->LogMessage("SUSICAM RECORDING ENDS");
+        this->LogMessage("SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -321,6 +384,7 @@ void MainWindow::closeEvent (QCloseEvent *event)
 void MainWindow::on_chooseFolder_clicked()
 {
     bool isValid = false;
+    this->StopTemperatureThread();
     while (!isValid)
     {
         QString baseFolderPath = QFileDialog::getExistingDirectory(this, tr("Open Directory"),
@@ -336,6 +400,7 @@ void MainWindow::on_chooseFolder_clicked()
                 ui->baseFolderLoc->clear();
                 ui->baseFolderLoc->insert(this->GetBaseFolder());
                 this->WriteLogHeader();
+                this->StartTemperatureThread();
             }
         }
     }
@@ -344,20 +409,24 @@ void MainWindow::on_chooseFolder_clicked()
 
 void MainWindow::WriteLogHeader()
 {
-    this->LogMessage("git hash: " + QString::fromLatin1(libfive_git_revision()));
-    this->LogMessage("git branch: " + QString::fromLatin1(libfive_git_branch()));
-    this->LogMessage("git tags matching hash: " + QString::fromLatin1(libfive_git_version()));
+    this->LogMessage(" git hash: " + QString::fromLatin1(libfive_git_revision()), LOG_FILE_NAME, true);
+    this->LogMessage(" git branch: " + QString::fromLatin1(libfive_git_branch()), LOG_FILE_NAME, true);
+    this->LogMessage(" git tags matching hash: " + QString::fromLatin1(libfive_git_version()), LOG_FILE_NAME, true);
 }
 
 
-void MainWindow::LogMessage(QString message)
+void MainWindow::LogMessage(QString message, QString log_file, bool log_time)
 {
     QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + LOG_FILE_NAME);
+    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + log_file);
     QFile file(log_filename);
     file.open(QIODevice::Append);
     QTextStream stream(&file);
-    stream << " " << curr_time << message << "\n";
+    if (log_time)
+    {
+        stream << curr_time;
+    }
+    stream << message << "\n";
     file.close();
 }
 
@@ -366,14 +435,14 @@ void MainWindow::LogMessage(QString message)
 void MainWindow::on_topFolderName_returnPressed()
 {
     m_topFolderName = ui->topFolderName->text();
-    ui->topFolderName->setStyleSheet("background-color: rgb(255, 255, 255)");
+    ui->topFolderName->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
 
 void MainWindow::on_recPrefixlineEdit_returnPressed()
 {
     m_recPrefixlineEdit = ui->recPrefixlineEdit->text();
-    ui->recPrefixlineEdit->setStyleSheet("background-color: rgb(255, 255, 255)");
+    ui->recPrefixlineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
 
@@ -694,11 +763,11 @@ void MainWindow::on_topFolderName_textEdited(const QString &arg1)
 {
     if (QString::compare(arg1, m_topFolderName, Qt::CaseSensitive))
     {
-        ui->topFolderName->setStyleSheet("background-color: rgb(255, 105, 180)");
+        ui->topFolderName->setStyleSheet(FIELD_EDITED_STYLE);
     }
     else
     {
-        ui->topFolderName->setStyleSheet("background-color: rgb(255, 255, 255)");
+        ui->topFolderName->setStyleSheet(FIELD_ORIGINAL_STYLE);
     }
 
 
@@ -709,11 +778,11 @@ void MainWindow::on_recPrefixlineEdit_textEdited(const QString &arg1)
 {
     if (QString::compare(arg1, m_recPrefixlineEdit, Qt::CaseSensitive))
     {
-        ui->recPrefixlineEdit->setStyleSheet("background-color: rgb(255, 105, 180)");
+        ui->recPrefixlineEdit->setStyleSheet(FIELD_EDITED_STYLE);
     }
     else
     {
-        ui->recPrefixlineEdit->setStyleSheet("background-color: rgb(255, 255, 255)");
+        ui->recPrefixlineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
     }
 }
 
@@ -756,7 +825,7 @@ void MainWindow::lowExposureRecording()
     int original_exposure = m_camInterface.GetExposureMs();
     std::vector<int> exp_time = {5, 10, 20, 40, 60, 80, 100, 150};
     // change style of record low exposure images button and disable exposure components
-    QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, "background-color: rgb(255, 0, 0);"));
+    QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, BUTTON_PRESSED_STYLE));
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
     QMetaObject::invokeMethod(ui->label_exp, "setEnabled", Q_ARG(bool, false));
 
@@ -802,11 +871,11 @@ void MainWindow::on_folderLowExposureImages_textEdited(const QString &arg1)
 {
     if (QString::compare(arg1, m_folderLowExposureImages, Qt::CaseSensitive))
     {
-        ui->folderLowExposureImages->setStyleSheet("background-color: rgb(255, 105, 180)");
+        ui->folderLowExposureImages->setStyleSheet(FIELD_EDITED_STYLE);
     }
     else
     {
-        ui->folderLowExposureImages->setStyleSheet("background-color: rgb(255, 255, 255)");
+        ui->folderLowExposureImages->setStyleSheet(FIELD_ORIGINAL_STYLE);
     }
 
 
@@ -815,26 +884,26 @@ void MainWindow::on_folderLowExposureImages_textEdited(const QString &arg1)
 void MainWindow::on_folderLowExposureImages_returnPressed()
 {
     m_folderLowExposureImages = ui->folderLowExposureImages->text();
-    ui->folderLowExposureImages->setStyleSheet("background-color: rgb(255, 255, 255)");
+    ui->folderLowExposureImages->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
 void MainWindow::on_triggerText_textEdited(const QString &arg1)
 {
     if (QString::compare(arg1, m_triggerText, Qt::CaseSensitive))
     {
-        ui->triggerText->setStyleSheet("background-color: rgb(255, 105, 180)");
+        ui->triggerText->setStyleSheet(FIELD_EDITED_STYLE);
     }
     else
     {
-        ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
+        ui->triggerText->setStyleSheet(FIELD_ORIGINAL_STYLE);
     }
 }
 
 void MainWindow::on_triggerText_returnPressed()
 {
     QString trigger_message = ui->triggerText->text();
-    this->LogMessage(trigger_message);
-    ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
+    this->LogMessage(trigger_message, LOG_FILE_NAME, true);
+    ui->triggerText->setStyleSheet(FIELD_ORIGINAL_STYLE);
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggerText->clear();
 }
@@ -877,6 +946,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         }
         this->StartImageAcquisition(ui->cameraListComboBox->currentText());
         this->EnableUi(true);
+        this->LogMessage(QString("camera selected: %1").arg(cameraModel), LOG_FILE_NAME, true);
     }
     else
     {

@@ -41,8 +41,15 @@ public:
   int StartAcquisition(QString camera_name);
   int StopAcquisition();
   void CloseDevice();
+  void UpdateCameraTemperature();
+  QMap<QString, float> m_cameraTemperature = {
+          {CHIP_TEMP,  0.},
+          {HOUSE_TEMP, 0.},
+          {HOUSE_BACK_TEMP, 0.},
+          {SENSOR_BOARD_TEMP, 0.},
+  };
 
-  HANDLE GetHandle();
+    HANDLE GetHandle();
 
   QMap<QString, DWORD> m_availableCameras;
   QStringList GetAvailableCameraModels();

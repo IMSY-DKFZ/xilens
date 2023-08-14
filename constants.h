@@ -18,5 +18,17 @@ const cv::Vec3b SATURATION_COLOR = cv::Vec3b(180,105,255);
 const cv::Vec3b DARK_COLOR = cv::Vec3b(0,0,255);
 
 const QString LOG_FILE_NAME = "logFile.txt";
+const QString TEMP_LOG_FILE_NAME = "temperatureLogFile.txt";
+
+// camera temperature locations
+const QString CHIP_TEMP = "chip";
+const QString HOUSE_TEMP = "house";
+const QString HOUSE_BACK_TEMP = "house_back_side";
+const QString SENSOR_BOARD_TEMP = "sensor_board";
+const int TEMP_LOG_INTERVAL = 5;
+
+const QString BUTTON_PRESSED_STYLE = "background-color: rgb(255, 0, 0)";
+const QString FIELD_ORIGINAL_STYLE = "background-color: rgb(255, 255, 255)";
+const QString FIELD_EDITED_STYLE = "background-color: rgb(255, 105, 180)";
 
 #endif

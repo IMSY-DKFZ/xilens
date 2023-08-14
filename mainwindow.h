@@ -13,6 +13,7 @@
 #include <QElapsedTimer>
 
 #include <boost/thread.hpp>
+#include <boost/asio.hpp>
 
 #include "camera_interface.h"
 #include "display.h"
@@ -47,7 +48,17 @@ public:
 
     void WriteLogHeader();
 
-    void LogMessage(QString message);
+    void LogMessage(QString message, QString log_filename, bool log_time);
+
+    void RecordCameraTemperature();
+
+    void ScheduleTemperatureThread();
+
+    void StartTemperatureThread();
+
+    void StopTemperatureThread();
+
+    void HandleTimer(boost::asio::steady_timer* timer, const boost::system::error_code& error);
 
 protected:
     void closeEvent (QCloseEvent *event);
@@ -210,6 +221,8 @@ private:
     boost::thread_group m_threadpool;
     boost::asio::io_service::work m_work;
     boost::mutex mtx_;
+    boost::thread m_temperatureThread;
+    boost::asio::steady_timer* m_temperatureThreadTimer;
 
     void StartImageAcquisition(QString camera_name);
     void StopImageAcquisition();

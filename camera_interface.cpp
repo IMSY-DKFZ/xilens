@@ -20,6 +20,21 @@ const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
         {"MC050MG-SY-UB", "gray"}
 };
 
+
+void CameraInterface::UpdateCameraTemperature()
+{
+    float chipTemp, housTemp, housBackSideTemp, sensorBoardTemp;
+
+    xiGetParamFloat(m_camHandle, XI_PRM_CHIP_TEMP, &chipTemp);
+    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_TEMP, &housTemp);
+    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &housBackSideTemp);
+    xiGetParamFloat(m_camHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
+    this->m_cameraTemperature[CHIP_TEMP] = chipTemp;
+    this->m_cameraTemperature[HOUSE_TEMP] = housTemp;
+    this->m_cameraTemperature[HOUSE_BACK_TEMP] = housBackSideTemp;
+    this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
+}
+
 void CameraInterface::AutoExposure(bool on)
 {
     int stat = XI_INVALID_HANDLE;
