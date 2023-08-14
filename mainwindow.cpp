@@ -288,6 +288,7 @@ void MainWindow::on_recordButton_clicked(bool checked)
 
     if (checked)
     {
+        this->LogMessage("SUSICAM RECORDING STARTS");
         this->m_elapsedTimer.start();
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
@@ -300,6 +301,7 @@ void MainWindow::on_recordButton_clicked(bool checked)
     }
     else
     {
+        this->LogMessage("SUSICAM RECORDING ENDS");
         this->StopRecording();
         QMetaObject::invokeMethod(ui->recordButton, "setStyleSheet", Qt::QueuedConnection, Q_ARG(QString, original_colour));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -332,9 +334,30 @@ void MainWindow::on_chooseFolder_clicked()
                 this->SetBaseFolder(baseFolderPath);
                 ui->baseFolderLoc->clear();
                 ui->baseFolderLoc->insert(this->GetBaseFolder());
+                this->WriteLogHeader();
             }
         }
     }
+}
+
+
+void MainWindow::WriteLogHeader()
+{
+    this->LogMessage("git hash: " + QString::fromLatin1(libfive_git_revision()));
+    this->LogMessage("git branch: " + QString::fromLatin1(libfive_git_branch()));
+    this->LogMessage("git tags matching hash: " + QString::fromLatin1(libfive_git_version()));
+}
+
+
+void MainWindow::LogMessage(QString message)
+{
+    QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
+    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + LOG_FILE_NAME);
+    QFile file(log_filename);
+    file.open(QIODevice::Append);
+    QTextStream stream(&file);
+    stream << " " << curr_time << message << "\n";
+    file.close();
 }
 
 
@@ -809,19 +832,7 @@ void MainWindow::on_triggerText_textEdited(const QString &arg1)
 void MainWindow::on_triggerText_returnPressed()
 {
     QString trigger_message = ui->triggerText->text();
-    QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + "logFile.txt");
-    QFile file(log_filename);
-    file.open(QIODevice::Append);
-    QTextStream stream(&file);
-    if (file.size() == 0){
-        stream << curr_time + " " + "git hash: " << libfive_git_revision() << "\n";
-        stream << curr_time + " " + "git branch: " << libfive_git_branch() << "\n";
-        stream << curr_time + " " + "git tags matching hash: " << libfive_git_version() << "\n";
-    }
-    m_triggerText = curr_time + " " + trigger_message + "\n";
-    stream << m_triggerText;
-    file.close();
+    this->LogMessage(trigger_message);
     ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggerText->clear();
@@ -853,6 +864,13 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         if (CAMERA_TYPE_MAPPER.contains(cameraModel)) {
             QString cameraType = CAMERA_TYPE_MAPPER.value(cameraModel);
             m_display->SetCameraType(cameraType);
+            if (cameraType == SPECTRAL_CAMERA)
+            {
+                this->ui->bandSlider->setEnabled(false);
+            }
+            else {
+                this->ui->bandSlider->setEnabled(true);
+            }
         } else {
             BOOST_LOG_TRIVIAL(error) << "camera model not in CAMERA_TYPE_MAPPER: " << cameraModel.toStdString();
         }

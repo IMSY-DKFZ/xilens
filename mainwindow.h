@@ -17,6 +17,8 @@
 #include "camera_interface.h"
 #include "display.h"
 
+const QString LOG_FILE_NAME = "logFile.txt";
+
 namespace Ui {
 class MainWindow;
 }
@@ -43,6 +45,10 @@ public:
     void EnableUi(bool enable);
 
     void disableWidgetsInLayout(QLayout *layout, bool enable);
+
+    void WriteLogHeader();
+
+    void LogMessage(QString message);
 
 protected:
     void closeEvent (QCloseEvent *event);

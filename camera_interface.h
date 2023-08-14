@@ -17,6 +17,8 @@
 #include <QtCore>
 
 extern const QMap<QString, QString> CAMERA_TYPE_MAPPER;
+const QString SPECTRAL_CAMERA = "spectral";
+const QString GRAY_CAMERA = "gray";
 
 class CameraInterface : public QObject
 {
