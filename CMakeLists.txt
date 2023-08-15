@@ -1,9 +1,5 @@
-
-
 cmake_minimum_required (VERSION 3.1)
 project (susiCam)
-
-
 
 #################################
 ##### compiler fiddling     #####
@@ -17,6 +13,23 @@ project (susiCam)
 #################################
 
 # platform specific settings
+
+cmake_host_system_information(RESULT UBUNTU_VERSION QUERY OS_VERSION)
+message("Found OS_VERSION: ${UBUNTU_VERSION} in Ubuntu")
+
+IF (UBUNTU_VERSION MATCHES "20.04")
+    # needed when using ubuntu 20
+    message([STATUS] "UBUNTU version found ${UBUNTU_VERSION}")
+    set(CMAKE_CXX_FLAGS "-luuid")
+    # boost
+    find_package(Boost REQUIRED python system thread timer chrono log filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+ELSE()
+    # boost
+    find_package(Boost REQUIRED system thread timer chrono log filesystem)
+    include_directories (${Boost_INCLUDE_DIRS})
+ENDIF()
+
 IF (WIN32)
   # if on windows: enter the path to your qt here.
   set (CMAKE_PREFIX_PATH "C:\\Qt\\5.6\\msvc2015_64\\")
@@ -39,13 +52,14 @@ ELSE()
 ENDIF()
 
 # qt
+find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets)
 # opencv
 set(OpenCV_STATIC ON)
-find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui contrib)
+find_package( OpenCV REQUIRED COMPONENTS core imgproc highgui)
 include_directories(${OpenCV_INCLUDE_DIRS})
 # boost
-find_package(Boost REQUIRED system thread timer chrono log filesystem)
+find_package(Boost REQUIRED python system thread timer chrono log filesystem)
 include_directories (${Boost_INCLUDE_DIRS})
 #caffe
 find_package(Caffe)
@@ -60,13 +74,17 @@ include_directories (${Ximea_Include_Dir})
 ######################
 ##### susiCamLib #####
 ######################
+include(version.cmake)
 
 set (susiCamLib_src ${PROJECT_SOURCE_DIR}/mainwindow.cpp
+                  ${PROJECT_SOURCE_DIR}/version.cpp
                   ${PROJECT_SOURCE_DIR}/camera_interface.cpp
                   ${PROJECT_SOURCE_DIR}/caffe_interface.cpp
                   ${PROJECT_SOURCE_DIR}/display.cpp
                   ${PROJECT_SOURCE_DIR}/displayRaw.cpp
                   ${PROJECT_SOURCE_DIR}/displayCaffe.cpp
+                  ${PROJECT_SOURCE_DIR}/displaySaturation.cpp
+                  ${PROJECT_SOURCE_DIR}/displayDemo.cpp
                   ${PROJECT_SOURCE_DIR}/image_container.cpp                  
                   ${PROJECT_SOURCE_DIR}/util.cpp)
 set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
@@ -75,6 +93,8 @@ set (susiCamLib_hdr ${PROJECT_SOURCE_DIR}/mainwindow.h
                   ${PROJECT_SOURCE_DIR}/display.h
                   ${PROJECT_SOURCE_DIR}/displayRaw.h
                   ${PROJECT_SOURCE_DIR}/displayCaffe.h
+                  ${PROJECT_SOURCE_DIR}/displaySaturation.h
+                  ${PROJECT_SOURCE_DIR}/displayDemo.h
                   ${PROJECT_SOURCE_DIR}/image_container.h
                   ${PROJECT_SOURCE_DIR}/util.h
                   ${PROJECT_SOURCE_DIR}/default_defines.h)

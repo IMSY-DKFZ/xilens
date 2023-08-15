@@ -2,6 +2,7 @@
 
 #include <caffe_interface.h>
 
+#include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -19,6 +20,7 @@
 #include <utility>
 #include <iostream>
 #include <stdexcept>
+#include "util.h"
 #include "time.h"
 
 using namespace caffe;  // NOLINT(build/namespaces)
@@ -301,6 +303,43 @@ void Network::GetBand(std::vector<cv::Mat>& band_image, unsigned band_nr)
 
 }
 
+/**
+ * @brief Network::GetBands takes bands, iterates through them, takes 3 bands and merge them into the rgb_image.
+ * @param rgb_image input
+ * @throws runtime error if network is not initialized
+ * We check if the network is ready.
+ * If network is ready we define the vectores channels and channel.
+ * We iterate through the bands, call the function GetBands and add the three bands to the end of vector channels.
+ * We merge the vector channels into the matrix rgb_image.
+ * We divide the matrix by a scaling_factor and convert the 10 bit to 8 bit rgb_image which uses 3 channels.
+ * Else we throw a runtime_error.
+ */
+void Network::GetBands(cv::Mat& rgb_image)
+{
+    if (NetworkReady())
+    {
+        std::vector<cv::Mat> channels;
+        std::vector<cv::Mat> channel;
+        for (std::size_t i = 0; i < bands.size(); ++i)
+        {
+            this ->GetBand(channel, bands.at(i));
+            channels.push_back(channel.at(0));
+        }
+
+        cv::merge(channels, rgb_image);
+        //convert 10 bit to 8 bit
+        rgb_image /= 1024;
+        rgb_image *=255;
+        rgb_image.convertTo(rgb_image, CV_8UC3);
+    }
+    else
+    {
+        throw std::runtime_error("network not initialized, cannot return band image");
+    }
+}
+
+
+
 void Network::GetBGR(std::vector<cv::Mat>& bgr)
 {
     if (NetworkReady())
@@ -343,7 +382,7 @@ cv::Size Network::GetGeometry()
 Network::~Network()
 {
     // destroy streams for pushing the data
-    for (int i=0; i < streams.size(); i++)
+    for (std::string::size_type i=0; i < streams.size(); i++)
     {
         CUDA_CHECK(cudaStreamDestroy(streams.at(i)));
     }
@@ -357,7 +396,7 @@ void test_save_layer(std::string output_folder, std::vector<cv::Mat>& layer_imag
 
     if (!as_rgb)
     {
-        for (int i=0; i < layer_images.size(); i++)
+        for (std::string::size_type i=0; i < layer_images.size(); i++)
         {
             stringstream ss;
             ss << output_folder << i << prefix << ".tif";

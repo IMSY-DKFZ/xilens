@@ -43,6 +43,8 @@ public:
 
     bool GetNormalize() const;
 
+    bool GetRGBMatrixTransform() const;
+
     bool DoParamterScaling() const;
 
     unsigned GetBand() const;
@@ -60,6 +62,7 @@ private slots:
     void on_snapshotButton_clicked();
 
     void on_exposureSlider_valueChanged(int value);
+
 
     void on_recordButton_clicked(bool checked);
 
@@ -106,6 +109,8 @@ private slots:
     void on_radioButtonDemo_clicked();
 
     void on_recLowExposureImages_clicked();
+
+    void on_skipFramesSpinBox_valueChanged();
 
 private:
     Ui::MainWindow *ui;

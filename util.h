@@ -21,13 +21,23 @@
 #include <stdio.h>
 #include <string>
 #include <stdexcept>
+#include <iostream>
 
 #include <opencv2/core/core.hpp>
-
+#include <opencv2/highgui/highgui.hpp>
 #include <boost/log/trivial.hpp>
 
 //#define HandleResult(res,place) if (res!=XI_OK) {char* errmsg; sprintf(errmsg, "Error after %s (%d)\n",place,res); std::runtime_error(std::string(errmsg));}
 #define HandleResult(res,place) if (res!=XI_OK) {std::stringstream errormsg; errormsg << "Error after " << place << " " << res << "\n"; std::runtime_error(errormsg.str());}
+
+#if (CV_VERSION_MAJOR == 4)
+enum{
+    CV_LOAD_IMAGE_ANYDEPTH = cv::IMREAD_ANYDEPTH,
+    CV_LOAD_IMAGE_ANYCOLOR = cv::IMREAD_COLOR,
+    CV_EVENT_LBUTTONDOWN = cv::EVENT_LBUTTONDOWN,
+    CV_EVENT_LBUTTONUP = cv::EVENT_LBUTTONUP,
+};
+#endif
 
 extern "C"
 {

@@ -64,7 +64,7 @@ DisplayerCaffe::~DisplayerCaffe()
 }
 
 
-void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap)
+void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap)
 {
     if (do_scaling)
     {
@@ -92,6 +92,47 @@ void PrepareRGBImage(cv::Mat& bgr_image, int rgb_norm)
     bgr_image*=255./last_norm;
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
+
+/**
+ * @brief DisplayerCaffe::NormalizeRGBImage normalizes the bgr_image using clahe.
+ * @param bgr_image input
+ * We define the matrix lab_images and convert the color bgr to lab.
+ * We define a vector lab_planes and split the lab_image into lab_planes.
+ * We define a pointer clahe, create clahe and set a treshold for constant limiting.
+ * We define a matrix dest, set the clip limit by calling the method GetRGBNorm, apply clahe to the vector lab_planes
+ * and save it in the matrix dest.
+ * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
+ * We convert the color lab to bgr and save it in bgr_image.
+ */
+void DisplayerCaffe::NormalizeRGBImage(cv::Mat& bgr_image)
+{
+    cv::Mat lab_image;
+    cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
+    //ectract L channel
+    std::vector<cv::Mat> lab_planes(3);
+    cv::split(lab_image, lab_planes);
+
+
+    //apply clahe to the L channel and save it in lab_planes
+    cv::Mat dst;
+    this->clahe->setClipLimit(m_mainWindow->GetRGBNorm());
+    this->clahe->apply(lab_planes[0], dst);
+    dst.copyTo(lab_planes[0]);
+
+    //merge color planes back to bgr_image
+    cv::merge(lab_planes, lab_image);
+
+    //convert back to rgb
+    cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
+
+}
+
+
+bool IsFunctional(DisplayImageType displayImageType)
+{
+    return (displayImageType == OXY || displayImageType == VHB);
+}
+
 
 
 void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, bool equalize_hist)
@@ -124,11 +165,6 @@ void DisplayerCaffe::PrepareRawImage(cv::Mat& raw_image, int scaling_factor, boo
 }
 
 
-bool IsFunctional(DisplayImageType displayImageType)
-{
-    return (displayImageType == OXY || displayImageType == VHB);
-}
-
 
 void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 {
@@ -143,6 +179,21 @@ void DisplayerCaffe::DisplayImage(cv::Mat& image, const std::string windowName)
 }
 
 
+/**
+ * @brief DisplayerCaffe::Display calls methods and shows images on the display.
+ * @param image
+ * We define a static int selected_display, set it's value zero and increment.
+ * If the value equals one or is bigger than 10, if we skip every 100th frame we run the network.
+ * We define vectors band_image, physParam and bgr_image which we when the calling the methods GetBands, GetPhysiologicalParameters
+ * and GetGBRfrom the network.
+ * We prepare the raw image from XIMEA camera and calling the method GetBands then we display the image.
+ * We define a matrix, vector and int to be used in the method calling from the network.
+ * If RGBMatrixTransform is checked in the ui we normalize the image by using a transformation matrix and merging the image and
+ * the matrix then display the image.
+ * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeRGBImage if GetNormalize is checked.
+ * Then we display the image.
+ * We also display the functional image of VHB and OXY.
+ */
 void DisplayerCaffe::Display(XI_IMG& image)
 {
     static int selected_display = 0;
@@ -170,10 +221,28 @@ void DisplayerCaffe::Display(XI_IMG& image)
             PrepareRawImage(band_image.at(0), 4, m_mainWindow->GetNormalize());
             DisplayImage(band_image.at(0), DISPLAY_WINDOW_NAME);
 
-            static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
-            cv::merge(bgr_image, bgr_composed);
-            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
-            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+//            static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
+//            cv::merge(bgr_image, bgr_composed);
+//            PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
+//            DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+
+            if (this->m_mainWindow->GetRGBMatrixTransform()){
+                static cv::Mat bgr_composed = cv::Mat::zeros(bgr_image.at(0).size(), CV_32FC3);
+                cv::merge(bgr_image, bgr_composed);
+                PrepareRGBImage(bgr_composed, m_mainWindow->GetRGBNorm());
+                DisplayImage(bgr_composed, BGR_WINDOW_NAME);
+            }
+            else{
+                cv::Mat rgb_image;
+                m_network->GetBands(rgb_image);
+                if (m_mainWindow->GetNormalize())
+                {
+                // do normalization
+                NormalizeRGBImage(rgb_image);
+                }
+
+            DisplayImage(rgb_image, BGR_WINDOW_NAME);
+            }
 
             PrepareFunctionalImage(physParam_image.at(0), VHB, m_mainWindow->DoParamterScaling(), m_mainWindow->GetUpperLowerBoundsVhb(), cv::COLORMAP_JET);
             DisplayImage(physParam_image.at(0), VHB_WINDOW_NAME);

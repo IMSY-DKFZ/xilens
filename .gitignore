@@ -2,9 +2,16 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+version.cpp
 # C extensions
 *.so
+
+# caffe files
+caffe
+
+# used defined
+version.cpp
+cmake-build*
 
 # profiling files
 *.lprof

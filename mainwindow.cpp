@@ -253,9 +253,10 @@ void MainWindow::on_exposureSlider_valueChanged(int value)
 void MainWindow::UpdateExposure()
 {
     int exp_ms = m_camInterface.GetExposureMs();
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 //    const QSignalBlocker blocker_label(ui->label_exp);
     ui->label_exp->setText(QString::number((int) exp_ms));
-    ui->label_hz->setText(QString::number((int) (1000 / exp_ms)));
+    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 
     // need to block the signals to make sure the event is not immediately
     // thrown back to label_exp.
@@ -286,8 +287,8 @@ void MainWindow::on_recordButton_clicked(bool checked)
     }
     else
     {
-       this->StopRecording();
-       ui->recordButton->setStyleSheet(original_colour);
+        this->StopRecording();
+        ui->recordButton->setStyleSheet(original_colour);
     }
 }
 
@@ -341,6 +342,11 @@ bool MainWindow::GetNormalize() const
     return this->ui->normalizeCheckbox->isChecked();
 }
 
+
+bool MainWindow::GetRGBMatrixTransform() const
+{
+    return this->ui->rgbMatrixTransformCheckBox->isChecked();
+}
 
 
 bool MainWindow::DoParamterScaling() const
@@ -401,32 +407,32 @@ void MainWindow::ThreadedRecordImage()
 void MainWindow::RecordImage()
 {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    int delayTime = ui->delaySpinBox->value();
     static long last_id = image.acq_nframe;
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 
     if ((image.acq_nframe==last_id) || (image.acq_nframe > last_id+1))
     { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
         m_skippedCounter++;
     }
     last_id = image.acq_nframe;
+    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
+        ++m_recordedCount;
 
-    ++m_recordedCount;
+        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
+        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
 
-    std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-    QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
-
-    // TODO SW: this is not nice code so far, nicen it up with RAII
-    FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-    fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
-    fclose(imageFile);
-    wait(delayTime);
+        // TODO SW: this is not nice code so far, nicen it up with RAII
+        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
+        fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
+        fclose(imageFile);
+    }
 }
 
 void MainWindow::RecordImage(std::string subFolder)
 {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    int delayTime = ui->delaySpinBox->value();
     static long last_id = image.acq_nframe;
+    int n_skip_frames = ui->skipFramesSpinBox->value();
 
     if ((image.acq_nframe==last_id) || (image.acq_nframe > last_id+1))
     { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
@@ -434,16 +440,17 @@ void MainWindow::RecordImage(std::string subFolder)
     }
     last_id = image.acq_nframe;
 
-    ++m_recordedCount;
+    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
+        ++m_recordedCount;
 
-    std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-    QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
+        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
+        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
 
-    // TODO SW: this is not nice code so far, nicen it up with RAII
-    FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
-    fwrite(image.bp, image.width*image.height, sizeof(UINT16), imageFile);
-    fclose(imageFile);
-    wait(delayTime);
+        // TODO SW: this is not nice code so far, nicen it up with RAII
+        FILE *imageFile = fopen(fullPath.toStdString().c_str(), "wb");
+        fwrite(image.bp, image.width * image.height, sizeof(UINT16), imageFile);
+        fclose(imageFile);
+    }
 }
 
 void MainWindow::updateTimer(){
@@ -699,9 +706,23 @@ void MainWindow::on_radioButtonDemo_clicked()
     m_display = new DisplayerDemo(this, &m_network);
 }
 
+/**
+ * @brief MainWindow::lowExposureRecording
+ *
+ * We definde a static QString for the original color, a string sub_folder_name, an int original_exposure, a string prefix,
+ * a vector exp_time and an int waitTime and set it zero.
+ * We set the background color of the button recLowExposureImages to red and set exposureSlider and label_exp to false.
+ * We call the methof on_recordButton_clocked and set it to false.
+ * We define a Qstring tmp_topFolderName, wait 2* original_exposure and set m_topFolderName as nullptr.
+ * We iterate through exp_time in a for-loop. Within this loop we iterate through the lowExposureImages in a second loop
+ * and call the method RecordImage(subfolder) to save the images.
+ * Then we set the color of the button recLowExposureImages to original color, m_topFolderName back to QString and
+ * method on_recordButtol_clicked, exposureSlider and lab_exp back to true.
+ * Then we synchronize the sliders and textedits dis´playing the current exposure setting.
+ */
 void MainWindow::lowExposureRecording()
 {
-    static QString original_colour = ui->recordButton->styleSheet();
+    static QString original_colour = ui->recLowExposureImages->styleSheet();
     std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
     std::string prefix = "low_exposure";
@@ -711,6 +732,12 @@ void MainWindow::lowExposureRecording()
     ui->recLowExposureImages->setStyleSheet("background-color: rgb(255, 0, 0)");
     ui->exposureSlider->setEnabled(false);
     ui->label_exp->setEnabled(false);
+
+    this->on_recordButton_clicked(false);
+    QString tmp_topFolderName = m_topFolderName;
+    wait(2 * original_exposure);
+    m_topFolderName = nullptr;
+
 
     for (int i=0; i < exp_time.size(); i++)
     {
@@ -725,6 +752,10 @@ void MainWindow::lowExposureRecording()
     m_camInterface.SetExposureMs(original_exposure);
     wait(2 * original_exposure);
     ui->recLowExposureImages->setStyleSheet(original_colour);
+
+    m_topFolderName = tmp_topFolderName;
+    this->on_recordButton_clicked(true);
+
     ui->exposureSlider->setEnabled(true);
     ui->label_exp->setEnabled(true);
     UpdateExposure();
@@ -788,4 +819,15 @@ void MainWindow::on_triggerText_returnPressed()
     ui->triggerText->setStyleSheet("background-color: rgb(255, 255, 255)");
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggerText->clear();
+}
+
+/*
+ * updates frames per second label in GUI when number of skipped frames is modified
+ */
+void MainWindow::on_skipFramesSpinBox_valueChanged()
+{
+    int exp_ms = m_camInterface.GetExposureMs();
+    int n_skip_frames = ui->skipFramesSpinBox->value();
+    const QSignalBlocker blocker_label(ui->label_hz);
+    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 }
