@@ -31,4 +31,7 @@ const QString BUTTON_PRESSED_STYLE = "background-color: rgb(255, 0, 0)";
 const QString FIELD_ORIGINAL_STYLE = "background-color: rgb(255, 255, 255)";
 const QString FIELD_EDITED_STYLE = "background-color: rgb(255, 105, 180)";
 
+// camera frame rate limit
+const int FRAMERATE_MAX = 30;
+
 #endif

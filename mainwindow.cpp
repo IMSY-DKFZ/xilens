@@ -6,7 +6,8 @@
 #include <string>
 
 #include <opencv2/core/core.hpp>
-#if CV_VERSION_MAJOR==3
+
+#if CV_VERSION_MAJOR == 3
 #include <opencv2/videoio.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/imgproc_c.h>
@@ -352,7 +353,10 @@ void MainWindow::on_recordButton_clicked(bool checked)
 
     if (checked)
     {
+        QString cameraModel = ui->cameraListComboBox->currentText();
         this->LogMessage("SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
+        this->LogMessage(QString("camera selected: %1").arg(cameraModel), LOG_FILE_NAME, true);
+
         this->m_elapsedTimer.start();
         this->StartRecording();
         original_colour = ui->recordButton->styleSheet();
@@ -934,19 +938,21 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         if (CAMERA_TYPE_MAPPER.contains(cameraModel)) {
             QString cameraType = CAMERA_TYPE_MAPPER.value(cameraModel);
             m_display->SetCameraType(cameraType);
+            m_camInterface.SetCameraType(cameraType);
+            this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+            this->EnableUi(true);
             if (cameraType == SPECTRAL_CAMERA)
             {
-                this->ui->bandSlider->setEnabled(false);
+                QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
+                QMetaObject::invokeMethod(ui->rgbNormSlider, "setEnabled", Q_ARG(bool, true));
             }
             else {
-                this->ui->bandSlider->setEnabled(true);
+                QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, false));
+                QMetaObject::invokeMethod(ui->rgbNormSlider, "setEnabled", Q_ARG(bool, false));
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << "camera model not in CAMERA_TYPE_MAPPER: " << cameraModel.toStdString();
         }
-        this->StartImageAcquisition(ui->cameraListComboBox->currentText());
-        this->EnableUi(true);
-        this->LogMessage(QString("camera selected: %1").arg(cameraModel), LOG_FILE_NAME, true);
     }
     else
     {

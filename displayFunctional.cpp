@@ -2,15 +2,16 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
 *******************************************************/
-#include "displayFunctional.h"
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#if CV_VERSION_MAJOR==3
+
+#if CV_VERSION_MAJOR == 3
 #include <opencv2/videoio.hpp>
 #endif
 #if __has_include(<opencv2/contrib/contrib.hpp>)
@@ -20,9 +21,8 @@
 #endif
 
 #include <boost/thread.hpp>
-#include <utility>
 
-
+#include "displayFunctional.h"
 #include "mainwindow.h"
 #include "util.h"
 #include "constants.h"
@@ -118,8 +118,7 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist
 {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
-    cv::Mat lut = CreateLut(SATURATION_COLOR, DARK_COLOR);
-    cv::LUT(mask, lut, mask);
+    cv::LUT(mask, m_lut, mask);
     if (equalize_hist)
     {
         this->clahe->apply(raw_image, raw_image);
@@ -203,7 +202,6 @@ void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat& image)
 void DisplayerFunctional::Display(XI_IMG& image)
 {
     static int selected_display = 0;
-    static cv::Mat bgr_image = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_8UC3);
 
     selected_display++;
     // give it some time to draw the first frame. For some reason neccessary.
@@ -217,7 +215,8 @@ void DisplayerFunctional::Display(XI_IMG& image)
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat raw_image_to_display = cv::Mat::zeros(image.height / MOSAIC_SHAPE[0], image.width / MOSAIC_SHAPE[1], CV_16UC1);
+            cv::Mat raw_image_to_display = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
+            static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows  / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
 
             if (m_cameraType == "spectral")
             {
@@ -228,19 +227,19 @@ void DisplayerFunctional::Display(XI_IMG& image)
                 raw_image_to_display.convertTo(raw_image_to_display, CV_8UC1);
             }
 
-            PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
             DownsampleImageIfNecessary(raw_image_to_display);
+            PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
             DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
 
             // display BGR image
             this->GetBGRImage(currentImage, bgr_image);
+            DownsampleImageIfNecessary(bgr_image);
             if (m_mainWindow->GetNormalize()){
                 NormalizeBGRImage(bgr_image);
             }
             else {
                 PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
             }
-            DownsampleImageIfNecessary(bgr_image);
             DisplayImage(bgr_image, BGR_WINDOW_NAME);
         }
     }

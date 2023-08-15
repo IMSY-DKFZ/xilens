@@ -5,16 +5,17 @@
 #ifndef DISPLAYFUNCTIONAL_H
 #define DISPLAYFUNCTIONAL_H
 
-
-#include <QObject>
 #include <string>
-#include <opencv2/core/core.hpp>
+
 #include <boost/thread.hpp>
-#include <display.h>
+#include <QObject>
+#include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include "display.h"
 #include "xiApi.h"
 #include "constants.h"
+#include "util.h"
 
 class MainWindow;
 
@@ -31,6 +32,8 @@ public:
     ~DisplayerFunctional();
 
     QString m_cameraType = SPECTRAL_CAMERA;
+
+    cv::Mat m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR);
 
     void SetCameraType(QString camera_type);
 

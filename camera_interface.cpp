@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
 
 #include "xiApi.h"
 #include <boost/log/trivial.hpp>
@@ -19,6 +20,12 @@ const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
         {"MQ022HG-IM-SM4X4-VIS3", "spectral"},
         {"MC050MG-SY-UB", "gray"}
 };
+
+
+void CameraInterface::SetCameraType(QString camera_type)
+{
+    this->m_cameraType = std::move(camera_type);
+}
 
 
 void CameraInterface::UpdateCameraTemperature()
@@ -100,6 +107,7 @@ int CameraInterface::GetExposureMs()
 
 int CameraInterface::InitializeCamera()
 {
+    int current_max_framerate;
     int stat = XI_OK;
     // an overview on all the parameters can be found in:
     // https://www.ximea.com/support/wiki/apis/XiAPI_Manual
@@ -113,30 +121,34 @@ int CameraInterface::InitializeCamera()
     stat = xiSetParamInt(m_camHandle, XI_PRM_AUTO_BANDWIDTH_CALCULATION, XI_ON);
     HandleResult(stat,"xiSetParam (set auto bandwidth calc to on)");
 
-    //stat = xiSetParamInt(cameraHandle, XI_PRM_NEW_PROCESS_CHAIN_ENABLE, XI_OFF);
-    //HandleResult(stat,"xiSetParam (set to old processing chain)");
-
     stat = xiSetParamInt(m_camHandle, XI_PRM_GAIN, XI_GAIN_SELECTOR_ALL );
     HandleResult(stat,"xiSetParam (set gain selector to all)");
 
     stat = xiSetParamFloat(m_camHandle, XI_PRM_GAIN, 0. );
     HandleResult(stat,"xiSetParam (set gain to zero)");
 
-    stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
-    HandleResult(stat,"xiSetParam (downsampling mode set to binning)");
+//    stat = xiGetParamInt(m_camHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
+//    HandleResult(stat,"get current maximum frame rate");
+//
+//    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+//    HandleResult(stat,"set acquisition timing mode to framerate");
+//
+//    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
+//    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
 
-    //  stat =  xiSetParamInt(cameraHandle, XI_PRM_BINNING_SELECTOR, XI_BIN_SELECT_SENSOR);
-    //  HandleResult(stat,"xiSetParam (downsampling done on chip)");
-
-    // ... left out some binning parameters here since we don't use it anyways
+    if (m_cameraType == SPECTRAL_CAMERA)
+    {
+        stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
+        HandleResult(stat,"xiSetParam (downsampling mode set to binning)");
+    }
+    else if(m_cameraType == GRAY_CAMERA) {
+        // XIMEA xiC camera models only allow skipping mode
+        stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
+        HandleResult(stat,"xiSetParam (downsampling mode set to skipping)");
+    }
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING, 1);
     HandleResult(stat,"xiSetParam (no downsampling)");
-
-    //  stat = xiSetParamInt(cameraHandle, XI_PRM_DECIMATION_SELECTOR, XI_DEC_SELECT_SENSOR);
-    //  HandleResult(stat,"xiSetParam (sensor decimal selector used)");
-
-    // ... left out some decimal selector parameters
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_COUNTER_SELECTOR, XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES);
     HandleResult(stat,"skipping frames on transport layer");
