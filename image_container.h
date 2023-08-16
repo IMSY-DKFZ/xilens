@@ -9,21 +9,26 @@
 #include <boost/thread.hpp>
 #include <QObject>
 
-class ImageContainer : public QObject
-{
-    Q_OBJECT
+
+class ImageContainer : public QObject {
+Q_OBJECT
 
 public:
     ImageContainer();
+
     ~ImageContainer();
 
     // pollingRate in ms
     void PollImage(HANDLE camHandle, int pollingRate);
+
     XI_IMG GetCurrentImage();
+
     void StopPolling();
+
     void StartPolling();
 
 signals:
+
     void NewImage();
 
 private:

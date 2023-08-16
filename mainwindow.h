@@ -11,7 +11,6 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QElapsedTimer>
-
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
@@ -20,15 +19,15 @@
 
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+Q_OBJECT
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+
     ~MainWindow();
 
     bool GetNormalize() const;
@@ -40,6 +39,7 @@ public:
     unsigned GetBGRNorm() const;
 
     cv::Range GetUpperLowerBoundsVhb() const;
+
     cv::Range GetUpperLowerBoundsSao2() const;
 
     void EnableUi(bool enable);
@@ -58,10 +58,10 @@ public:
 
     void StopTemperatureThread();
 
-    void HandleTimer(boost::asio::steady_timer* timer, const boost::system::error_code& error);
+    void HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error);
 
 protected:
-    void closeEvent (QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 
 private slots:
 
@@ -73,7 +73,7 @@ private slots:
     void on_recordButton_clicked(bool checked);
 
     void on_chooseFolder_clicked();
-    
+
     void on_label_exp_editingFinished();
 
     void on_topFolderName_returnPressed();
@@ -124,7 +124,7 @@ private:
      * @param baseName the base file name to be saved
      * @param specialFolder only neccessary if you want to save the image in a special subfolder as "white" or "dark"
      */
-    void SaveCurrentImage(std::string baseName, std::string specialFolder="");
+    void SaveCurrentImage(std::string baseName, std::string specialFolder = "");
 
     /**
      * @brief Displays a new image
@@ -132,28 +132,37 @@ private:
     void Display();
 
     void StartRecording();
+
     void StopRecording();
 
     void StartPollingThread();
+
     void StopPollingThread();
 
     bool SetBaseFolder(QString baseFolderPath);
+
     void CreateFolderIfNeccessary(QString folder);
 
     void RecordImage();
+
     void RecordImage(std::string subFolder);
+
     void ThreadedRecordImage();
+
     // counts how many images were recorded
     unsigned long m_recordedCount;
     // counts how many images should have been recorded
     unsigned long m_imageCounter;
     unsigned long m_skippedCounter;
+
     void CountImages();
 
     void updateTimer();
+
     void stopTimer();
 
     void RunNetwork();
+
     /**
      * @brief Snapshots helper method to take snapshots, basically just created to be able to
      * thread the snapshot making :-)
@@ -194,8 +203,11 @@ private:
      * @param specialFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string fileName, long frameNumber, std::string extension, std::string specialFolder="");
+    QString GetFullFilenameStandardFormat(std::string fileName, long frameNumber, std::string extension,
+                                          std::string specialFolder = "");
+
     QString GetBaseFolder() const;
+
     QString m_topFolderName;
     QString m_recPrefixlineEdit;
     QString m_folderLowExposureImages;
@@ -209,7 +221,7 @@ private:
 
     ImageContainer m_imageContainer;
     CameraInterface m_camInterface;
-    Displayer* m_display;
+    Displayer *m_display;
 
     // if testmode is on, recording will always be saved to the same filename. This allows long time testing
     // of camera recording
@@ -222,9 +234,10 @@ private:
     boost::asio::io_service::work m_work;
     boost::mutex mtx_;
     boost::thread m_temperatureThread;
-    boost::asio::steady_timer* m_temperatureThreadTimer;
+    boost::asio::steady_timer *m_temperatureThreadTimer;
 
     void StartImageAcquisition(QString camera_name);
+
     void StopImageAcquisition();
 };
 

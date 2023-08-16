@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "xiApi.h"
+#include <xiApi.h>
 #include <boost/log/trivial.hpp>
 
 #include "camera_interface.h"
@@ -16,20 +16,18 @@
 
 
 const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
-        {"MQ022HG-IM-SM4X4-VIS", "spectral"},
+        {"MQ022HG-IM-SM4X4-VIS",  "spectral"},
         {"MQ022HG-IM-SM4X4-VIS3", "spectral"},
-        {"MC050MG-SY-UB", "gray"}
+        {"MC050MG-SY-UB",         "gray"}
 };
 
 
-void CameraInterface::SetCameraType(QString camera_type)
-{
+void CameraInterface::SetCameraType(QString camera_type) {
     this->m_cameraType = std::move(camera_type);
 }
 
 
-void CameraInterface::UpdateCameraTemperature()
-{
+void CameraInterface::UpdateCameraTemperature() {
     float chipTemp, housTemp, housBackSideTemp, sensorBoardTemp;
 
     xiGetParamFloat(m_camHandle, XI_PRM_CHIP_TEMP, &chipTemp);
@@ -42,56 +40,43 @@ void CameraInterface::UpdateCameraTemperature()
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 
-void CameraInterface::AutoExposure(bool on)
-{
+void CameraInterface::AutoExposure(bool on) {
     int stat = XI_INVALID_HANDLE;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         stat = xiSetParamInt(m_camHandle, XI_PRM_AEAG, on);
-        HandleResult(stat,"xiSetParam (autoexposure on/off)");
-    }
-    else
-    {
+        HandleResult(stat, "xiSetParam (autoexposure on/off)");
+    } else {
         BOOST_LOG_TRIVIAL(warning) << "autoexposure not set: camera not initialized";
     }
 }
 
 
-void CameraInterface::SetExposure(int exp)
-{
+void CameraInterface::SetExposure(int exp) {
     int stat = XI_INVALID_HANDLE;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         // Setting "exposure" parameter (10ms=10000us)
         stat = xiSetParamInt(m_camHandle, XI_PRM_EXPOSURE, exp);
-        HandleResult(stat,"xiSetParam (exposure set)");
-        BOOST_LOG_TRIVIAL(info) << "set exposure to " << exp/1000 << "ms\n" << std::flush;
-    }
-    else
-    {
+        HandleResult(stat, "xiSetParam (exposure set)");
+        BOOST_LOG_TRIVIAL(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
+    } else {
         BOOST_LOG_TRIVIAL(warning) << "exposure not set: camera not initialized";
     }
 }
 
 
-void CameraInterface::SetExposureMs(int exp)
-{
+void CameraInterface::SetExposureMs(int exp) {
     this->SetExposure(exp * 1000);
 }
 
 
-int CameraInterface::GetExposure()
-{
+int CameraInterface::GetExposure() {
     int stat = XI_OK;
     int exp = 40000;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         // Setting "exposure" parameter (10ms=10000us)
         stat = xiGetParamInt(m_camHandle, XI_PRM_EXPOSURE, &exp);
-        HandleResult(stat,"xiGetParam (exposure get)");
-    }
-    else
-    {
+        HandleResult(stat, "xiGetParam (exposure get)");
+    } else {
         BOOST_LOG_TRIVIAL(warning) << "exposure not determined, camera not initalized. Return standard value.";
     }
 
@@ -99,33 +84,31 @@ int CameraInterface::GetExposure()
 }
 
 
-int CameraInterface::GetExposureMs()
-{
-    return (this->GetExposure()+5)/1000;
+int CameraInterface::GetExposureMs() {
+    return (this->GetExposure() + 5) / 1000;
 }
 
 
-int CameraInterface::InitializeCamera()
-{
+int CameraInterface::InitializeCamera() {
     int current_max_framerate;
     int stat = XI_OK;
     // an overview on all the parameters can be found in:
     // https://www.ximea.com/support/wiki/apis/XiAPI_Manual
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_IMAGE_DATA_FORMAT, XI_RAW16);
-    HandleResult(stat,"xiSetParam (data format raw16)");
+    HandleResult(stat, "xiSetParam (data format raw16)");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_RECENT_FRAME, 1);
-    HandleResult(stat,"xiSetParam (set to acquire most recent frame)");
+    HandleResult(stat, "xiSetParam (set to acquire most recent frame)");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_AUTO_BANDWIDTH_CALCULATION, XI_ON);
-    HandleResult(stat,"xiSetParam (set auto bandwidth calc to on)");
+    HandleResult(stat, "xiSetParam (set auto bandwidth calc to on)");
 
-    stat = xiSetParamInt(m_camHandle, XI_PRM_GAIN, XI_GAIN_SELECTOR_ALL );
-    HandleResult(stat,"xiSetParam (set gain selector to all)");
+    stat = xiSetParamInt(m_camHandle, XI_PRM_GAIN, XI_GAIN_SELECTOR_ALL);
+    HandleResult(stat, "xiSetParam (set gain selector to all)");
 
-    stat = xiSetParamFloat(m_camHandle, XI_PRM_GAIN, 0. );
-    HandleResult(stat,"xiSetParam (set gain to zero)");
+    stat = xiSetParamFloat(m_camHandle, XI_PRM_GAIN, 0.);
+    HandleResult(stat, "xiSetParam (set gain to zero)");
 
 //    stat = xiGetParamInt(m_camHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
 //    HandleResult(stat,"get current maximum frame rate");
@@ -136,38 +119,36 @@ int CameraInterface::InitializeCamera()
 //    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
 //    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
 
-    if (m_cameraType == SPECTRAL_CAMERA)
-    {
+    if (m_cameraType == SPECTRAL_CAMERA) {
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
-        HandleResult(stat,"xiSetParam (downsampling mode set to binning)");
-    }
-    else if(m_cameraType == GRAY_CAMERA) {
+        HandleResult(stat, "xiSetParam (downsampling mode set to binning)");
+    } else if (m_cameraType == GRAY_CAMERA) {
         // XIMEA xiC camera models only allow skipping mode
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
-        HandleResult(stat,"xiSetParam (downsampling mode set to skipping)");
+        HandleResult(stat, "xiSetParam (downsampling mode set to skipping)");
     }
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING, 1);
-    HandleResult(stat,"xiSetParam (no downsampling)");
+    HandleResult(stat, "xiSetParam (no downsampling)");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_COUNTER_SELECTOR, XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES);
-    HandleResult(stat,"skipping frames on transport layer");
+    HandleResult(stat, "skipping frames on transport layer");
 
     // check if this creates a problem, I don't think so if buffer is large enough
     stat = xiSetParamInt(m_camHandle, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
-    HandleResult(stat,"set unsafe buffuring policy");
+    HandleResult(stat, "set unsafe buffuring policy");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_LUT_EN, 0);
-    HandleResult(stat,"switch off lut");
+    HandleResult(stat, "switch off lut");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_OUTPUT_DATA_PACKING, XI_OFF);
-    HandleResult(stat,"disable bit packing");
+    HandleResult(stat, "disable bit packing");
 
-    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_BUFFER_SIZE, 70*1000*1000);
-    HandleResult(stat,"set acquistion buffer to 70MB. This should give us a buffer of about 1s");
+    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_BUFFER_SIZE, 70 * 1000 * 1000);
+    HandleResult(stat, "set acquistion buffer to 70MB. This should give us a buffer of about 1s");
 
     stat = xiSetParamFloat(m_camHandle, XI_PRM_EXP_PRIORITY, 1.);
-    HandleResult(stat,"if autoexposure is used: only change exposure, not gain");
+    HandleResult(stat, "if autoexposure is used: only change exposure, not gain");
 
     SetExposure(40000);
 
@@ -175,37 +156,30 @@ int CameraInterface::InitializeCamera()
 }
 
 
-int CameraInterface::StartAcquisition(QString camera_name)
-{
+int CameraInterface::StartAcquisition(QString camera_name) {
     OpenDevice(m_availableCameras[camera_name]);
     printf("Starting acquisition...\n");
 
     int stat = XI_INVALID_HANDLE;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         stat = xiStartAcquisition(m_camHandle);
-        HandleResult(stat,"xiStartAcquisition");
+        HandleResult(stat, "xiStartAcquisition");
         if (XI_OK == stat)
             BOOST_LOG_TRIVIAL(info) << "successfully initialized camera\n";
-        else
-        {
+        else {
             this->CloseDevice();
             throw std::runtime_error("could not start camera initialization");
         }
-    }
-    else
-    {
+    } else {
         throw std::runtime_error("didn't start acquisition, camera not properly initialized");
     }
     return stat;
 }
 
 
-int CameraInterface::StopAcquisition()
-{
+int CameraInterface::StopAcquisition() {
     int stat = XI_INVALID_HANDLE;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         printf("Stopping acquisition...");
         stat = xiStopAcquisition(m_camHandle);
         HandleResult(stat, "xiStopAcquisition");
@@ -215,8 +189,7 @@ int CameraInterface::StopAcquisition()
 }
 
 
-int CameraInterface::OpenDevice(DWORD camera_sn)
-{
+int CameraInterface::OpenDevice(DWORD camera_sn) {
     int stat = XI_INVALID_HANDLE;
 
     stat = xiOpenDevice(camera_sn, &m_camHandle);
@@ -229,8 +202,7 @@ int CameraInterface::OpenDevice(DWORD camera_sn)
 }
 
 
-void CameraInterface::CloseDevice()
-{
+void CameraInterface::CloseDevice() {
 #ifdef DEBUG_THIS
     std::cout << "DEBUG: CameraInterface::CloseDevice()\n" << std::flush;
 #endif
@@ -238,8 +210,7 @@ void CameraInterface::CloseDevice()
     StopAcquisition();
 
     int stat = XI_INVALID_HANDLE;
-    if (INVALID_HANDLE_VALUE != this->m_camHandle)
-    {
+    if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         std::cout << "Closing device...";
         stat = xiCloseDevice(this->m_camHandle);
         HandleResult(stat, "xiCloseDevice");
@@ -249,15 +220,13 @@ void CameraInterface::CloseDevice()
 }
 
 
-HANDLE CameraInterface::GetHandle()
-{
+HANDLE CameraInterface::GetHandle() {
     return this->m_camHandle;
 }
 
 
-CameraInterface::CameraInterface() : 
-    m_camHandle(INVALID_HANDLE_VALUE)
-{
+CameraInterface::CameraInterface() :
+        m_camHandle(INVALID_HANDLE_VALUE) {
     int stat = XI_OK;
     DWORD numberDevices;
     stat = xiGetNumberDevices(&numberDevices);
@@ -267,8 +236,7 @@ CameraInterface::CameraInterface() :
 }
 
 
-CameraInterface::~CameraInterface()
-{
+CameraInterface::~CameraInterface() {
 #ifdef DEBUG_THIS
     std::cout << "DEBUG: CameraInterface::~CameraInterface()\n" << std::flush;
 #endif
@@ -276,19 +244,18 @@ CameraInterface::~CameraInterface()
 }
 
 
-QStringList CameraInterface::GetAvailableCameraModels()
-{
+QStringList CameraInterface::GetAvailableCameraModels() {
     QStringList cameraModels;
     QStringList cameraSNs;
     // DWORD and HANDLE are defined by xiAPI
     DWORD dwCamCount = 0;
     xiGetNumberDevices(&dwCamCount);
 
-    for(DWORD i=0; i<dwCamCount; i++) {
+    for (DWORD i = 0; i < dwCamCount; i++) {
         HANDLE hDevice = INVALID_HANDLE_VALUE;
         xiOpenDevice(i, &hDevice);
 
-        char camera_model[256] = { 0 };
+        char camera_model[256] = {0};
         xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
 
         cameraModels.append(QString::fromUtf8(camera_model));

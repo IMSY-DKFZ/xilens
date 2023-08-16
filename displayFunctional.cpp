@@ -2,15 +2,14 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
 *******************************************************/
-
 #include <iostream>
 #include <string>
 #include <utility>
 
+#include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-
 #if CV_VERSION_MAJOR == 3
 #include <opencv2/videoio.hpp>
 #endif
@@ -20,8 +19,6 @@
 #  define opencv2_has_contrib 0
 #endif
 
-#include <boost/thread.hpp>
-
 #include "displayFunctional.h"
 #include "mainwindow.h"
 #include "util.h"
@@ -30,27 +27,24 @@
 typedef cv::Point3_<uint8_t> Pixel;
 
 
-DisplayerFunctional::DisplayerFunctional(MainWindow* mainWindow) :
-    Displayer(), m_mainWindow(mainWindow)
-{
+DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) :
+        Displayer(), m_mainWindow(mainWindow) {
     CreateWindows();
 }
 
 
-DisplayerFunctional::~DisplayerFunctional()
-{
+DisplayerFunctional::~DisplayerFunctional() {
     DestroyWindows();
 }
 
 
-void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap)
-{
-    if (do_scaling)
-    {
+void PrepareFunctionalImage(cv::Mat &functional_image, [[maybe_unused]]DisplayImageType displayImage, bool do_scaling,
+                            cv::Range bounds, int colormap) {
+    if (do_scaling) {
         functional_image *= 100;
         // set first and second pixel to extreme values so the colormap is always scaled the same
-        functional_image.at<float>(0,0) = bounds.start;
-        functional_image.at<float>(0,1) = bounds.end;
+        functional_image.at<float>(0, 0) = bounds.start;
+        functional_image.at<float>(0, 1) = bounds.end;
         clamp(functional_image, bounds);
     }
 
@@ -60,15 +54,14 @@ void PrepareFunctionalImage(cv::Mat& functional_image, [[maybe_unused]]DisplayIm
 }
 
 
-void PrepareBGRImage(cv::Mat& bgr_image, int bgr_norm)
-{
+void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm) {
     double min, max;
     static double last_norm = 1.;
     cv::minMaxLoc(bgr_image, &min, &max);
 
-    last_norm = 0.9*last_norm + (double)bgr_norm * 0.01 * max;
+    last_norm = 0.9 * last_norm + (double) bgr_norm * 0.01 * max;
 
-    bgr_image*=255./last_norm;
+    bgr_image *= 255. / last_norm;
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
 
@@ -83,8 +76,7 @@ void PrepareBGRImage(cv::Mat& bgr_image, int bgr_norm)
  * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
  * We convert the color lab to bgr and save it in bgr_image.
  */
-void DisplayerFunctional::NormalizeBGRImage(cv::Mat& bgr_image)
-{
+void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image) {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
     //ectract L channel
@@ -107,32 +99,27 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat& bgr_image)
 }
 
 
-bool IsFunctional(DisplayImageType displayImageType)
-{
+bool IsFunctional(DisplayImageType displayImageType) {
     return (displayImageType == OXY || displayImageType == VHB);
 }
 
 
-
-void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist)
-{
+void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist) {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
     cv::LUT(mask, m_lut, mask);
-    if (equalize_hist)
-    {
+    if (equalize_hist) {
         this->clahe->apply(raw_image, raw_image);
     }
     cvtColor(raw_image, raw_image, cv::COLOR_GRAY2RGB);
 
     // Parallel execution on each pixel using C++11 lambda.
     raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
-        if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR){
+        if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR) {
             p.x = SATURATION_COLOR[0];
             p.y = SATURATION_COLOR[1];
             p.z = SATURATION_COLOR[2];
-        }
-        else if(mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR){
+        } else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR) {
             p.x = DARK_COLOR[0];
             p.y = DARK_COLOR[1];
             p.z = DARK_COLOR[2];
@@ -141,10 +128,8 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat& raw_image, bool equalize_hist
 }
 
 
-void DisplayerFunctional::DisplayImage(cv::Mat& image, const std::string windowName)
-{
-    if (image.channels() != 1 && image.channels() != 3)
-    {
+void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowName) {
+    if (image.channels() != 1 && image.channels() != 3) {
         throw std::runtime_error("number of channels need to be either 1 or 3");
     }
 
@@ -154,33 +139,31 @@ void DisplayerFunctional::DisplayImage(cv::Mat& image, const std::string windowN
 }
 
 
-void DisplayerFunctional::GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr){
+void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr) {
     // compute location of first value
     int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
     int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
     // select data from specific band
     int row = 0;
-    for (int i = init_row; i < image.rows; i += MOSAIC_SHAPE[0]){
+    for (int i = init_row; i < image.rows; i += MOSAIC_SHAPE[0]) {
         int col = 0;
-        for (int j = init_col; j < image.cols; j += MOSAIC_SHAPE[1]){
-            band_image.at<ushort>(row,col) = image.at<ushort>(i,j);
-            col ++;
+        for (int j = init_col; j < image.cols; j += MOSAIC_SHAPE[1]) {
+            band_image.at<ushort>(row, col) = image.at<ushort>(i, j);
+            col++;
         }
-        row ++;
+        row++;
     }
     band_image /= m_scaling_factor; // 10 bit to 8 bit
     band_image.convertTo(band_image, CV_8UC1);
 }
 
 
-void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat& image)
-{
+void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat &image) {
     // Check if the image exceeds the maximum dimensions
-    if(image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW)
-    {
+    if (image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW) {
         double scale = std::min(
-                (double)MAX_WIDTH_DISPLAY_WINDOW / image.cols,
-                (double)MAX_HEIGHT_DISPLAY_WINDOW / image.rows);
+                (double) MAX_WIDTH_DISPLAY_WINDOW / image.cols,
+                (double) MAX_HEIGHT_DISPLAY_WINDOW / image.rows);
         cv::resize(image, image, cv::Size(), scale, scale, cv::INTER_AREA);
     }
 }
@@ -199,27 +182,25 @@ void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat& image)
  * Then we display the image.
  * We also display the functional image of VHB and OXY.
  */
-void DisplayerFunctional::Display(XI_IMG& image)
-{
+void DisplayerFunctional::Display(XI_IMG &image) {
     static int selected_display = 0;
 
     selected_display++;
     // give it some time to draw the first frame. For some reason neccessary.
     // probably has to do with missing waitkeys after imshow (these crash the application)
-    if ((selected_display==1) || (selected_display>10))
-    {
+    if ((selected_display == 1) || (selected_display > 10)) {
         // additionally, give it some chance to recover from lots of ui interaction by skipping
         // every 100th frame
-        if (selected_display % 100 > 0)
-        {
+        if (selected_display % 100 > 0) {
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat raw_image_to_display = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
-            static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows  / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
+            cv::Mat raw_image_to_display = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
+                                                          currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
+            static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
+                                                      currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
 
-            if (m_cameraType == "spectral")
-            {
+            if (m_cameraType == "spectral") {
                 this->GetBand(currentImage, raw_image_to_display, m_mainWindow->GetBand());
             } else {
                 raw_image_to_display = currentImage;
@@ -234,10 +215,9 @@ void DisplayerFunctional::Display(XI_IMG& image)
             // display BGR image
             this->GetBGRImage(currentImage, bgr_image);
             DownsampleImageIfNecessary(bgr_image);
-            if (m_mainWindow->GetNormalize()){
+            if (m_mainWindow->GetNormalize()) {
                 NormalizeBGRImage(bgr_image);
-            }
-            else {
+            } else {
                 PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
             }
             DisplayImage(bgr_image, BGR_WINDOW_NAME);
@@ -246,11 +226,9 @@ void DisplayerFunctional::Display(XI_IMG& image)
 }
 
 
-void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
-{
+void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     std::vector<cv::Mat> channels;
-    for (int i : m_bgr_channels)
-    {
+    for (int i: m_bgr_channels) {
         cv::Mat band_image = cv::Mat::zeros(image.rows / MOSAIC_SHAPE[0], image.cols / MOSAIC_SHAPE[1], CV_16UC1);
         this->GetBand(image, band_image, i);
         channels.push_back(band_image);
@@ -258,18 +236,16 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     // Merge the images
     try {
         cv::merge(channels, bgr_image);
-    } catch (const cv::Exception& e) {
+    } catch (const cv::Exception &e) {
         BOOST_LOG_TRIVIAL(error) << "OpenCV error: " << e.what();
     }
 }
 
-void DisplayerFunctional::SetCameraType(QString camera_type)
-{
+void DisplayerFunctional::SetCameraType(QString camera_type) {
     this->m_cameraType = std::move(camera_type);
 }
 
-void DisplayerFunctional::CreateWindows()
-{
+void DisplayerFunctional::CreateWindows() {
     // create windows to display result
     cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
     cv::namedWindow(BGR_WINDOW_NAME, cv::WINDOW_NORMAL);
@@ -277,14 +253,13 @@ void DisplayerFunctional::CreateWindows()
     cv::namedWindow(SAO2_WINDOW_NAME, cv::WINDOW_NORMAL);
 
     cv::moveWindow(DISPLAY_WINDOW_NAME, 900, 10);
-    cv::moveWindow(BGR_WINDOW_NAME, 2024+11, 10);
-    cv::moveWindow(VHB_WINDOW_NAME, 900, 10+626);
-    cv::moveWindow(SAO2_WINDOW_NAME, 2024+11, 10+626);
+    cv::moveWindow(BGR_WINDOW_NAME, 2024 + 11, 10);
+    cv::moveWindow(VHB_WINDOW_NAME, 900, 10 + 626);
+    cv::moveWindow(SAO2_WINDOW_NAME, 2024 + 11, 10 + 626);
 }
 
 
-void DisplayerFunctional::DestroyWindows()
-{
+void DisplayerFunctional::DestroyWindows() {
     cv::destroyAllWindows();
 }
 

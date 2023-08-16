@@ -7,27 +7,29 @@
 
 #include <string>
 
+#include <xiApi.h>
 #include <boost/thread.hpp>
 #include <QObject>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "display.h"
-#include "xiApi.h"
 #include "constants.h"
 #include "util.h"
 
+
 class MainWindow;
 
-enum DisplayImageType {RAW=0, RGB=1, VHB=2, OXY=3};
+enum DisplayImageType {
+    RAW = 0, RGB = 1, VHB = 2, OXY = 3
+};
 
-class DisplayerFunctional : public Displayer
-{
-    Q_OBJECT
+class DisplayerFunctional : public Displayer {
+Q_OBJECT
 
 public:
 
-    explicit DisplayerFunctional(MainWindow* mainWindow);
+    explicit DisplayerFunctional(MainWindow *mainWindow);
 
     ~DisplayerFunctional();
 
@@ -37,17 +39,18 @@ public:
 
     void SetCameraType(QString camera_type);
 
-    void DownsampleImageIfNecessary(cv::Mat& image);
+    void DownsampleImageIfNecessary(cv::Mat &image);
 
 protected:
 
     void CreateWindows();
+
     void DestroyWindows();
 
 
 public slots:
 
-    virtual void Display(XI_IMG& image);
+    virtual void Display(XI_IMG &image);
 
 
 private:
@@ -55,7 +58,7 @@ private:
     int m_scaling_factor = 4;
 
     // run the deep net to be able to display results
-    void RunNetwork(XI_IMG& image);
+    void RunNetwork(XI_IMG &image);
 
     /**
      * @brief DisplayImage General purpose display image function
@@ -63,13 +66,13 @@ private:
      * @param image the image to be displayed
      * @param windowName the name of the window for displaying
      */
-    void DisplayImage(cv::Mat& image, const std::string windowName);
+    void DisplayImage(cv::Mat &image, const std::string windowName);
 
     // TODO: needs rework
-    friend void OcvCallBackFunc(int event, int x, int y, int flags, void* userdata);
+    friend void OcvCallBackFunc(int event, int x, int y, int flags, void *userdata);
 
     // reference to mainwindow, necessary to detect if normalization is turned on / which band to display
-    const MainWindow  * const m_mainWindow;
+    const MainWindow *const m_mainWindow;
 
     boost::mutex mtx_; // explicit mutex declaration
 
@@ -81,21 +84,22 @@ private:
      *
      * @param raw_image, the image to be processed
      */
-    void PrepareRawImage(cv::Mat& raw_image, bool equalize_hist);
+    void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist);
 
-    void NormalizeBGRImage(cv::Mat& bgr_image);
+    void NormalizeBGRImage(cv::Mat &bgr_image);
 
-    void GetBand(cv::Mat& image, cv::Mat& band_image, int band_nr);
+    void GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr);
 
     void GetBGRImage(cv::Mat &image, cv::Mat &rgb_image);
 
 };
 
 // helper function to do proper formatting of functional image
-void PrepareFunctionalImage(cv::Mat& functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds, int colormap);
+void PrepareFunctionalImage(cv::Mat &functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds,
+                            int colormap);
 
-void PrepareBGRImage(cv::Mat& bgr_image, int bgr_norm);
+void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
 
-void PrepareRawImage(cv::Mat& raw_image, bool equalize_hist);
+void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist);
 
 #endif // DISPLAY_H
