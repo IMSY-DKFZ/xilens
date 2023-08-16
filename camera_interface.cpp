@@ -15,6 +15,11 @@
 #include "constants.h"
 
 
+/**
+ * @brief A mapper that maps camera models to their corresponding type, e.g. spectral, gray, etc.
+ *
+ * This mapper is represented as a constant map with camera models as keys and camera types as values.
+ */
 const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
         {"MQ022HG-IM-SM4X4-VIS",  "spectral"},
         {"MQ022HG-IM-SM4X4-VIS3", "spectral"},
@@ -22,12 +27,25 @@ const QMap<QString, QString> CAMERA_TYPE_MAPPER = {
 };
 
 
+/**
+ * \brief Sets the camera type.
+ *
+ * This function sets the camera type for the camera interface.
+ * The camera type is represented by a QString parameter called camera_type.
+ *
+ * \param camera_type The camera type to be set.
+ */
 void CameraInterface::SetCameraType(QString camera_type) {
     this->m_cameraType = std::move(camera_type);
 }
 
 
-void CameraInterface::UpdateCameraTemperature() {
+/**
+ * @brief Updates the recorded temperature of the camera.
+ *
+ * @return void
+ */
+void CameraInterface::UpdateRecordedCameraTemperature() {
     float chipTemp, housTemp, housBackSideTemp, sensorBoardTemp;
 
     xiGetParamFloat(m_camHandle, XI_PRM_CHIP_TEMP, &chipTemp);
@@ -40,6 +58,10 @@ void CameraInterface::UpdateCameraTemperature() {
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 
+
+/**
+ * @brief sets exposure to be updated automatically internally
+ */
 void CameraInterface::AutoExposure(bool on) {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_camHandle) {
@@ -50,6 +72,17 @@ void CameraInterface::AutoExposure(bool on) {
     }
 }
 
+
+/**
+ * @brief Set exposure value for the camera interface.
+ *
+ * This function sets the exposure value for the camera interface. The exposure
+ * value determines how long the camera sensor collects light from the scene.
+ *
+ * @param exp The exposure value to be set.
+ *
+ * @warning A valid camera connection is required before calling this function.
+ */
 
 void CameraInterface::SetExposure(int exp) {
     int stat = XI_INVALID_HANDLE;
@@ -64,11 +97,20 @@ void CameraInterface::SetExposure(int exp) {
 }
 
 
+/**
+ * @brief Sets the exposure time in milliseconds for the camera.
+ *
+ * @param exp The desired exposure time in milliseconds.
+ */
 void CameraInterface::SetExposureMs(int exp) {
     this->SetExposure(exp * 1000);
 }
 
 
+/**
+ * \brief Retrieves the exposure value from the camera interface.
+ * \return The current exposure value.
+ */
 int CameraInterface::GetExposure() {
     int stat = XI_OK;
     int exp = 40000;
@@ -83,12 +125,26 @@ int CameraInterface::GetExposure() {
     return exp;
 }
 
-
+/**
+ * \brief Retrieves the exposure value from the camera interface.
+ * \return The current exposure value in milliseconds.
+ */
 int CameraInterface::GetExposureMs() {
     return (this->GetExposure() + 5) / 1000;
 }
 
 
+/**
+ * @brief Initializes the camera interface.
+ *
+ * This function initializes the camera interface and prepares it for use.
+ * It must be called before any camera-related operations can be performed.
+ * It sets basic parameters such as data format to be collected form the camera, bandwidth, buffer size,
+ * maximum framerate, downsampling mode and value, and initial exposure time.
+ *
+ * @note It is recommended to call this function only once during the initialization phase of the program.
+ * @note If the camera interface is already initialized, calling this function again will have no effect.
+ */
 int CameraInterface::InitializeCamera() {
     int current_max_framerate;
     int stat = XI_OK;
@@ -110,14 +166,14 @@ int CameraInterface::InitializeCamera() {
     stat = xiSetParamFloat(m_camHandle, XI_PRM_GAIN, 0.);
     HandleResult(stat, "xiSetParam (set gain to zero)");
 
-//    stat = xiGetParamInt(m_camHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
-//    HandleResult(stat,"get current maximum frame rate");
-//
-//    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
-//    HandleResult(stat,"set acquisition timing mode to framerate");
-//
-//    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
-//    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
+    stat = xiGetParamInt(m_camHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
+    HandleResult(stat,"get current maximum frame rate");
+
+    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+    HandleResult(stat,"set acquisition timing mode to framerate");
+
+    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
+    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
 
     if (m_cameraType == SPECTRAL_CAMERA) {
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
@@ -156,6 +212,19 @@ int CameraInterface::InitializeCamera() {
 }
 
 
+/**
+ * @brief Starts the acquisition process for the specified camera.
+ *
+ * This function initiates the acquisition process for the given camera. The camera
+ * is identified by its unique name. This method opends the device and calls `xiStartAcquisition` using the camera
+ * handle.
+ *
+ * @param camera_name The name of the camera to start acquisition for.
+ *
+ * @return 0 if the acquisition process started successfully, 1 otherwise.
+ *
+ * @see StopAcquisition()
+ */
 int CameraInterface::StartAcquisition(QString camera_name) {
     OpenDevice(m_availableCameras[camera_name]);
     printf("Starting acquisition...\n");
@@ -177,6 +246,19 @@ int CameraInterface::StartAcquisition(QString camera_name) {
 }
 
 
+/**
+ * @brief Stops the acquisition of camera frames.
+ *
+ * This function is used to stop the acquisition of camera frames from the camera interface.
+ * It performs the necessary operations to halt the data acquisition process.
+ *
+ * @note This function assumes that the camera interface was already initialized and started
+ *       the acquisition process.
+ *
+ * @note This method does not close the device, it only stops the data acquisition from the camera.
+ *
+ * @see CameraInterface::StartAcquisition()
+ */
 int CameraInterface::StopAcquisition() {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_camHandle) {
@@ -188,6 +270,15 @@ int CameraInterface::StopAcquisition() {
     return stat;
 }
 
+
+/**
+ * \brief Opens a camera device with the specified ID.
+ *
+ * Opens and initializes the camera device
+ *
+ * \param camera_sn The camera ID of the camera device to open.
+ * \return 0 if the camera device was successfully opened, 1 otherwise.
+ */
 
 int CameraInterface::OpenDevice(DWORD camera_sn) {
     int stat = XI_INVALID_HANDLE;
@@ -201,6 +292,16 @@ int CameraInterface::OpenDevice(DWORD camera_sn) {
     return stat;
 }
 
+
+/**
+ * @brief Closes the camera device.
+ *
+ * Closes the currently used camera device
+ *
+ * @note Before calling this function, make sure the camera device is opened using OpenDevice().
+ *
+ * @see OpenDevice()
+ */
 
 void CameraInterface::CloseDevice() {
 #ifdef DEBUG_THIS
@@ -220,11 +321,22 @@ void CameraInterface::CloseDevice() {
 }
 
 
+/**
+ * @brief Gets the handle of the CameraInterface object.
+ *
+ * This function returns the handle of the CameraInterface object. The handle can be used
+ * to access the camera interface's properties and methods.
+ *
+ * @return The handle of the camera object.
+ */
 HANDLE CameraInterface::GetHandle() {
     return this->m_camHandle;
 }
 
 
+/**
+ * @brief Represents an interface for interacting with a camera.
+ */
 CameraInterface::CameraInterface() :
         m_camHandle(INVALID_HANDLE_VALUE) {
     int stat = XI_OK;
@@ -236,14 +348,14 @@ CameraInterface::CameraInterface() :
 }
 
 
-CameraInterface::~CameraInterface() {
-#ifdef DEBUG_THIS
-    std::cout << "DEBUG: CameraInterface::~CameraInterface()\n" << std::flush;
-#endif
-    this->CloseDevice();
-}
-
-
+/**
+ * @brief GetAvailableCameraModels
+ *
+ * This function retrieves the list of available camera models from the CameraInterface.
+ *
+ * @return QList<QString> - The list of available camera models as keys and device IDs that can be passed to
+ * `xiOpenDevice`
+ */
 QStringList CameraInterface::GetAvailableCameraModels() {
     QStringList cameraModels;
     QStringList cameraSNs;
@@ -265,4 +377,15 @@ QStringList CameraInterface::GetAvailableCameraModels() {
     }
 
     return cameraModels;
+}
+
+
+/**
+ * \brief Destructor of the camera interface.
+ */
+CameraInterface::~CameraInterface() {
+#ifdef DEBUG_THIS
+    std::cout << "DEBUG: CameraInterface::~CameraInterface()\n" << std::flush;
+#endif
+    this->CloseDevice();
 }

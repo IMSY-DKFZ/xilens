@@ -247,7 +247,7 @@ void MainWindow::on_snapshotButton_clicked() {
 
 void MainWindow::RecordCameraTemperature() {
     QString message;
-    m_camInterface.UpdateCameraTemperature();
+    m_camInterface.UpdateRecordedCameraTemperature();
     for (const QString &key: m_camInterface.m_cameraTemperature.keys()) {
         float temp = m_camInterface.m_cameraTemperature.value(key);
         message = QString("\t%1\t%2").arg(key).arg(temp);
