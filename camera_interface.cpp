@@ -262,10 +262,10 @@ int CameraInterface::StartAcquisition(QString camera_name) {
 int CameraInterface::StopAcquisition() {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_camHandle) {
-        printf("Stopping acquisition...");
+        BOOST_LOG_TRIVIAL(info) << "Stopping acquisition...";
         stat = xiStopAcquisition(m_camHandle);
         HandleResult(stat, "xiStopAcquisition");
-        std::cout << "Done!\n";
+        BOOST_LOG_TRIVIAL(info) << "Done!";
     }
     return stat;
 }
@@ -304,19 +304,14 @@ int CameraInterface::OpenDevice(DWORD camera_sn) {
  */
 
 void CameraInterface::CloseDevice() {
-#ifdef DEBUG_THIS
-    std::cout << "DEBUG: CameraInterface::CloseDevice()\n" << std::flush;
-#endif
-
     StopAcquisition();
-
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_camHandle) {
-        std::cout << "Closing device...";
+        BOOST_LOG_TRIVIAL(info) << "Closing device";
         stat = xiCloseDevice(this->m_camHandle);
         HandleResult(stat, "xiCloseDevice");
         //this->m_camHandle = INVALID_HANDLE_VALUE;
-        std::cout << "Done!\n" << std::flush;
+        BOOST_LOG_TRIVIAL(info) << "Done!";
     }
 }
 
@@ -343,8 +338,7 @@ CameraInterface::CameraInterface() :
     DWORD numberDevices;
     stat = xiGetNumberDevices(&numberDevices);
     HandleResult(stat, "xiGetNumberDevices");
-    std::cout << "number of ximea devices found: " << numberDevices << "\n" << std::flush;
-
+    BOOST_LOG_TRIVIAL(info) << "number of ximea devices found: " << numberDevices;
 }
 
 
@@ -384,8 +378,6 @@ QStringList CameraInterface::GetAvailableCameraModels() {
  * \brief Destructor of the camera interface.
  */
 CameraInterface::~CameraInterface() {
-#ifdef DEBUG_THIS
-    std::cout << "DEBUG: CameraInterface::~CameraInterface()\n" << std::flush;
-#endif
+    BOOST_LOG_TRIVIAL(debug) << "CameraInterface::~CameraInterface()";
     this->CloseDevice();
 }

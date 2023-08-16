@@ -2,8 +2,8 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
 *******************************************************/
-#ifndef IMAGECONTAINER_H
-#define IMAGECONTAINER_H
+#ifndef IMAGE_CONTAINER_H
+#define IMAGE_CONTAINER_H
 
 #include <xiApi.h>
 #include <boost/thread.hpp>
@@ -38,4 +38,4 @@ private:
     boost::mutex mtx_; // explicit mutex declaration
 };
 
-#endif // IMAGECONTAINER_H
+#endif // IMAGE_CONTAINER_H

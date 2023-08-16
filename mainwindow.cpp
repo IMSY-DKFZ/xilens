@@ -266,7 +266,7 @@ void MainWindow::ScheduleTemperatureThread() {
 
 void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error) {
     if (error) {
-        std::cout << "Timer cancelled. Error: " << error << "\n";
+        BOOST_LOG_TRIVIAL(error) << "Timer cancelled. Error: " << error;
         delete timer;
         return;
     }
@@ -610,7 +610,7 @@ QString MainWindow::GetWritingFolder() {
 }
 
 
-void MainWindow::CreateFolderIfNeccessary(QString folder) {
+void MainWindow::CreateFolderIfNecessary(QString folder) {
     // Check if the directory exists, If not create it.
     // @TODO: Check for valid name.
 
@@ -629,7 +629,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
 
     QString writingFolder =
             GetWritingFolder() + QDir::separator() + QString::fromStdString(specialFolder) + QDir::separator();
-    this->CreateFolderIfNeccessary(writingFolder);
+    this->CreateFolderIfNecessary(writingFolder);
 
     QString fileName;
     if (!m_testMode) {

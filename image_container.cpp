@@ -18,9 +18,7 @@ ImageContainer::ImageContainer() : m_PollImage(true) {
 }
 
 ImageContainer::~ImageContainer() {
-#ifdef DEBUG_THIS
-    std::cout << "DEBUG: ImageContainer::~ImageContainer()\n" << std::flush;
-#endif
+    BOOST_LOG_TRIVIAL(debug) << "Destroying image container";
 }
 
 
@@ -38,7 +36,6 @@ void ImageContainer::PollImage(HANDLE camHandle, int pollingRate) {
             }
         }
         wait(pollingRate);
-        // std::cout << "grabbed image " << image.acq_nframe << "\n" << std::flush;
     }
 }
 

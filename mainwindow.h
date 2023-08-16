@@ -141,7 +141,7 @@ private:
 
     bool SetBaseFolder(QString baseFolderPath);
 
-    void CreateFolderIfNeccessary(QString folder);
+    void CreateFolderIfNecessary(QString folder);
 
     void RecordImage();
 
