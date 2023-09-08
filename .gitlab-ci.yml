@@ -7,6 +7,8 @@ stages:
 before_script:
   - DEBIAN_FRONTEND=noninteractive
   - TZ=Europe/Berlin
+  - echo "tzdata tzdata/Areas select Europe" | sudo debconf-set-selections
+  - echo "tzdata tzdata/Zones/Europe select Berlin" | sudo debconf-set-selections
   - apt update && apt install -y build-essential tzdata uuid-dev libgl1-mesa-dev qt6-base-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev --no-install-recommends libboost-all-dev curl
   - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
   - tar xzf XIMEA_Linux_SP.tgz
