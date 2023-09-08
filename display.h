@@ -1,47 +1,39 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
-
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-
 #include <QObject>
+#include <QString>
+#include <xiApi.h>
 
-#include "xiApi.h"
 
-
-class Displayer : public QObject
-{
-    Q_OBJECT
+class Displayer : public QObject {
+Q_OBJECT
 
 public:
 
     explicit Displayer();
+
     ~Displayer();
+
+    QString m_cameraType;
+
+    virtual void SetCameraType(QString camera_type) = 0;
 
 
 protected:
 
     virtual void CreateWindows() = 0;
+
     virtual void DestroyWindows() = 0;
 
 
 public slots:
 
-    virtual void Display(XI_IMG& image) = 0;
+    virtual void Display(XI_IMG &image) = 0;
 };
+
 #endif // DISPLAY_H

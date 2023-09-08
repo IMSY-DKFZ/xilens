@@ -1,41 +1,34 @@
-/*
- * ===================================================================
- * Surgical Spectral Imaging Library (SuSI)
- *
- * Copyright (c) German Cancer Research Center,
- * Division of Medical and Biological Informatics.
- * All rights reserved.
- *
- * This software is distributed WITHOUT ANY WARRANTY; without
- * even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.
- *
- * See LICENSE.txt for details.
- * ===================================================================
- */
-
-
-#ifndef IMAGECONTAINER_H
-#define IMAGECONTAINER_H
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
+#ifndef IMAGE_CONTAINER_H
+#define IMAGE_CONTAINER_H
 
 #include <xiApi.h>
 #include <boost/thread.hpp>
 #include <QObject>
 
-class ImageContainer : public QObject
-{
-    Q_OBJECT
+
+class ImageContainer : public QObject {
+Q_OBJECT
 
 public:
     ImageContainer();
+
     ~ImageContainer();
 
     // pollingRate in ms
     void PollImage(HANDLE camHandle, int pollingRate);
+
     XI_IMG GetCurrentImage();
+
     void StopPolling();
 
+    void StartPolling();
+
 signals:
+
     void NewImage();
 
 private:
@@ -45,4 +38,4 @@ private:
     boost::mutex mtx_; // explicit mutex declaration
 };
 
-#endif // IMAGECONTAINER_H
+#endif // IMAGE_CONTAINER_H
