@@ -10,6 +10,7 @@ RUN apt update && apt install -y \
      build-essential \
      curl \
      libopencv-dev \
+     libgtest-dev \
      --no-install-recommends libboost-all-dev
 RUN export CC=/usr/bin/gcc-6 && export CXX=/usr/bin/g++-6
 RUN apt install -y python3-pip

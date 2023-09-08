@@ -7,7 +7,7 @@ NOTE: You will need `CUDA` library and drivers installed in your computer in ord
 To build susicam you only need to install the dependencies and run the build as in the following commands.
 
 ```bash
-sudo apt install libopencv-dev libboost-all-dev qt6-base-dev cmake g++ wget
+sudo apt install libopencv-dev libboost-all-dev libgtest-dev qt6-base-dev cmake g++ wget
 ```
 
 You will also have to install the xiAPI package provided my XIMEA
@@ -27,6 +27,7 @@ mkdir build
 cd build
 cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
 make all -j
+ctest # to check that all tests pass 
 ```
 
 # Using  susicam
