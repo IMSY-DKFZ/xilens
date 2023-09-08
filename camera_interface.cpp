@@ -41,6 +41,16 @@ void CameraInterface::SetCameraType(QString camera_type) {
 
 
 /**
+ * @brief Set the index of the camera.
+ *
+ * @param index The index of the camera to be set.
+ */
+void CameraInterface::SetCameraIndex(int index) {
+    this->m_cameraIndex = index;
+}
+
+
+/**
  * @brief Updates the recorded temperature of the camera.
  *
  * @return void
@@ -226,7 +236,8 @@ int CameraInterface::InitializeCamera() {
  * @see StopAcquisition()
  */
 int CameraInterface::StartAcquisition(QString camera_name) {
-    OpenDevice(m_availableCameras[camera_name]);
+    int stat_open = XI_OK;
+    stat_open = OpenDevice(m_availableCameras[camera_name]);
     printf("Starting acquisition...\n");
 
     int stat = XI_INVALID_HANDLE;
@@ -281,14 +292,15 @@ int CameraInterface::StopAcquisition() {
  */
 
 int CameraInterface::OpenDevice(DWORD camera_sn) {
-    int stat = XI_INVALID_HANDLE;
-
+    int stat = XI_OK;
     stat = xiOpenDevice(camera_sn, &m_camHandle);
     HandleResult(stat, "xiGetNumberDevices");
 
     stat = InitializeCamera();
-    HandleResult(stat, "InitializeCamera");
-
+    if (stat != XI_OK) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to initialize camera: " << camera_sn;
+        return stat;
+    }
     return stat;
 }
 
@@ -355,19 +367,23 @@ QStringList CameraInterface::GetAvailableCameraModels() {
     QStringList cameraSNs;
     // DWORD and HANDLE are defined by xiAPI
     DWORD dwCamCount = 0;
+    int stat = XI_OK;
     xiGetNumberDevices(&dwCamCount);
 
     for (DWORD i = 0; i < dwCamCount; i++) {
         HANDLE hDevice = INVALID_HANDLE_VALUE;
-        xiOpenDevice(i, &hDevice);
+        stat = xiOpenDevice(i, &hDevice);
+        if (stat != XI_OK){
+            BOOST_LOG_TRIVIAL(error) << "cannot open device with ID: " << i << " perhaps already open?";
+        } else {
+            char camera_model[256] = {0};
+            xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
 
-        char camera_model[256] = {0};
-        xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
+            cameraModels.append(QString::fromUtf8(camera_model));
+            m_availableCameras[QString::fromUtf8(camera_model)] = i;
 
-        cameraModels.append(QString::fromUtf8(camera_model));
-        m_availableCameras[QString::fromUtf8(camera_model)] = i;
-
-        xiCloseDevice(hDevice);
+            xiCloseDevice(hDevice);
+        }
     }
 
     return cameraModels;

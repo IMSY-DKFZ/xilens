@@ -23,7 +23,7 @@ enum {
 };
 #endif
 
-#define HandleResult(res, place) if (res!=XI_OK) {std::stringstream errormsg; errormsg << "Error after " << place << " " << res << "\n"; std::runtime_error(errormsg.str());}
+#define HandleResult(res, place) if (res!=XI_OK) {std::stringstream errormsg; errormsg << "Error after " << place << " " << res << "\n"; throw std::runtime_error(errormsg.str());}
 
 
 class FileImage {

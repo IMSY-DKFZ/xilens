@@ -112,6 +112,7 @@ void MainWindow::StartImageAcquisition(QString camera_name) {
     }
     catch (std::runtime_error &error) {
         BOOST_LOG_TRIVIAL(warning) << "could not start camera, got error " << error.what();
+        throw std::runtime_error(error.what());
     }
 }
 
@@ -847,16 +848,28 @@ void MainWindow::on_skipFramesSpinBox_valueChanged() {
 
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
     boost::lock_guard<boost::mutex> guard(mtx_);
-    this->StopImageAcquisition();
-    m_camInterface.CloseDevice();
+    try {
+        this->StopImageAcquisition();
+        m_camInterface.CloseDevice();
+    } catch (std::runtime_error &e) {
+        BOOST_LOG_TRIVIAL(error) << "could not stop image acquisition: " << e.what();
+    }
     if (index != 0) {
         QString cameraModel = ui->cameraListComboBox->currentText();
         m_camInterface.m_cameraModel = cameraModel;
         if (CAMERA_TYPE_MAPPER.contains(cameraModel)) {
             QString cameraType = CAMERA_TYPE_MAPPER.value(cameraModel);
+            try {
+                this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+            } catch (std::runtime_error &e) {
+                BOOST_LOG_TRIVIAL(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
+                ui->cameraListComboBox->setCurrentIndex(m_camInterface.m_cameraIndex);
+                return;
+            }
             m_display->SetCameraType(cameraType);
             m_camInterface.SetCameraType(cameraType);
-            this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+            m_camInterface.SetCameraIndex(index);
             this->EnableUi(true);
             if (cameraType == SPECTRAL_CAMERA) {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
@@ -869,6 +882,8 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
             BOOST_LOG_TRIVIAL(error) << "camera model not in CAMERA_TYPE_MAPPER: " << cameraModel.toStdString();
         }
     } else {
+        const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
+        m_camInterface.SetCameraIndex(index);
         this->EnableUi(false);
     }
 }

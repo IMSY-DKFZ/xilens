@@ -149,6 +149,15 @@ public:
     void SetCameraType(QString camera_type);
 
     /**
+     * @brief Sets the camera index.
+     *
+     * This function sets the camera index as appeared in the ComboBox of the GUI
+     *
+     * @param index The index of the camera to be set.
+     */
+    void SetCameraIndex(int index);
+
+    /**
      * @brief The camera temperature data structure.
      *
      * This structure stores temperature values for various camera components.
@@ -223,6 +232,7 @@ public:
      * @brief The type of camera used for capturing images.
      */
     QString m_cameraType;
+    int m_cameraIndex;
 
 
 private:
