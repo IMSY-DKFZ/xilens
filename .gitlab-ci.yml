@@ -1,0 +1,37 @@
+image: nvidia/cuda:11.8.0-base-ubuntu22.04
+
+stages:
+  - build
+  - test
+
+before_script:
+  - TZ=Europe/Berlin
+  - apt update && apt install -y build-essential tzdata uuid-dev libgl1-mesa-dev qt6-base-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev --no-install-recommends libboost-all-dev curl
+  - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
+  - tar xzf XIMEA_Linux_SP.tgz
+  - sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' install_steps
+  - cd package
+  - ./install
+# This is the job to build the project
+build:
+  stage: build
+  script:
+    - mkdir build && cd build
+    - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
+    - make all -j
+    - ctest
+  artifacts:
+    paths:
+      - build/
+  rules:
+      - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
+
+test:
+  script:
+    - gtest.exe --gtest_output="xml:report.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+  rules:
+      - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
