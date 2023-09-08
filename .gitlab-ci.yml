@@ -36,7 +36,9 @@ build:
 
 test:
   script:
-    - gtest.exe --gtest_output="xml:report.xml"
+    - cd build
+    - ctest --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
+    - mv Testing/Test.xml ../report.xml
   artifacts:
     when: always
     reports:
