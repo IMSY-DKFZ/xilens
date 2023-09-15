@@ -8,7 +8,7 @@ before_script:
   - DEBIAN_FRONTEND=noninteractive
   - TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
-  - apt-get -y install build-essential uuid-dev libgl1-mesa-dev qt6-base-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev --no-install-recommends libboost-all-dev curl cmake
+  - apt-get -y install build-essential uuid-dev libgl1-mesa-dev qt6-base-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev gcovr --no-install-recommends libboost-all-dev curl cmake
   - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
   - tar xzf XIMEA_Linux_SP.tgz
   - cd package
@@ -39,9 +39,15 @@ test:
     - cd build
     - ctest --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
     - mv Testing/Test.xml ../report.xml
+    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ../ -e '/.*build.*/.*'
+    - mv coverage.xml ../coverage.xml
+  coverage: /^\s*lines:\s*\d+.\d+\%/
   artifacts:
     when: always
     reports:
       junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
   rules:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
