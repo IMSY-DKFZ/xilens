@@ -27,15 +27,14 @@ build:
     - mkdir cmake-build-debug && cd cmake-build-debug
     - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
     - make all -j
-  artifacts:
-    paths:
-      - cmake-build-debug/
   rules:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test:
   script:
-    - cd cmake-build-debug
+    - mkdir cmake-build-debug && cd cmake-build-debug
+    - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
+    - make all -j
     - ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
     - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ../ -e '/.*cmake-build.*/.*'
     - mv Testing/Test.xml ../report.xml
