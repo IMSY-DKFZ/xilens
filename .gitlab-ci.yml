@@ -37,7 +37,7 @@ test:
   script:
     - cd cmake-build-debug
     - ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
-    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ../ -e '/.*build.*/.*'
+    - gcovr --xml-pretty --exclude-unreachable-branches --print-summary -o coverage.xml --root ../ -e '/.*cmake-build.*/.*'
     - mv Testing/Test.xml ../report.xml
     - mv coverage.xml ../coverage.xml
   coverage: /^\s*lines:\s*\d+.\d+\%/
