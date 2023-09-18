@@ -35,8 +35,8 @@ test:
     - mkdir cmake-build-debug && cd cmake-build-debug
     - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
     - make all -j
-    - gcovr --xml-pretty --print-summary -o coverage.xml --verbose --root ${CI_PROJECT_DIR}
     - ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
+    - gcovr --xml-pretty --print-summary -o coverage.xml --verbose -e '/.*cmake-build.*/.*' --root ${CI_PROJECT_DIR}
     - mv Testing/Test.xml ../report.xml
     - mv coverage.xml ../coverage.xml
   coverage: /^\s*lines:\s*\d+.\d+\%/

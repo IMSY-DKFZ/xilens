@@ -9,6 +9,7 @@ RUN apt update && apt-get -y install tzdata
 RUN apt update && apt install -y \
      build-essential \
      curl \
+     gcovr \
      libopencv-dev \
      libgtest-dev \
      --no-install-recommends libboost-all-dev
