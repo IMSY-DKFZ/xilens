@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "util.h"
+#include "src/util.h"
 
 TEST(UtilTest, HandleResultTest){
     int cam_status = 0;
