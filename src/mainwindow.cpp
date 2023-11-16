@@ -398,17 +398,21 @@ void MainWindow::WriteLogHeader() {
 }
 
 
-void MainWindow::LogMessage(QString message, QString log_file, bool log_time) {
+QString MainWindow::LogMessage(QString message, QString log_file, bool log_time) {
+    QString timestamp;
     QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
+    QString date = (QDate::currentDate()).toString("yyyyMMdd_");
+    timestamp = date + curr_time;
     QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + log_file);
     QFile file(log_filename);
     file.open(QIODevice::Append);
     QTextStream stream(&file);
     if (log_time) {
-        stream << curr_time;
+        stream << timestamp;
     }
     stream << message << "\n";
     file.close();
+    return timestamp;
 }
 
 
@@ -828,10 +832,20 @@ void MainWindow::on_triggerText_textEdited(const QString &arg1) {
 }
 
 void MainWindow::on_triggerText_returnPressed() {
+    QString timestamp;
     QString trigger_message = ui->triggerText->text();
-    this->LogMessage(trigger_message, LOG_FILE_NAME, true);
+    // block signals until method ends
+    const QSignalBlocker triggerTextBlocker(ui->triggerText);
+    const QSignalBlocker triggersTextEdit(ui->triggersTextEdit);
+    // log message and update member variable for trigger text
+    trigger_message.prepend(" ");
+    timestamp = this->LogMessage(trigger_message, LOG_FILE_NAME, true);
+    m_triggerText = timestamp + trigger_message + "\n";
+
+    // handle UI calls
     ui->triggerText->setStyleSheet(FIELD_ORIGINAL_STYLE);
     ui->triggersTextEdit->append(m_triggerText);
+    ui->triggersTextEdit->show();
     ui->triggerText->clear();
 }
 

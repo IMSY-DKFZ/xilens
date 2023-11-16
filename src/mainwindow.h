@@ -48,7 +48,7 @@ public:
 
     void WriteLogHeader();
 
-    void LogMessage(QString message, QString log_filename, bool log_time);
+    QString LogMessage(QString message, QString log_filename, bool log_time);
 
     void RecordCameraTemperature();
 
