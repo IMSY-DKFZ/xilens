@@ -11,6 +11,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QElapsedTimer>
+#include <QLineEdit>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
@@ -60,6 +61,8 @@ public:
 
     void HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error);
 
+    void StopSnapshotsThread();
+
 protected:
     void closeEvent(QCloseEvent *event);
 
@@ -74,7 +77,9 @@ private slots:
 
     void on_chooseFolder_clicked();
 
-    void on_label_exp_editingFinished();
+    void on_label_exp_textEdited(const QString &arg1);
+
+    void on_label_exp_returnPressed();
 
     void on_topFolderName_returnPressed();
 
@@ -115,6 +120,14 @@ private slots:
     void on_skipFramesSpinBox_valueChanged();
 
     void on_cameraListComboBox_currentIndexChanged(int index);
+
+    void updateLineEditStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
+
+    void restoreLineEditStyle(QLineEdit* lineEdit);
+
+    void on_snapshotPrefixlineEdit_textEdited(const QString &arg1);
+
+    void on_snapshotPrefixlineEdit_returnPressed();
 
 private:
     Ui::MainWindow *ui;
@@ -213,6 +226,8 @@ private:
     QString m_folderLowExposureImages;
     QString m_triggerText;
     QString m_baseFolderLoc;
+    QString m_label_exp;
+    QString m_snapshotPrefix;
     QElapsedTimer m_elapsedTimer;
     std::string m_recBaseName;
     float m_elapsedTime;
@@ -228,15 +243,16 @@ private:
     bool m_testMode;
 
     // threads for camera image display and recording
-    boost::thread m_image_container_thread;
+    boost::thread m_imageContainerThread;
     boost::asio::io_service m_io_service;
     boost::thread_group m_threadpool;
     boost::asio::io_service::work m_work;
     boost::mutex mtx_;
     boost::thread m_temperatureThread;
+    boost::thread m_snapshotsThread;
     boost::asio::steady_timer *m_temperatureThreadTimer;
 
-    void StartImageAcquisition(QString camera_name);
+    void StartImageAcquisition(QString camera_identifier);
 
     void StopImageAcquisition();
 };

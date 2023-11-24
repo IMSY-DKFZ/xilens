@@ -229,15 +229,15 @@ int CameraInterface::InitializeCamera() {
  * is identified by its unique name. This method opends the device and calls `xiStartAcquisition` using the camera
  * handle.
  *
- * @param camera_name The name of the camera to start acquisition for.
+ * @param camera_identifier The name of the camera to start acquisition for.
  *
  * @return 0 if the acquisition process started successfully, 1 otherwise.
  *
  * @see StopAcquisition()
  */
-int CameraInterface::StartAcquisition(QString camera_name) {
+int CameraInterface::StartAcquisition(QString camera_identifier) {
     int stat_open = XI_OK;
-    stat_open = OpenDevice(m_availableCameras[camera_name]);
+    stat_open = OpenDevice(m_availableCameras[camera_identifier]);
     printf("Starting acquisition...\n");
 
     int stat = XI_INVALID_HANDLE;

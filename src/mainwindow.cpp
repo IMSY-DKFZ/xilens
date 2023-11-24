@@ -43,6 +43,13 @@ void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img) {
 }
 
 
+/**
+* @class MainWindow
+* @brief The MainWindow class represents the main window of the application.
+*
+* This class inherits from QMainWindow and is responsible for initializing the user interface.
+* It also manages the IO service, work, and other variables related to image recording and testing.
+*/
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow),
@@ -95,9 +102,20 @@ MainWindow::MainWindow(QWidget *parent) :
     EnableUi(false);
 }
 
-void MainWindow::StartImageAcquisition(QString camera_name) {
+
+/**
+ * @brief Starts image acquisition for a specific camera.
+ *
+ * This function initiates the image acquisition process for a specified camera. this is done on a pool of threads.
+ * The pool of threads need to be joined when not needed in order to avoid dangling threads.
+ * This method also connects the incoming images from the camera to the Displayer that handles the displaying process
+ * on screen. Another connection is established between incoming images and UpdateMinMaxPixelValues.
+ *
+ * @param camera_identifier The identifier of the camera to start the image acquisition for.
+ */
+void MainWindow::StartImageAcquisition(QString camera_identifier) {
     try {
-        m_camInterface.StartAcquisition(std::move(camera_name));
+        m_camInterface.StartAcquisition(std::move(camera_identifier));
 
         this->StartPollingThread();
 
@@ -116,6 +134,18 @@ void MainWindow::StartImageAcquisition(QString camera_name) {
     }
 }
 
+
+/**
+ * @brief Stops the image acquisition.
+ *
+ * This function is used to stop the acquisition of images in the MainWindow class.
+ * It stops any ongoing image acquisition and performs the necessary clean-up actions.
+ * After calling this function, the image acquisition process will be completely stopped
+ * and no further images will be acquired.
+ * The pool of threads in charge of collecting the images from the camera is stopped as well as the thread in charge of
+ * recording the camera temperature.
+ * The corresponding signals and slots are also disconnected from NewImage
+ */
 void MainWindow::StopImageAcquisition() {
     this->StopPollingThread();
     this->StopTemperatureThread();
@@ -126,6 +156,19 @@ void MainWindow::StopImageAcquisition() {
                         &MainWindow::UpdateMinMaxPixelValues);
 }
 
+
+/**
+ * @brief Disable or enable widgets in a given layout.
+ *
+ * This function can be used to disable or enable all widgets within a layout
+ * by setting their disabled state. This is done iteratively, so that widgets in nested layouts are also disabled or
+ * re-enabled
+ *
+ * @param layout The layout object containing the widgets.
+ *
+ * @param enable A boolean value indicating whether to enable or disable the widgets.
+ *               true to enable, false to disable.
+ */
 void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
@@ -141,6 +184,17 @@ void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
     }
 }
 
+
+/**
+ * @brief Enables or disables the user interface of the main window.
+ *
+ * This function sets the enabled state of all the user interface components
+ * in the main window, such as buttons, menus, and text fields. When called with
+ * the parameter 'enable' set to true, all the components will be enabled, and
+ * when called with 'enable' set to false, all the components will be disabled.
+ *
+ * @param enable True to enable the user interface components, false to disable.
+ */
 void MainWindow::EnableUi(bool enable) {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
     disableWidgetsInLayout(layout, enable);
@@ -148,6 +202,13 @@ void MainWindow::EnableUi(bool enable) {
 }
 
 
+/**
+ * @class MainWindow
+ *
+ * @brief Virtual method in charge of displaying the images.
+ *
+ * Displays an image at most every 35 milliseconds. The images are queried from the container.
+ */
 void MainWindow::Display() {
     static boost::posix_time::ptime last = boost::posix_time::microsec_clock::local_time();
     boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
@@ -165,6 +226,12 @@ void MainWindow::Display() {
 }
 
 
+/**
+ * \brief Update the validators for Vhb and Sao2 fields in the MainWindow class.
+ *
+ * This function updates the validators for the Vhb and Sao2 fields in the MainWindow class.
+ * The validators ensure that the user input for these fields is in a valid format.
+ */
 void MainWindow::UpdateVhbSao2Validators() {
     const unsigned MAX_SAO2 = 100;
     const unsigned MAX_VHB = 30;
@@ -177,6 +244,18 @@ void MainWindow::UpdateVhbSao2Validators() {
     ui->max_sao2_line_edit->setValidator(new QIntValidator(ui->min_sao2_line_edit->text().toInt(), MAX_SAO2, this));
 }
 
+
+/**
+ * @brief Updates the minimum and maximum pixel values of the main window.
+ *
+ * This function calculates the minimum and maximum pixel values from the current image data
+ * and updates the corresponding member variables of the main window.
+ *
+ * @note This function should be called whenever there is a change in the image data that may
+ * affect the minimum and maximum pixel values.
+ *
+ * @todo This method does not seem to be used for anything and could potentially be removed
+ */
 void MainWindow::UpdateMinMaxPixelValues() {
     const unsigned refresh_rate_ms = 1000; // refresh all 1000ms
 
@@ -204,11 +283,18 @@ void MainWindow::UpdateMinMaxPixelValues() {
 }
 
 
+/**
+ * @brief Destructor for MainWindow class.
+ *
+ * Cleans up resources used by the MainWindow object.
+ * This destructor is automatically called when the object is destroyed.
+ */
 MainWindow::~MainWindow() {
     m_io_service.stop();
     m_threadpool.join_all();
 
     this->StopTemperatureThread();
+    this->StopSnapshotsThread();
 
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
 
@@ -216,6 +302,13 @@ MainWindow::~MainWindow() {
 }
 
 
+/**
+ * @class MainWindow
+ * @brief Collects and stores the specified number of images in the base folder specified through the GUI
+ *
+ * The snapshot button is re-styled when clicked, and the progress bar is updated in the GUI during the process of recording the
+ * images. The button style is restored after the data recording has completed.
+ */
 void MainWindow::Snapshots() {
     static QString original_colour = ui->recordButton->styleSheet();
     // create invocation to method to trigger changes in UI from the main thread
@@ -241,11 +334,56 @@ void MainWindow::Snapshots() {
 }
 
 
+/**
+ * @brief Slot for the snapshotButton clicked signal.
+ *
+ * This function is called when the snapshotButton is clicked by the user.
+ * It handles the logic for capturing a snapshot of the current state of the window. It launches a thread that takes
+ * care of the data recording.
+ *
+ * @return void
+ */
 void MainWindow::on_snapshotButton_clicked() {
-    boost::thread(&MainWindow::Snapshots, this);
+    m_snapshotsThread = boost::thread(&MainWindow::Snapshots, this);
 }
 
 
+/**
+ * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
+ *
+ * @param arg1 The new text entered in the snapshotPrefixlineEdit.
+ */
+void MainWindow::on_snapshotPrefixlineEdit_textEdited(const QString &arg1){
+    updateLineEditStyle(ui->snapshotPrefixlineEdit, arg1, m_snapshotPrefix);
+}
+
+
+/**
+ * @brief Slot function triggered when the return key is pressed in the snapshotPrefixlineEdit QLineEdit widget.
+ * This method re-styles the appearance of the lineEdit object.
+ *
+ * @details This function is a slot that is connected to the returnPressed() signal of the snapshotPrefixlineEdit widget
+ * in the MainWindow class. When the user presses the return key in the snapshotPrefixlineEdit widget,
+ * this function is called.
+ *
+ * @note This function does not return any value.
+ *
+ * @sa MainWindow
+ */
+void MainWindow::on_snapshotPrefixlineEdit_returnPressed(){
+    m_snapshotPrefix = ui->snapshotPrefixlineEdit->text();
+    restoreLineEditStyle(ui->snapshotPrefixlineEdit);
+
+}
+
+
+/**
+ * @brief Records the temperature of the camera.
+ *
+ * This function records the temperature of the camera and logs it to a file in the base folder specified in the GUI.
+ * It uses the camera API to get the temperature value and prints it to the console output.
+ * This function should be called periodically to monitor the camera's temperature.
+ */
 void MainWindow::RecordCameraTemperature() {
     QString message;
     m_camInterface.UpdateRecordedCameraTemperature();
@@ -258,6 +396,13 @@ void MainWindow::RecordCameraTemperature() {
 }
 
 
+/**
+ * @brief Starts a thread to schedule temperature.
+ *
+ * This function starts a thread which executes the temperature scheduling logic.
+ * The temperature scheduling logic periodically checks the current temperature. The temperature is only logged
+ * periodically according to the TEMP_LOG_INTERVAL variable
+ */
 void MainWindow::ScheduleTemperatureThread() {
     m_temperatureThreadTimer = new boost::asio::steady_timer(m_io_service);
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
@@ -265,6 +410,15 @@ void MainWindow::ScheduleTemperatureThread() {
             boost::bind(&MainWindow::HandleTimer, this, m_temperatureThreadTimer, boost::asio::placeholders::error));
 }
 
+
+/**
+ * \brief Handle the timer expiration event
+ *
+ * This function is called when the timer expires. It is responsible for handling the timer expiration event.
+ *
+ * \param timer Pointer to the boost::asio::steady_timer object representing the timer.
+ * \param error The error code associated with the timer expiration event, if any.
+ */
 void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error) {
     if (error) {
         BOOST_LOG_TRIVIAL(error) << "Timer cancelled. Error: " << error;
@@ -272,7 +426,6 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
         return;
     }
 
-    // Do what you need to do every 5 seconds
     this->RecordCameraTemperature();
 
     // Reset timer
@@ -280,6 +433,15 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
     timer->async_wait(boost::bind(&MainWindow::HandleTimer, this, timer, boost::asio::placeholders::error));
 }
 
+
+/**
+ * @brief this method starts a new thread for temperature monitoring.
+ *
+ * This method creates a new thread to monitor the temperature by periodically calling the
+ * `ReadTemperature()` method. The temperature is read and stored in a member variable for
+ * further processing.
+ * \see StopTemperatureThread()
+ */
 void MainWindow::StartTemperatureThread() {
     QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
     QFile file(log_filename);
@@ -294,12 +456,29 @@ void MainWindow::StartTemperatureThread() {
     });
 }
 
+
+/**
+ * \brief Stops the temperature thread.
+ *
+ * This function stops the thread responsible for temperature readings. It
+ * sends a stop signal to the thread and waits for it to finish before returning.
+ *
+ * \see StartTemperatureThread()
+ */
 void MainWindow::StopTemperatureThread() {
     if (m_temperatureThread.joinable()) {
         m_temperatureThreadTimer->cancel();
         m_temperatureThread.interrupt();
         m_temperatureThread.join();
+        delete m_temperatureThreadTimer;
         m_temperatureThreadTimer = nullptr;
+    }
+}
+
+
+void MainWindow::StopSnapshotsThread(){
+    if (m_snapshotsThread.joinable()){
+        m_snapshotsThread.join();
     }
 }
 
@@ -324,9 +503,16 @@ void MainWindow::UpdateExposure() {
 }
 
 
-void MainWindow::on_label_exp_editingFinished() {
-    m_camInterface.SetExposureMs(ui->label_exp->text().toInt());
+void MainWindow::on_label_exp_returnPressed() {
+    m_label_exp = ui->label_exp->text();
+    m_camInterface.SetExposureMs(m_label_exp.toInt());
     UpdateExposure();
+    restoreLineEditStyle(ui->label_exp);
+}
+
+
+void MainWindow::on_label_exp_textEdited(const QString &arg1) {
+    updateLineEditStyle(ui->label_exp, arg1, m_label_exp);
 }
 
 
@@ -364,10 +550,12 @@ void MainWindow::on_recordButton_clicked(bool checked) {
     }
 }
 
+
 void MainWindow::closeEvent(QCloseEvent *event) {
     this->StopPollingThread();
     QMainWindow::closeEvent(event);
 }
+
 
 void MainWindow::on_chooseFolder_clicked() {
     bool isValid = false;
@@ -418,13 +606,13 @@ QString MainWindow::LogMessage(QString message, QString log_file, bool log_time)
 
 void MainWindow::on_topFolderName_returnPressed() {
     m_topFolderName = ui->topFolderName->text();
-    ui->topFolderName->setStyleSheet(FIELD_ORIGINAL_STYLE);
+    restoreLineEditStyle(ui->topFolderName);
 }
 
 
 void MainWindow::on_recPrefixlineEdit_returnPressed() {
     m_recPrefixlineEdit = ui->recPrefixlineEdit->text();
-    ui->recPrefixlineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
+    restoreLineEditStyle(ui->recPrefixlineEdit);
 }
 
 
@@ -452,9 +640,11 @@ cv::Range MainWindow::GetUpperLowerBoundsSao2() const {
     return cv::Range(lower, upper);
 }
 
+
 unsigned MainWindow::GetBand() const {
     return this->ui->bandSlider->value();
 }
+
 
 unsigned MainWindow::GetBGRNorm() const {
     return this->ui->rgbNormSlider->value();
@@ -469,6 +659,7 @@ bool MainWindow::SetBaseFolder(QString baseFolderPath) {
         return false;
     }
 }
+
 
 QString MainWindow::GetBaseFolder() const {
     return m_baseFolderLoc;
@@ -508,6 +699,7 @@ void MainWindow::RecordImage() {
                               Q_ARG(int, m_recordedCount));
 }
 
+
 void MainWindow::RecordImage(std::string subFolder) {
     XI_IMG image = m_imageContainer.GetCurrentImage();
     static long last_id = image.acq_nframe;
@@ -536,6 +728,7 @@ void MainWindow::RecordImage(std::string subFolder) {
                               Q_ARG(int, m_recordedCount));
 }
 
+
 /**
  * @brief Updates the timer in the main window.
  *
@@ -556,7 +749,6 @@ void MainWindow::RecordImage(std::string subFolder) {
  *
  * @see MainWindow
  */
-
 void MainWindow::updateTimer() {
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
     int totalSeconds = static_cast<int>(m_elapsedTime);
@@ -579,9 +771,11 @@ void MainWindow::updateTimer() {
     ui->timerLCDNumber->display(m_elapsedTimeText);
 }
 
+
 void MainWindow::stopTimer() {
     ui->timerLCDNumber->display(0);
 }
+
 
 void MainWindow::CountImages() {
     m_imageCounter++;
@@ -668,15 +862,17 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
                               Q_ARG(int, m_recordedCount));
 }
 
+
 void MainWindow::StartPollingThread() {
     m_imageContainer.StartPolling();
-    m_image_container_thread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_camInterface.GetHandle(),
-                                             5);
+    m_imageContainerThread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_camInterface.GetHandle(),
+                                           5);
 }
 
+
 void MainWindow::StopPollingThread() {
-    m_image_container_thread.interrupt();
-    m_image_container_thread.join();
+    m_imageContainerThread.interrupt();
+    m_imageContainerThread.join();
     m_imageContainer.StopPolling();
 }
 
@@ -693,50 +889,62 @@ void MainWindow::on_whiteBalanceButton_clicked() {
 
 }
 
+
 void MainWindow::on_darkCorrectionButton_clicked() {
 
 }
+
 
 void MainWindow::on_min_vhb_line_edit_editingFinished() {
     this->UpdateVhbSao2Validators();
 }
 
+
 void MainWindow::on_max_vhb_line_edit_editingFinished() {
     this->UpdateVhbSao2Validators();
 }
 
+
 void MainWindow::on_min_sao2_line_edit_editingFinished() {
     this->UpdateVhbSao2Validators();
 }
+
 
 void MainWindow::on_max_sao2_line_edit_editingFinished() {
     this->UpdateVhbSao2Validators();
 }
 
 
-void MainWindow::on_topFolderName_textEdited(const QString &arg1) {
-    if (QString::compare(arg1, m_topFolderName, Qt::CaseSensitive)) {
-        ui->topFolderName->setStyleSheet(FIELD_EDITED_STYLE);
+void MainWindow::updateLineEditStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString)
+{
+    if (QString::compare(newString, originalString, Qt::CaseSensitive)) {
+        lineEdit->setStyleSheet(FIELD_EDITED_STYLE);
     } else {
-        ui->topFolderName->setStyleSheet(FIELD_ORIGINAL_STYLE);
+        lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
     }
+}
 
 
+void MainWindow::restoreLineEditStyle(QLineEdit* lineEdit) {
+    lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
+}
+
+
+void MainWindow::on_topFolderName_textEdited(const QString &arg1) {
+    updateLineEditStyle(ui->topFolderName, arg1, m_topFolderName);
 }
 
 
 void MainWindow::on_recPrefixlineEdit_textEdited(const QString &arg1) {
-    if (QString::compare(arg1, m_recPrefixlineEdit, Qt::CaseSensitive)) {
-        ui->recPrefixlineEdit->setStyleSheet(FIELD_EDITED_STYLE);
-    } else {
-        ui->recPrefixlineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
-    }
+    updateLineEditStyle(ui->recPrefixlineEdit, arg1, m_recPrefixlineEdit);
 }
+
 
 void MainWindow::on_functionalRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerFunctional(this);
 }
+
 
 void MainWindow::on_radioButtonRaw_clicked() {
     delete m_display;
@@ -804,32 +1012,27 @@ void MainWindow::lowExposureRecording() {
     UpdateExposure();
 }
 
+
 void MainWindow::on_recLowExposureImagesButton_clicked() {
     boost::thread(&MainWindow::lowExposureRecording, this);
 }
 
+
 void MainWindow::on_folderLowExposureImages_textEdited(const QString &arg1) {
-    if (QString::compare(arg1, m_folderLowExposureImages, Qt::CaseSensitive)) {
-        ui->folderLowExposureImages->setStyleSheet(FIELD_EDITED_STYLE);
-    } else {
-        ui->folderLowExposureImages->setStyleSheet(FIELD_ORIGINAL_STYLE);
-    }
-
-
+    updateLineEditStyle(ui->folderLowExposureImages, arg1, m_folderLowExposureImages);
 }
+
 
 void MainWindow::on_folderLowExposureImages_returnPressed() {
     m_folderLowExposureImages = ui->folderLowExposureImages->text();
-    ui->folderLowExposureImages->setStyleSheet(FIELD_ORIGINAL_STYLE);
+    restoreLineEditStyle(ui->folderLowExposureImages);
 }
 
+
 void MainWindow::on_triggerText_textEdited(const QString &arg1) {
-    if (QString::compare(arg1, m_triggerText, Qt::CaseSensitive)) {
-        ui->triggerText->setStyleSheet(FIELD_EDITED_STYLE);
-    } else {
-        ui->triggerText->setStyleSheet(FIELD_ORIGINAL_STYLE);
-    }
+    updateLineEditStyle(ui->triggerText, arg1, m_triggerText);
 }
+
 
 void MainWindow::on_triggerText_returnPressed() {
     QString timestamp;
@@ -843,11 +1046,12 @@ void MainWindow::on_triggerText_returnPressed() {
     m_triggerText = timestamp + trigger_message + "\n";
 
     // handle UI calls
-    ui->triggerText->setStyleSheet(FIELD_ORIGINAL_STYLE);
+    restoreLineEditStyle(ui->triggerText);
     ui->triggersTextEdit->append(m_triggerText);
     ui->triggersTextEdit->show();
     ui->triggerText->clear();
 }
+
 
 /*
  * updates frames per second label in GUI when number of skipped frames is modified
