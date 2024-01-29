@@ -641,9 +641,9 @@ void MainWindow::on_chooseFolder_clicked() {
  * the log was created, and any other relevant information to describe the log file format.
  */
 void MainWindow::WriteLogHeader() {
-    this->LogMessage(" git hash: " + QString::fromLatin1(libfive_git_revision()), LOG_FILE_NAME, true);
-    this->LogMessage(" git branch: " + QString::fromLatin1(libfive_git_branch()), LOG_FILE_NAME, true);
-    this->LogMessage(" git tags matching hash: " + QString::fromLatin1(libfive_git_version()), LOG_FILE_NAME, true);
+    this->LogMessage(" git hash: " + QString::fromLatin1(libfiveGitRevision()), LOG_FILE_NAME, true);
+    this->LogMessage(" git branch: " + QString::fromLatin1(libfiveGitBranch()), LOG_FILE_NAME, true);
+    this->LogMessage(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion()), LOG_FILE_NAME, true);
 }
 
 

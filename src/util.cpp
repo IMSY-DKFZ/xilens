@@ -12,6 +12,11 @@
 #include "util.h"
 
 
+/**
+ * Opens a file and throws runtime error when opening fails
+ * @param filename path to file to open
+ * @param mode mode in which the file should be open, e.g. "r"
+ */
 FileImage::FileImage(const char *filename, const char *mode) {
     file = fopen(filename, mode);
     if (!file) {
@@ -19,46 +24,77 @@ FileImage::FileImage(const char *filename, const char *mode) {
     }
 }
 
+/**
+ * Closes file when object is destructed
+ */
 FileImage::~FileImage() {
     fclose(file);
 }
 
+/**
+ * Writes the content of an image into a file in UINT16 format
+ * @param image Ximea image where data is stored
+ */
 void FileImage::write(XI_IMG image) {
     fwrite(image.bp, image.width * image.height, sizeof(UINT16), file);
 }
 
-const char *libfive_git_version(void) {
+/**
+ * Queries Git tag
+ * @return git tag
+ */
+const char *libfiveGitVersion(void) {
     return GIT_TAG;
 }
 
-const char *libfive_git_revision(void) {
+/**
+ * Queries Git revision number
+ * @return git revision
+ */
+const char *libfiveGitRevision(void) {
     return GIT_REV;
 }
 
-const char *libfive_git_branch(void) {
+/**
+ * Queries Git branch name
+ * @return git branch name
+ */
+const char *libfiveGitBranch(void) {
     return GIT_BRANCH;
 }
 
-float clip(float n, float lower, float upper) {
-    return std::max(lower, std::min(n, upper));
-}
-
+/**
+ * Rescales values to a range defined by high
+ * @param mat matrix values to rescale
+ * @param high maximum value that defines the range
+ */
 void rescale(cv::Mat &mat, float high) {
     double min, max;
     cv::minMaxLoc(mat, &min, &max);
     mat = (mat - ((float) min)) * high / ((float) max - min);
 }
 
+/**
+ * Restricts the values in a matrix to the range defined by bounds
+ * @param mat matrix of values to restrict
+ * @param bounds range of values
+ */
 void clamp(cv::Mat &mat, cv::Range bounds) {
-    min(max(mat, bounds.start), bounds.end, mat);
+    cv::min(cv::max(mat, bounds.start), bounds.end, mat);
 }
 
-
+/**
+ * waits a certain amount of milliseconds on a boost thread
+ * @param milliseconds amount of time to wait
+ */
 void wait(int milliseconds) {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(milliseconds));
 }
 
-
+/**
+ * Initializes the logging by setting a severity
+ * @param severity level of logging to set
+ */
 void initLogging(enum boost::log::trivial::severity_level severity) {
     boost::log::core::get()->set_filter
             (
@@ -66,6 +102,13 @@ void initLogging(enum boost::log::trivial::severity_level severity) {
             );
 }
 
+/**
+ * Created a look up table (LUT) that can be used to define the colors of pixels in an image that are over-saturated or
+ * under-exposed.
+ * @param saturation_color color of pixels that are over-saturated
+ * @param dark_color color of pixels that are under-exposed
+ * @return matrix with LUT
+ */
 cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color) {
     cv::Mat Lut(1, 256, CV_8UC3);
     for (uint i = 0; i < 256; ++i) {
@@ -80,4 +123,7 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color) {
     return Lut;
 }
 
+/**
+ * Contains the CLI arguments that can be used through a terminal
+ */
 struct CommandLineArguments g_commandLineArguments;
