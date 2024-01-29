@@ -179,20 +179,23 @@ int CameraInterface::InitializeCamera() {
     stat = xiGetParamInt(m_camHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
     HandleResult(stat,"get current maximum frame rate");
 
-    stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
-    HandleResult(stat,"set acquisition timing mode to framerate");
-
-    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
-    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
-
     if (m_cameraType == SPECTRAL_CAMERA) {
+        stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+        HandleResult(stat,"set acquisition timing mode to framerate");
+
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
         HandleResult(stat, "xiSetParam (downsampling mode set to binning)");
     } else if (m_cameraType == GRAY_CAMERA) {
+        stat = xiSetParamInt(m_camHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE_LIMIT);
+        HandleResult(stat,"set acquisition timing mode to framerate");
+
         // XIMEA xiC camera models only allow skipping mode
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
         HandleResult(stat, "xiSetParam (downsampling mode set to skipping)");
     }
+
+    stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
+    HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING, 1);
     HandleResult(stat, "xiSetParam (no downsampling)");
@@ -229,29 +232,31 @@ int CameraInterface::InitializeCamera() {
  * is identified by its unique name. This method opends the device and calls `xiStartAcquisition` using the camera
  * handle.
  *
- * @param camera_name The name of the camera to start acquisition for.
+ * @param camera_identifier The name of the camera to start acquisition for.
  *
  * @return 0 if the acquisition process started successfully, 1 otherwise.
  *
  * @see StopAcquisition()
  */
-int CameraInterface::StartAcquisition(QString camera_name) {
+int CameraInterface::StartAcquisition(QString camera_identifier) {
     int stat_open = XI_OK;
-    stat_open = OpenDevice(m_availableCameras[camera_name]);
+    stat_open = OpenDevice(m_availableCameras[camera_identifier]);
+    HandleResult(stat_open, "OpenDevice");
     printf("Starting acquisition...\n");
 
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_camHandle) {
         stat = xiStartAcquisition(m_camHandle);
         HandleResult(stat, "xiStartAcquisition");
-        if (XI_OK == stat)
+        if (stat == XI_OK){
             BOOST_LOG_TRIVIAL(info) << "successfully initialized camera\n";
+        }
         else {
             this->CloseDevice();
-            throw std::runtime_error("could not start camera initialization");
+            throw std::runtime_error("could not start camera, camera acquisition start failed");
         }
     } else {
-        throw std::runtime_error("didn't start acquisition, camera not properly initialized");
+        throw std::runtime_error("didn't start acquisition, camera invalid handle");
     }
     return stat;
 }

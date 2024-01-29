@@ -101,9 +101,9 @@ public:
      *
      * This function starts the acquisition process for a specified camera.
      *
-     * @param camera_name The name of the camera to be used for acquisition.
+     * @param camera_identifier The name of the camera to be used for acquisition.
      */
-    int StartAcquisition(QString camera_name);
+    int StartAcquisition(QString camera_identifier);
 
     /**
      * @brief Stops the acquisition process.
