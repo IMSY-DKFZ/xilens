@@ -192,6 +192,8 @@ int CameraInterface::InitializeCamera() {
         // XIMEA xiC camera models only allow skipping mode
         stat = xiSetParamInt(m_camHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
         HandleResult(stat, "xiSetParam (downsampling mode set to skipping)");
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "could not recognize current camera type" << m_cameraType.toStdString();
     }
 
     stat = xiSetParamInt(m_camHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
@@ -292,18 +294,18 @@ int CameraInterface::StopAcquisition() {
  *
  * Opens and initializes the camera device
  *
- * \param camera_sn The camera ID of the camera device to open.
+ * \param cameraIdentifier The camera ID of the camera device to open.
  * \return 0 if the camera device was successfully opened, 1 otherwise.
  */
 
-int CameraInterface::OpenDevice(DWORD camera_sn) {
+int CameraInterface::OpenDevice(DWORD cameraIdentifier) {
     int stat = XI_OK;
-    stat = xiOpenDevice(camera_sn, &m_camHandle);
+    stat = xiOpenDevice(cameraIdentifier, &m_camHandle);
     HandleResult(stat, "xiGetNumberDevices");
 
     stat = InitializeCamera();
     if (stat != XI_OK) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to initialize camera: " << camera_sn;
+        BOOST_LOG_TRIVIAL(error) << "Failed to initialize camera: " << cameraIdentifier;
         return stat;
     }
     return stat;

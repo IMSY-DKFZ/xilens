@@ -1367,16 +1367,22 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
         m_camInterface.m_cameraModel = cameraModel;
         if (CAMERA_TYPE_MAPPER.contains(cameraModel)) {
             QString cameraType = CAMERA_TYPE_MAPPER.value(cameraModel);
+            QString originalCameraType = m_camInterface.m_cameraType;
             try {
+                // set camera type needed by the camera interface initialization
+                m_display->SetCameraType(cameraType);
+                m_camInterface.SetCameraType(cameraType);
                 this->StartImageAcquisition(ui->cameraListComboBox->currentText());
             } catch (std::runtime_error &e) {
                 BOOST_LOG_TRIVIAL(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                // restore camera type and index
+                m_display->SetCameraType(originalCameraType);
+                m_camInterface.SetCameraType(originalCameraType);
                 const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
                 ui->cameraListComboBox->setCurrentIndex(m_camInterface.m_cameraIndex);
                 return;
             }
-            m_display->SetCameraType(cameraType);
-            m_camInterface.SetCameraType(cameraType);
+            // set new camera index
             m_camInterface.SetCameraIndex(index);
             this->EnableUi(true);
             if (cameraType == SPECTRAL_CAMERA) {

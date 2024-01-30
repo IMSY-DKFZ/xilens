@@ -90,11 +90,11 @@ public:
      *
      * This function opens a device with the specified camera serial number.
      *
-     * @param camera_sn The serial number/ID of the camera to open.
+     * @param cameraIdentifier The serial number/ID of the camera to open.
      *
      * @return 0 if the device was successfully opened, 1 otherwise.
      */
-    int OpenDevice(DWORD camera_sn);
+    int OpenDevice(DWORD cameraIdentifier);
 
     /**
      * @brief StartAcquisition function
