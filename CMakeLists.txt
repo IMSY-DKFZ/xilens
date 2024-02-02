@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(susiCam)
+project(SUSICAM)
 
 #################################
 ##### compiler fiddling     #####
@@ -80,7 +80,7 @@ include_directories(${Ximea_Include_Dir})
 ######################
 include(src/version.cmake)
 
-set(susiCamLib_src src/mainwindow.cpp
+set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/version.cpp
         src/camera_interface.cpp
         src/display.cpp
@@ -89,7 +89,7 @@ set(susiCamLib_src src/mainwindow.cpp
         src/image_container.cpp
         src/util.cpp
 )
-set(susiCamLib_hdr src/mainwindow.h
+set(SUSICAM_LIB_HDR src/mainwindow.h
         src/camera_interface.h
         src/display.h
         src/displayRaw.h
@@ -97,33 +97,32 @@ set(susiCamLib_hdr src/mainwindow.h
         src/image_container.h
         src/util.h
 )
-set(susiCamLib_ui src/mainwindow.ui)
+set(SUSICAM_LIB_UI src/mainwindow.ui)
 
-qt6_wrap_cpp(susiCamLib_hdr_moc ${susiCamLib_hdr})
-qt6_wrap_ui(susiCamLib_ui_moc ${susiCamLib_ui})
+qt6_wrap_cpp(SUSICAM_LIB_HDR_MOC ${SUSICAM_LIB_HDR})
+qt6_wrap_ui(SUSICAM_LIB_UI_MOC ${SUSICAM_LIB_UI})
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
-add_library(susiCamLib ${LIBTYPE}
-        ${susiCamLib_src}
-        ${susiCamLib_hdr}
-        ${susiCamLib_hdr_moc}
-        ${susiCamLib_ui_moc}
+add_library(SUSICAM_LIB ${LIBTYPE}
+        ${SUSICAM_LIB_SRC}
+        ${SUSICAM_LIB_HDR}
+        ${SUSICAM_LIB_HDR_MOC}
+        ${SUSICAM_LIB_UI_MOC}
 )
-target_link_libraries(susiCamLib Qt6::Widgets)
-target_link_libraries(susiCamLib ${OpenCV_LIBS})
-target_link_libraries(susiCamLib ${Boost_LIBRARIES})
-target_link_libraries(susiCamLib ${Ximea_Lib})
+target_link_libraries(SUSICAM_LIB Qt6::Widgets)
+target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
+target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
+target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
 
 ###################
 ##### susiCam #####
 ###################
-
-set(susiCamBin_src src/mainSusiCam.cpp)
-qt6_add_resources(susiCamBin_src resources/resources.qrc)
-add_executable(susiCam ${susiCamBin_src})
-target_link_libraries(susiCam susiCamLib)
+set(SUSICAM_BIN_SRC src/mainSusiCam.cpp src/CLI11.h)
+qt6_add_resources(SUSICAM_BIN_SRC resources/resources.qrc)
+add_executable(SUSICAM ${SUSICAM_BIN_SRC})
+target_link_libraries(SUSICAM SUSICAM_LIB)
 
 ###################
 ###Google Tests####
