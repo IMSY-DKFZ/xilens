@@ -56,15 +56,15 @@ void CameraInterface::SetCameraIndex(int index) {
  * @return void
  */
 void CameraInterface::UpdateRecordedCameraTemperature() {
-    float chipTemp, housTemp, housBackSideTemp, sensorBoardTemp;
+    float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
 
     xiGetParamFloat(m_camHandle, XI_PRM_CHIP_TEMP, &chipTemp);
-    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_TEMP, &housTemp);
-    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &housBackSideTemp);
+    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_TEMP, &houseTemp);
+    xiGetParamFloat(m_camHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &houseBackSideTemp);
     xiGetParamFloat(m_camHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
     this->m_cameraTemperature[CHIP_TEMP] = chipTemp;
-    this->m_cameraTemperature[HOUSE_TEMP] = housTemp;
-    this->m_cameraTemperature[HOUSE_BACK_TEMP] = housBackSideTemp;
+    this->m_cameraTemperature[HOUSE_TEMP] = houseTemp;
+    this->m_cameraTemperature[HOUSE_BACK_TEMP] = houseBackSideTemp;
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 

@@ -78,11 +78,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_baseFolderLoc = QDir::cleanPath(
             QDir::currentPath() + QDir::separator() + QString::fromStdString(g_commandLineArguments.output_folder));
 
-    ui->baseFolderLoc->insert(this->GetBaseFolder());
+    ui->baseFolderLineEdit->insert(this->GetBaseFolder());
 
     // synchronize slider and exposure checkbox
     QSlider *slider = ui->exposureSlider;
-    QLineEdit *expEdit = ui->label_exp;
+    QLineEdit *expEdit = ui->exposureLineEdit;
     // set default values and ranges
     int slider_min = slider->minimum();
     int slider_max = slider->maximum();
@@ -309,8 +309,8 @@ void MainWindow::Snapshots() {
     // create invocation to method to trigger changes in UI from the main thread
     QMetaObject::invokeMethod(ui->snapshotButton, "setStyleSheet", Qt::QueuedConnection,
                               Q_ARG(QString, BUTTON_PRESSED_STYLE));
-    std::string name = ui->snapshotPrefixlineEdit->text().toUtf8().constData();
-    int nr_images = ui->nrSnapshotsspinBox->value();
+    std::string name = ui->snapshotPrefixLineEdit->text().toUtf8().constData();
+    int nr_images = ui->nSnapshotsSpinBox->value();
 
     for (int i = 0; i < nr_images; i++) {
         int exp_time = m_camInterface.GetExposureMs();
@@ -348,8 +348,8 @@ void MainWindow::on_snapshotButton_clicked() {
  *
  * @param arg1 The new text entered in the snapshotPrefixlineEdit.
  */
-void MainWindow::on_snapshotPrefixlineEdit_textEdited(const QString &arg1){
-    updateLineEditStyle(ui->snapshotPrefixlineEdit, arg1, m_snapshotPrefix);
+void MainWindow::on_snapshotPrefixLineEdit_textEdited(const QString &arg1){
+    updateLineEditStyle(ui->snapshotPrefixLineEdit, arg1, m_snapshotPrefix);
 }
 
 
@@ -365,9 +365,9 @@ void MainWindow::on_snapshotPrefixlineEdit_textEdited(const QString &arg1){
  *
  * @sa MainWindow
  */
-void MainWindow::on_snapshotPrefixlineEdit_returnPressed(){
-    m_snapshotPrefix = ui->snapshotPrefixlineEdit->text();
-    restoreLineEditStyle(ui->snapshotPrefixlineEdit);
+void MainWindow::on_snapshotPrefixLineEdit_returnPressed(){
+    m_snapshotPrefix = ui->snapshotPrefixLineEdit->text();
+    restoreLineEditStyle(ui->snapshotPrefixLineEdit);
 
 }
 
@@ -387,7 +387,16 @@ void MainWindow::LogCameraTemperature() {
         message = QString("\t%1\t%2").arg(key).arg(temp);
         this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
     }
-    this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
+}
+
+
+/**
+ * Displays the camera temperature in an LCD display on the GUI
+ */
+void MainWindow::DisplayCameraTemperature() {
+    double temp = m_camInterface.m_cameraTemperature.value(SENSOR_BOARD_TEMP);
+    QMetaObject::invokeMethod(ui->temperatureLCDNumber, "display", Qt::QueuedConnection,
+                              Q_ARG(double, temp));
 }
 
 
@@ -422,6 +431,7 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
     }
 
     this->LogCameraTemperature();
+    this->DisplayCameraTemperature();
 
     // Reset timer
     timer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
@@ -438,7 +448,7 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
  * \see StopTemperatureThread()
  */
 void MainWindow::StartTemperatureThread() {
-    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
+    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
     QFile file(log_filename);
     QFileInfo fileInfo(file);
     if (fileInfo.size() == 0) {
@@ -509,8 +519,8 @@ void MainWindow::on_exposureSlider_valueChanged(int value) {
 void MainWindow::UpdateExposure() {
     int exp_ms = m_camInterface.GetExposureMs();
     int n_skip_frames = ui->skipFramesSpinBox->value();
-    ui->label_exp->setText(QString::number((int) exp_ms));
-    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
+    ui->exposureLineEdit->setText(QString::number((int) exp_ms));
+    ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 
     // need to block the signals to make sure the event is not immediately
     // thrown back to label_exp.
@@ -525,11 +535,11 @@ void MainWindow::UpdateExposure() {
  * @brief slot triggered when the return key is pressed in the "label_exp" QLabel.
  * This method sets the camera exposure time and restores the GUI element style to its original style.
  */
-void MainWindow::on_label_exp_returnPressed() {
-    m_label_exp = ui->label_exp->text();
+void MainWindow::on_exposureLineEdit_returnPressed() {
+    m_label_exp = ui->exposureLineEdit->text();
     m_camInterface.SetExposureMs(m_label_exp.toInt());
     UpdateExposure();
-    restoreLineEditStyle(ui->label_exp);
+    restoreLineEditStyle(ui->exposureLineEdit);
 }
 
 
@@ -540,8 +550,8 @@ void MainWindow::on_label_exp_returnPressed() {
  *
  * @param arg1 The new text entered in the label_exp QLineEdit.
  */
-void MainWindow::on_label_exp_textEdited(const QString &arg1) {
-    updateLineEditStyle(ui->label_exp, arg1, m_label_exp);
+void MainWindow::on_exposureLineEdit_textEdited(const QString &arg1) {
+    updateLineEditStyle(ui->exposureLineEdit, arg1, m_label_exp);
 }
 
 
@@ -574,6 +584,7 @@ void MainWindow::on_recordButton_clicked(bool checked) {
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,
                                   Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        // button text seems to be an object property and cannot be changed by using QMetaObject::invokeMethod
         ui->recordButton->setText("Stop recording");
     } else {
         this->LogMessage("SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
@@ -583,8 +594,6 @@ void MainWindow::on_recordButton_clicked(bool checked) {
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,
                                   Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->recordButton, "setText", Qt::QueuedConnection,
-                                  Q_ARG(QString, original_button_text));
         ui->recordButton->setText(original_button_text);
     }
 }
@@ -612,7 +621,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
  * in the MainWindow. It opens a file dialog to allow the user to select a folder and performs necessary
  * operations based on the selected folder.
  */
-void MainWindow::on_chooseFolder_clicked() {
+void MainWindow::on_baseFolderButton_clicked() {
     bool isValid = false;
     this->StopTemperatureThread();
     while (!isValid) {
@@ -624,8 +633,8 @@ void MainWindow::on_chooseFolder_clicked() {
             isValid = true;
             if (!baseFolderPath.isEmpty()) {
                 this->SetBaseFolder(baseFolderPath);
-                ui->baseFolderLoc->clear();
-                ui->baseFolderLoc->insert(this->GetBaseFolder());
+                ui->baseFolderLineEdit->clear();
+                ui->baseFolderLineEdit->insert(this->GetBaseFolder());
                 this->WriteLogHeader();
                 this->StartTemperatureThread();
             }
@@ -665,7 +674,7 @@ QString MainWindow::LogMessage(QString message, QString log_file, bool log_time)
     QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
     QString date = (QDate::currentDate()).toString("yyyyMMdd_");
     timestamp = date + curr_time;
-    QString log_filename = QDir::cleanPath(ui->baseFolderLoc->text() + QDir::separator() + log_file);
+    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + log_file);
     QFile file(log_filename);
     file.open(QIODevice::Append);
     QTextStream stream(&file);
@@ -683,9 +692,9 @@ QString MainWindow::LogMessage(QString message, QString log_file, bool log_time)
  * It handles the logic when the user inputs a new folder name and presses the return key. Member variable is updated
  * and the original style of the GUI element restored.
  */
-void MainWindow::on_topFolderName_returnPressed() {
-    m_topFolderName = ui->topFolderName->text();
-    restoreLineEditStyle(ui->topFolderName);
+void MainWindow::on_subFolderLineEdit_returnPressed() {
+    m_topFolderName = ui->subFolderLineEdit->text();
+    restoreLineEditStyle(ui->subFolderLineEdit);
 }
 
 
@@ -696,9 +705,9 @@ void MainWindow::on_topFolderName_returnPressed() {
  * in the MainWindow class. It is called when the user presses the enter key while the recPrefixlineEdit
  * field has focus.
  */
-void MainWindow::on_recPrefixlineEdit_returnPressed() {
-    m_recPrefixlineEdit = ui->recPrefixlineEdit->text();
-    restoreLineEditStyle(ui->recPrefixlineEdit);
+void MainWindow::on_filePrefixLineEdit_returnPressed() {
+    m_recPrefixlineEdit = ui->filePrefixLineEdit->text();
+    restoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
 
@@ -714,7 +723,7 @@ bool MainWindow::GetNormalize() const {
  * @brief retrieves the state of the Scale Parameters checkbox from the GUI
  */
 bool MainWindow::DoParamterScaling() const {
-    return this->ui->ScaleParamtersCheckBox->isChecked();
+    return this->ui->scaleParamtersCheckBox->isChecked();
 }
 
 
@@ -1056,10 +1065,10 @@ void MainWindow::StopPollingThread() {
  *
  * @param setAutoexposure whether the exposure should be set to automatic management by the camera
  */
-void MainWindow::on_AutoexposureCheckbox_clicked(bool setAutoexposure) {
+void MainWindow::on_autoexposureCheckbox_clicked(bool setAutoexposure) {
     this->m_camInterface.AutoExposure(setAutoexposure);
     ui->exposureSlider->setEnabled(!setAutoexposure);
-    ui->label_exp->setEnabled(!setAutoexposure);
+    ui->exposureLineEdit->setEnabled(!setAutoexposure);
     UpdateExposure();
 }
 
@@ -1178,8 +1187,8 @@ void MainWindow::restoreLineEditStyle(QLineEdit* lineEdit) {
  *
  * @param newText new text of the QLineEdit object
  */
-void MainWindow::on_topFolderName_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->topFolderName, newText, m_topFolderName);
+void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText) {
+    updateLineEditStyle(ui->subFolderLineEdit, newText, m_topFolderName);
 }
 
 
@@ -1188,8 +1197,8 @@ void MainWindow::on_topFolderName_textEdited(const QString &newText) {
  *
  * @param newText new text of the QLineEdit object
  */
-void MainWindow::on_recPrefixlineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->recPrefixlineEdit, newText, m_recPrefixlineEdit);
+void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText) {
+    updateLineEditStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
 }
 
 
@@ -1209,7 +1218,7 @@ void MainWindow::on_functionalRadioButton_clicked() {
  *
  * @see MainWindow::on_functionalRadioButton_clicked
  */
-void MainWindow::on_radioButtonRaw_clicked() {
+void MainWindow::on_rawRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerRaw(this);
 }
@@ -1236,12 +1245,12 @@ void MainWindow::lowExposureRecording() {
     int n_skip_frames = ui->skipFramesSpinBox->value();
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    std::string sub_folder_name = ui->folderLowExposureImages->text().toUtf8().constData();
+    std::string sub_folder_name = ui->folderLowExposureImagesLineEdit->text().toUtf8().constData();
     int original_exposure = m_camInterface.GetExposureMs();
     // change style of record low exposure images button and disable exposure components
     QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, BUTTON_PRESSED_STYLE));
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->label_exp, "setEnabled", Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, false));
 
     this->on_recordButton_clicked(false);
     QString tmp_topFolderName = m_topFolderName;
@@ -1264,7 +1273,7 @@ void MainWindow::lowExposureRecording() {
     wait(2 * original_exposure);
     QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setStyleSheet", Q_ARG(QString, original_colour));
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->label_exp, "setEnabled", Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, true));
     // restore record button state
     m_topFolderName = tmp_topFolderName;
     this->on_recordButton_clicked(true);
@@ -1289,8 +1298,8 @@ void MainWindow::on_recLowExposureImagesButton_clicked() {
  *
  * @param newText new text of the QLineEdit object
  */
-void MainWindow::on_folderLowExposureImages_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->folderLowExposureImages, newText, m_folderLowExposureImages);
+void MainWindow::on_folderLowExposureImagesLineEdit_textEdited(const QString &newText) {
+    updateLineEditStyle(ui->folderLowExposureImagesLineEdit, newText, m_folderLowExposureImages);
 }
 
 
@@ -1298,9 +1307,9 @@ void MainWindow::on_folderLowExposureImages_textEdited(const QString &newText) {
  * stores name of folder where low exposure recordings should be stored in a member variable and restores QLineEdit
  * appearance.
  */
-void MainWindow::on_folderLowExposureImages_returnPressed() {
-    m_folderLowExposureImages = ui->folderLowExposureImages->text();
-    restoreLineEditStyle(ui->folderLowExposureImages);
+void MainWindow::on_folderLowExposureImagesLineEdit_returnPressed() {
+    m_folderLowExposureImages = ui->folderLowExposureImagesLineEdit->text();
+    restoreLineEditStyle(ui->folderLowExposureImagesLineEdit);
 }
 
 
@@ -1309,8 +1318,8 @@ void MainWindow::on_folderLowExposureImages_returnPressed() {
  *
  * @param newText new text of the QLineEdit object
  */
-void MainWindow::on_triggerText_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->triggerText, newText, m_triggerText);
+void MainWindow::on_logTextLineEdit_textEdited(const QString &newText) {
+    updateLineEditStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
 
@@ -1318,22 +1327,22 @@ void MainWindow::on_triggerText_textEdited(const QString &newText) {
  * Logs the written message from the GUI to the file named in constants.h: LOG_FILE_NAME. It also resets the content of
  * of the trigger text line edit and displays all messages on GUI
  */
-void MainWindow::on_triggerText_returnPressed() {
+void MainWindow::on_logTextLineEdit_returnPressed() {
     QString timestamp;
-    QString trigger_message = ui->triggerText->text();
+    QString trigger_message = ui->logTextLineEdit->text();
     // block signals until method ends
-    const QSignalBlocker triggerTextBlocker(ui->triggerText);
-    const QSignalBlocker triggersTextEdit(ui->triggersTextEdit);
+    const QSignalBlocker triggerTextBlocker(ui->logTextLineEdit);
+    const QSignalBlocker triggersTextEdit(ui->logTextEdit);
     // log message and update member variable for trigger text
     trigger_message.prepend(" ");
     timestamp = this->LogMessage(trigger_message, LOG_FILE_NAME, true);
     m_triggerText = timestamp + trigger_message + "\n";
 
     // handle UI calls
-    restoreLineEditStyle(ui->triggerText);
-    ui->triggersTextEdit->append(m_triggerText);
-    ui->triggersTextEdit->show();
-    ui->triggerText->clear();
+    restoreLineEditStyle(ui->logTextLineEdit);
+    ui->logTextEdit->append(m_triggerText);
+    ui->logTextEdit->show();
+    ui->logTextEdit->clear();
 }
 
 
@@ -1343,8 +1352,8 @@ void MainWindow::on_triggerText_returnPressed() {
 void MainWindow::on_skipFramesSpinBox_valueChanged() {
     int exp_ms = m_camInterface.GetExposureMs();
     int n_skip_frames = ui->skipFramesSpinBox->value();
-    const QSignalBlocker blocker_label(ui->label_hz);
-    ui->label_hz->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
+    const QSignalBlocker blocker_label(ui->hzLabel);
+    ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
 }
 
 
@@ -1400,4 +1409,26 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
         m_camInterface.SetCameraIndex(index);
         this->EnableUi(false);
     }
+}
+
+
+/**
+ * Updates the saturation percentage LCD displays with the given image.
+ *
+ * @param image The input image to compute saturation percentages.
+ * @throw std::invalid_argument If the input matrix is empty or not of type CV_8UC1.
+ */
+void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const{
+    if (image.empty() || image.type() != CV_8UC1) {
+        throw std::invalid_argument("Invalid input matrix. It must be non-empty and of type CV_8UC1, got: " + cv::typeToString(image.type()));
+    }
+
+    int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    double totalPixels = image.total();  // Total number of pixels in the matrix
+    double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
+    QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Q_ARG(double, percentageAboveThreshold));
+
+    int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
+    QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(double, percentageBelowThreshold));
 }

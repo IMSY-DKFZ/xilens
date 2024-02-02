@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QString>
 
 // opencv window display image resolution
 const int MAX_WIDTH_DISPLAY_WINDOW = 1024;
@@ -48,5 +49,9 @@ const unsigned MAX_SAO2 = 100;
 const unsigned MAX_VHB = 30;
 const unsigned MIN_SAO2 = 0;
 const unsigned MIN_VHB = 0;
+
+// boundaries for under-saturation and over-saturation pixel color assignments
+const int OVEREXPOSURE_PIXEL_BOUNDARY_VALUE = 225;
+const int UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE = 10;
 
 #endif
