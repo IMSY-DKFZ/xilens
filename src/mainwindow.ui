@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>681</width>
-    <height>823</height>
+    <height>842</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButtonRaw">
+           <widget class="QRadioButton" name="rawRadioButton">
             <property name="text">
              <string>Raw display</string>
             </property>
@@ -61,21 +61,21 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <item>
-             <widget class="QLabel" name="label_5">
+             <widget class="QLabel" name="snapshotLabel">
               <property name="text">
                <string>Snapshot prefix</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="snapshotPrefixlineEdit">
+             <widget class="QLineEdit" name="snapshotPrefixLineEdit">
               <property name="text">
                <string>snapshot</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QSpinBox" name="nrSnapshotsspinBox">
+             <widget class="QSpinBox" name="nSnapshotsSpinBox">
               <property name="maximum">
                <number>999</number>
               </property>
@@ -122,14 +122,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_11">
             <item>
-             <widget class="QLabel" name="label_filePrefix">
+             <widget class="QLabel" name="filePrefixLabel">
               <property name="text">
                <string>File Prefix     </string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="recPrefixlineEdit">
+             <widget class="QLineEdit" name="filePrefixLineEdit">
               <property name="text">
                <string/>
               </property>
@@ -143,14 +143,14 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QLabel" name="label_subFolder">
+             <widget class="QLabel" name="subFolderLabel">
               <property name="text">
                <string>Sub Folder    </string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="topFolderName">
+             <widget class="QLineEdit" name="subFolderLineEdit">
               <property name="toolTip">
                <string>Add Suffix</string>
               </property>
@@ -167,7 +167,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QPushButton" name="chooseFolder">
+             <widget class="QPushButton" name="baseFolderButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -180,7 +180,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="baseFolderLoc">
+             <widget class="QLineEdit" name="baseFolderLineEdit">
               <property name="readOnly">
                <bool>true</bool>
               </property>
@@ -257,7 +257,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QLabel" name="label">
+             <widget class="QLabel" name="exposureLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -270,28 +270,28 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_3">
+             <widget class="QLabel" name="msLabel">
               <property name="text">
                <string>ms =</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="label_exp">
+             <widget class="QLineEdit" name="exposureLineEdit">
               <property name="text">
                <string>40</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_hz">
+             <widget class="QLabel" name="hzLabel">
               <property name="text">
                <string>25</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_4">
+             <widget class="QLabel" name="hzPlaceholderLabel">
               <property name="text">
                <string>Hz</string>
               </property>
@@ -305,7 +305,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_6">
+             <widget class="QLabel" name="skipFramesLabel">
               <property name="text">
                <string>skip frames</string>
               </property>
@@ -342,7 +342,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="AutoexposureCheckbox">
+             <widget class="QCheckBox" name="autoexposureCheckbox">
               <property name="toolTip">
                <string>Select to adjust exposure automatically</string>
               </property>
@@ -376,7 +376,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="rgbNormLabel">
             <property name="text">
              <string>RGB norm:</string>
             </property>
@@ -408,7 +408,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="displayedBandLabel">
             <property name="text">
              <string>Displayed Band:</string>
             </property>
@@ -487,7 +487,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="folderLowExposureImages">
+             <widget class="QLineEdit" name="folderLowExposureImagesLineEdit">
               <property name="enabled">
                <bool>true</bool>
               </property>
@@ -509,7 +509,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="ScaleParamtersCheckBox">
+           <widget class="QCheckBox" name="scaleParamtersCheckBox">
             <property name="text">
              <string>Scale paramters to bounds</string>
             </property>
@@ -519,7 +519,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="vhb_tag">
+           <widget class="QLabel" name="vhb_label">
             <property name="text">
              <string>blood volume fraction:</string>
             </property>
@@ -660,10 +660,65 @@
               </property>
              </widget>
             </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QLabel" name="label_9">
+             <widget class="QLabel" name="temperatureLabel">
               <property name="text">
-               <string>Recorded images:</string>
+               <string>°C:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLCDNumber" name="temperatureLCDNumber">
+              <property name="digitCount">
+               <number>4</number>
+              </property>
+              <property name="segmentStyle">
+               <enum>QLCDNumber::Flat</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="overexposureLabel">
+              <property name="text">
+               <string>% overexp:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLCDNumber" name="overexposurePercentageLCDNumber">
+              <property name="digitCount">
+               <number>4</number>
+              </property>
+              <property name="segmentStyle">
+               <enum>QLCDNumber::Flat</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="underexposureLabel">
+              <property name="text">
+               <string>% underexp:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLCDNumber" name="underexposurePercentageLCDNumber">
+              <property name="digitCount">
+               <number>4</number>
+              </property>
+              <property name="segmentStyle">
+               <enum>QLCDNumber::Flat</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="recordedImagesLabel">
+              <property name="text">
+               <string>Nr. images:</string>
               </property>
              </widget>
             </item>
@@ -717,7 +772,7 @@
          <enum>QLayout::SetDefaultConstraint</enum>
         </property>
         <item>
-         <widget class="QTextEdit" name="triggersTextEdit">
+         <widget class="QTextEdit" name="logTextEdit">
           <property name="maximumSize">
            <size>
             <width>16777215</width>
@@ -727,14 +782,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label_8">
+         <widget class="QLabel" name="messageLogLabel">
           <property name="text">
            <string>Message log </string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="triggerText">
+         <widget class="QLineEdit" name="logTextLineEdit">
           <property name="inputMask">
            <string/>
           </property>

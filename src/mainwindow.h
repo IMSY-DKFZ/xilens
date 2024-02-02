@@ -92,6 +92,11 @@ public:
      */
     void LogCameraTemperature();
 
+    /**
+     * Displays camera temperature on an LCD display
+     */
+    void DisplayCameraTemperature();
+
     /*
      * Creates schedule for the thread in charge of logging temperature of the camera
      */
@@ -116,6 +121,14 @@ public:
      * Stops thread in charge of recording snapshot images
      */
     void StopSnapshotsThread();
+
+    /**
+     * @brief Updates the saturation percentage on the LCD displays.
+     *
+     * @param image The input image of type CV_8UC1. It must be non-empty.
+     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+     */
+    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -143,48 +156,48 @@ private slots:
      * Qt slot triggered when the button to choose a base folder is clicked. Opens a dialog where a folder can be
      * selected.
      */
-    void on_chooseFolder_clicked();
+    void on_baseFolderButton_clicked();
 
     /*
      * Qt slot triggered when the exposure time labels is modified manually. This changes the appearance of the field
      * but does not trigger the change in the camera. Return key needs to be pressed for the change to be applied.
      */
-    void on_label_exp_textEdited(const QString &arg1);
+    void on_exposureLineEdit_textEdited(const QString &arg1);
 
     /*
      * Qt slot triggered when return key is pressed after modifying the exposure time. This is synchronized with the
      * exposure time slider.
      */
-    void on_label_exp_returnPressed();
+    void on_exposureLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when return key is pressed on the field where the top folder is defined in the UI.
      * It updates the member variable that stores the value.
      */
-    void on_topFolderName_returnPressed();
+    void on_subFolderLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when the return key is pressed on the field tha tdefines the file prefix in the UI.
      * It updates the member variable that stores the value.
      */
-    void on_recPrefixlineEdit_returnPressed();
+    void on_filePrefixLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when name fo the folder where low exposure images are recorded is edited. Changes the
      * appearance of the field in the UI. It does not update the value of the member variable that contains the value.
      */
-    void on_folderLowExposureImages_textEdited(const QString &newText);
+    void on_folderLowExposureImagesLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the return key is pressed on the field that defines where low exposure recordings are
      * stored. It updates the member variable that stores the value.
      */
-    void on_folderLowExposureImages_returnPressed();
+    void on_folderLowExposureImagesLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control of the exposure time to camera.
      */
-    void on_AutoexposureCheckbox_clicked(bool setAutoexposure);
+    void on_autoexposureCheckbox_clicked(bool setAutoexposure);
 
     /*
      * Qt slot triggered when white balance button is pressed. Records a new white image and sets it in the network
@@ -242,13 +255,13 @@ private slots:
      * Qt slot triggered when editing the top folder name. It changes the appearance of the field in the UI.
      * It does not change the value of hte member variable that contains the top folder name.
      */
-    void on_topFolderName_textEdited(const QString &newText);
+    void on_subFolderLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the prefix file name is edited. It changes the appearance of the field in the UI.
      * It does not change the value of the member variable that stores the file prefix name.
      */
-    void on_recPrefixlineEdit_textEdited(const QString &newText);
+    void on_filePrefixLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the "functional" radio button is pressed. It activates the display corresponding to
@@ -260,18 +273,18 @@ private slots:
      * Qt slot triggered when the "raw" display is pressed. Displays only the raw image in higher resolution compared to
      * the "functional" display.
      */
-    void on_radioButtonRaw_clicked();
+    void on_rawRadioButton_clicked();
 
     /*
      * Qt slot triggered when the trigger text is edited. It only changes the appearance of the UI element.
      */
-    void on_triggerText_textEdited(const QString &newText);
+    void on_logTextLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the return key is pressed on the trigger text field. It logs the message to the log file
      * and displays it on the UI.
      */
-    void on_triggerText_returnPressed();
+    void on_logTextLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when button to record low exposure images is pressed. Triggers the recording process.
@@ -302,12 +315,12 @@ private slots:
     /*
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
      */
-    void on_snapshotPrefixlineEdit_textEdited(const QString &arg1);
+    void on_snapshotPrefixLineEdit_textEdited(const QString &arg1);
 
     /*
      * Qt slot triggered when the return key is pressed on the file prefix field for snapshot images in the UI.
      */
-    void on_snapshotPrefixlineEdit_returnPressed();
+    void on_snapshotPrefixLineEdit_returnPressed();
 
 private:
     Ui::MainWindow *ui;

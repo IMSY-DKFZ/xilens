@@ -23,43 +23,110 @@ Q_OBJECT
 
 public:
 
+    /**
+     * camera type
+     */
     QString m_cameraType;
 
+    /**
+     * Constructor of raw displayer
+     *
+     * @param mainWindow reference to main window application
+     */
     explicit DisplayerRaw(MainWindow *mainWindow);
 
+    /**
+     * Draws histogram based of displayed image based on an region of interest (ROI)
+     *
+     * @param roiImg region of interest where histogram is computed
+     */
     void DrawHistogram(const cv::Mat roiImg);
 
-    ~DisplayerRaw();
+    /**
+     * Destroys the displayer and all windows associated with it
+     */
+    ~DisplayerRaw() override;
 
-    void SetCameraType(QString camera_type);
+    /**
+     * Sets camera type
+     *
+     * @param camera_type camera type to set
+     */
+    void SetCameraType(QString camera_type) override;
 
-    void DownsampleImageIfNecessary(cv::Mat &image);
+    /**
+     * Down-samples image in case it is bigger than maximum dimensions defined by constants::MAX_WIDTH_DISPLAY_WINDOW
+     * and constants::MAX_HEIGHT_DISPLAY_WINDOW
+     *
+     * @param image image to be downsampled
+     */
+    static void DownsampleImageIfNecessary(cv::Mat &image);
 
 
 protected:
 
-    void CreateWindows();
+    /**
+     * Creates OpenCV windows where images will be displayed
+     *
+     * @see DestroyWindows
+     */
+    void CreateWindows() override;
 
-    void DestroyWindows();
+    /**
+     * Destroys allOpenCV windows
+     *
+     * @see CreateWindows
+     */
+    void DestroyWindows() override;
 
+    /**
+     * Prepares images before displaying them by downsampling them if necessary and converting them to the correct bit
+     * depth.
+     *
+     * @param image image to be processed
+     * @return processed image
+     */
     virtual cv::Mat PrepareImageToDisplay(cv::Mat &image);
 
 
 public slots:
 
-    virtual void Display(XI_IMG &image);
+    /**
+     * Qt slot called whenever a new image arrives from the camera
+     *
+     * @param image image to be displayed
+     */
+    void Display(XI_IMG &image) override;
 
 
 private:
 
-
+    /**
+     * Displays an image to an OpenCV window defined by the window name
+     *
+     * @param image image to be displayed
+     * @param windowName name of the window where image will be displayed
+     */
     void DisplayImage(cv::Mat &image, const std::string windowName);
 
-    // reference to mainwindow, necessary to detect if normalization is turned on
+    /**
+     * reference to main window, necessary to detect if normalization is turned on
+     */
     const MainWindow *const m_mainWindow;
-    boost::mutex mtx_; // explicit mutex declaration
 
-    cv::Mat m_displayImage;
+    /**
+     * explicit call to mutex
+     */
+    boost::mutex mtx_;
+
+    /**
+     * Image to be displayed
+     */
+    cv::Mat m_ImageToDisplay;
+
+    /**
+     * Raw image before any pre-processing
+     */
     cv::Mat m_rawImage;
 };
 

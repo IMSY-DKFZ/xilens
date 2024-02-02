@@ -14,28 +14,70 @@ class ImageContainer : public QObject {
 Q_OBJECT
 
 public:
+    /**
+     * Constructor of image container. The memory of the current image in container is set here with memset
+     */
     ImageContainer();
 
-    ~ImageContainer();
+    /**
+     * Destructor of image container
+     */
+    ~ImageContainer() override;
 
-    // pollingRate in ms
+    /**
+     * @brief Polls for a new image from the camera at a given polling rate.
+     *
+     * This function continuously polls for a new image from the camera using the specified camera handle.
+     * It uses the given polling rate to determine how frequently to poll for new images.
+     * Once a new image is obtained, it emits a signal to notify that a new image is available.
+     *
+     * A lock guard is used to avoid overwriting the current container image when other processes are using it.
+     *
+     * @param camHandle The handle to the camera device.
+     * @param pollingRate The polling rate in milliseconds.
+     */
     void PollImage(HANDLE camHandle, int pollingRate);
 
+    /**
+     * Queries current imag ein container
+     *
+     * @return current image in container
+     */
     XI_IMG GetCurrentImage();
 
+    /**
+     * Stops image polling
+     */
     void StopPolling();
 
+    /**
+     * Starts image polling
+     */
     void StartPolling();
 
 signals:
 
+    /**
+     * Qt signal used to indicate that a new image has arrived to the container
+     */
     void NewImage();
 
 private:
 
+    /**
+     * Indicates if images should be polled or not
+     */
     bool m_PollImage;
-    XI_IMG m_Image;
-    boost::mutex mtx_; // explicit mutex declaration
+
+    /**
+     * Current container image
+     */
+    XI_IMG m_Image{};
+
+    /**
+     * mutex declaration used to lock guard the current image in the container
+     */
+    boost::mutex mtx_;
 };
 
 #endif // IMAGE_CONTAINER_H

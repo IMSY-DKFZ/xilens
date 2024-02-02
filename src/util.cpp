@@ -10,6 +10,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "util.h"
+#include "constants.h"
 
 
 /**
@@ -113,10 +114,10 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color) {
     cv::Mat Lut(1, 256, CV_8UC3);
     for (uint i = 0; i < 256; ++i) {
         Lut.at<cv::Vec3b>(0, i) = cv::Vec3b(i, i, i);
-        if (i > 225) {
+        if (i > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE) {
             Lut.at<cv::Vec3b>(0, i) = saturation_color;
         }
-        if (i < 10) {
+        if (i < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE) {
             Lut.at<cv::Vec3b>(0, i) = dark_color;
         }
     }

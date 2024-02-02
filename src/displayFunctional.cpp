@@ -24,20 +24,50 @@
 #include "util.h"
 #include "constants.h"
 
+/**
+ * custom type that defines a pixel in an OpenCV image
+ */
 typedef cv::Point3_<uint8_t> Pixel;
 
 
+/**
+ * @brief The DisplayerFunctional class is responsible for displaying images.
+ * It inherits from the Displayer class and uses the MainWindow class for reference.
+ *
+ * The DisplayerFunctional constructor initializes the DisplayerFunctional object with a pointer
+ * to the MainWindow object. It calls the CreateWindows() method to create windows for displaying images.
+ *
+ * @param mainWindow a pointer to the MainWindow object
+ */
 DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) :
         Displayer(), m_mainWindow(mainWindow) {
     CreateWindows();
 }
 
 
+/**
+ * @brief Destructor for the DisplayerFunctional class.
+ *
+ * This destructor destroys all windows created by the DisplayerFunctional class.
+ * It calls the OpenCV function destroyAllWindows() to close all windows.
+ */
 DisplayerFunctional::~DisplayerFunctional() {
     DestroyWindows();
 }
 
 
+/**
+ * @brief Prepares a functional image for display.
+ *
+ * The PrepareFunctionalImage function prepares a functional image for display.
+ * It performs scaling, clamping, rescaling, and applies a colormap to the image.
+ *
+ * @param functional_image The functional image that needs to be prepared for display.
+ * @param displayImage The type of display image (RAW, RGB, VHB, OXY).
+ * @param do_scaling A flag indicating whether scaling should be applied to the image.
+ * @param bounds The range of values for clamping and scaling the image.
+ * @param colormap The colormap type to be applied to the image.
+ */
 void PrepareFunctionalImage(cv::Mat &functional_image, [[maybe_unused]]DisplayImageType displayImage, bool do_scaling,
                             cv::Range bounds, int colormap) {
     if (do_scaling) {
@@ -54,6 +84,19 @@ void PrepareFunctionalImage(cv::Mat &functional_image, [[maybe_unused]]DisplayIm
 }
 
 
+/**
+ * @brief Normalize and convert an input BGR image to 8-bit unsigned integer format.
+ *
+ * This function takes an input BGR (Blue-Green-Red) image represented by a cv::Mat object
+ * and applies normalization and conversion operations. The normalization process calculates
+ * the minimum and maximum values of the input image and scales the image values to fit within
+ * a specified normalization range. The resulting image is then converted to 8-bit unsigned integer format,
+ * such that its pixel values range from 0 to 255.
+ *
+ * @param bgr_image The input BGR image to be processed. The image gets modified in-place.
+ * @param bgr_norm The normalization factor to adjust the image intensity range. The higher the value,
+ *                 the larger the intensity range of the resulting image. Values typically range from 0 to 100.
+ */
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm) {
     double min, max;
     static double last_norm = 1.;
@@ -65,16 +108,16 @@ void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm) {
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
 
+
 /**
- * @brief DisplayerFunctional::NormalizeBGRImage normalizes the bgr_image using clahe.
- * @param bgr_image input
- * We define the matrix lab_images and convert the color bgr to lab.
- * We define a vector lab_planes and split the lab_image into lab_planes.
- * We define a pointer clahe, create clahe and set a treshold for constant limiting.
- * We define a matrix dest, set the clip limit by calling the method GetBGRNorm, apply clahe to the vector lab_planes
- * and save it in the matrix dest.
- * Then we copy the matrix dest to lab_planes and merge lab_planes into lab_image.
- * We convert the color lab to bgr and save it in bgr_image.
+ * @brief NormalizeBGRImage Normalizes a BGR image using the LAB color space.
+ *
+ * This function converts the input BGR image to the LAB color space and then applies
+ * Contrast Limited Adaptive Histogram Equalization (CLAHE) to the L channel. The resulting
+ * L channel is then merged with the original A and B channels to obtain the normalized LAB image.
+ * Finally, the LAB image is converted back to the BGR color space and replaces the original BGR image.
+ *
+ * @param bgr_image The BGR image to be normalized. Note that the input image will be modified.
  */
 void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image) {
     cv::Mat lab_image;
@@ -99,11 +142,28 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image) {
 }
 
 
+/**
+ * @brief Determines if the given display image type is functional.
+ *
+ * A display image type is considered functional if it is either equal to 'OXY' or 'VHB'.
+ *
+ * @param displayImageType The display image type to check.
+ * @return True if the display image type is functional, false otherwise.
+ */
 bool IsFunctional(DisplayImageType displayImageType) {
     return (displayImageType == OXY || displayImageType == VHB);
 }
 
 
+/**
+ * @brief Prepares the raw image from XIMEA camera to be displayed.
+ *        It applies the color mapping based on a Look-Up Table (LUT),
+ *        and optionally performs histogram equalization.
+ *        Each pixel is processed in parallel using C++11 lambda.
+ *
+ * @param raw_image The raw image to be processed.
+ * @param equalize_hist Flag indicating whether to perform histogram equalization or not.
+ */
 void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist) {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
@@ -128,6 +188,17 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
 }
 
 
+/**
+ * @brief Displays an image in a named window.
+ *
+ * This function displays the given image in a window with the specified name.
+ * It performs channel check, image resizing, and displaying using OpenCV functions.
+ *
+ * @param image The image to be displayed.
+ * @param windowName The name of the window for displaying.
+ *
+ * @throws std::runtime_error if the number of channels in the image is not 1 or 3.
+ */
 void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowName) {
     if (image.channels() != 1 && image.channels() != 3) {
         throw std::runtime_error("number of channels need to be either 1 or 3");
@@ -139,6 +210,17 @@ void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowN
 }
 
 
+/**
+ * @brief Function that extracts a specific band (channel) from an image
+ *
+ * This function computes the location of the first value of the desired band based on the MOSAIC_SHAPE.
+ * It then selects data from the specific band and stores it in band_image. band_image is converted
+ * to an 8-bit image and divided by the scaling factor to convert it from 10-bit to 8-bit.
+ *
+ * @param image The input image
+ * @param band_image The output band image
+ * @param band_nr The number of the band to extract
+ */
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr) {
     // compute location of first value
     int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
@@ -158,6 +240,14 @@ void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, int band_
 }
 
 
+/**
+ * @brief  Downsample the image if it exceeds the maximum display window dimensions.
+ *
+ * If the width or height of the image exceeds the maximum display window dimensions,
+ * the image will be downsampled to fit within the window.
+ *
+ * @param image [in,out] The image to be downsampled
+ */
 void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat &image) {
     // Check if the image exceeds the maximum dimensions
     if (image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW) {
@@ -170,17 +260,21 @@ void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat &image) {
 
 
 /**
- * @brief DisplayerFunctional::Display calls methods and shows images on the display.
- * @param image
- * We define a static int selected_display, set it's value zero and increment.
- * If the value equals one or is bigger than 10, if we skip every 100th frame we run the network.
- * We define vectors band_image, physParam and bgr_image which we when the calling the methods GetBands, GetPhysiologicalParameters
- * and GetGBRfrom the network.
- * We prepare the raw image from XIMEA camera and calling the method GetBands then we display the image.
- * We define a matrix, vector and int to be used in the method calling from the network.
- * Else we call the method GetBands and normalize the rgb_image by calling the method NormalizeBGRImage if GetNormalize is checked.
- * Then we display the image.
- * We also display the functional image of VHB and OXY.
+ * @brief Displays the given image.
+ *
+ * This method displays the provided image using OpenCV functions.
+ * A mutex is used to ensure thread safety during the display operation.
+ * The image is processed depending on the camera type, and then displayed.
+ * If the camera type is 'spectral', only a particular band of the image is displayed.
+ * If the camera type is not 'spectral', the image is displayed as it is, after converting to 8-bit format.
+ * Every 100th frame is skipped to provide the system a chance to recover from intensive UI interaction.
+ *
+ * The image is normalized before displaying it if specified in the GUI. Pixels that have values out of range are
+ * colored differently to identify them in the display. These colors and boundaries are defined in constants.h.
+ *
+ * @param image The image to be displayed. It should be format CV_16UC1 and will be converted to CV_8UC1 or CV_8UC3 for display.
+ *
+ * @see constants.h
  */
 void DisplayerFunctional::Display(XI_IMG &image) {
     static int selected_display = 0;
@@ -195,21 +289,21 @@ void DisplayerFunctional::Display(XI_IMG &image) {
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat raw_image_to_display = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
+            cv::Mat raw_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
                                                           currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
             static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
                                                       currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
 
             if (m_cameraType == "spectral") {
-                this->GetBand(currentImage, raw_image_to_display, m_mainWindow->GetBand());
+                this->GetBand(currentImage, raw_image, m_mainWindow->GetBand());
             } else {
-                raw_image_to_display = currentImage;
-                raw_image_to_display /= m_scaling_factor; // 10 bit to 8 bit
-                raw_image_to_display.convertTo(raw_image_to_display, CV_8UC1);
+                raw_image = currentImage;
+                raw_image /= m_scaling_factor; // 10 bit to 8 bit
+                raw_image.convertTo(raw_image, CV_8UC1);
             }
-
+            cv::Mat raw_image_to_display = raw_image.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
-            PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
+            this->PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
             DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
 
             // display BGR image
@@ -221,11 +315,19 @@ void DisplayerFunctional::Display(XI_IMG &image) {
                 PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
             }
             DisplayImage(bgr_image, BGR_WINDOW_NAME);
+            m_mainWindow->UpdateSaturationPercentageLCDDisplays(raw_image);
         }
     }
 }
 
 
+/**
+ * @brief Get the BGR image from the input image by splitting it into separate channels,
+ * applying band filters and merging the channels.
+ *
+ * @param image The input image.
+ * @param bgr_image The output BGR image.
+ */
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     std::vector<cv::Mat> channels;
     for (int i: m_bgr_channels) {
@@ -241,10 +343,26 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     }
 }
 
+
+/**
+ * @brief Sets the camera type for the DisplayerFunctional instance.
+ *
+ * @param camera_type A QString that represents the type of the camera.
+ * This string is moved to the m_cameraType member variable.
+ */
 void DisplayerFunctional::SetCameraType(QString camera_type) {
     this->m_cameraType = std::move(camera_type);
 }
 
+
+/**
+  * @brief Creates windows to display the result
+  *
+  * This function creates windows to display the result of different images including the raw image, RGB estimate,
+  * blood volume fraction, and oxygenation.
+  * The windows are created using OpenCV's namedWindow function and are set to be of a normal size.
+  * The windows are then moved to specific positions on the screen using OpenCV's moveWindow function.
+  */
 void DisplayerFunctional::CreateWindows() {
     // create windows to display result
     cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
@@ -259,6 +377,9 @@ void DisplayerFunctional::CreateWindows() {
 }
 
 
+/**
+ * Destroy all OpenCV generated windows.
+ */
 void DisplayerFunctional::DestroyWindows() {
     cv::destroyAllWindows();
 }
