@@ -1,6 +1,6 @@
 FROM susicam-base
 RUN apt update --fix-missing
-RUN apt install -y uuid-dev libgl1-mesa-dev qt6-base-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module git
+RUN apt install -y uuid-dev libgl1-mesa-dev qt6-base-dev libqt6svg6-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module git
 WORKDIR /home/susicam
 COPY . .
 WORKDIR /home

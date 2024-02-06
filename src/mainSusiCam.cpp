@@ -38,6 +38,12 @@ int main(int argc, char** argv) {
 
     // instantiate application
     QApplication a(argc, argv);
+    QFile themeFile(":/resources/dark_amber.qss");
+    if (themeFile.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream stream(&themeFile);
+        QString stylesheetContent = stream.readAll();
+        a.setStyleSheet(stylesheetContent);
+    }
     MainWindow w;
     w.move(400, 10);
     w.show();

@@ -61,8 +61,8 @@ ELSE ()
 ENDIF ()
 
 # qt
-find_package(Qt6Core REQUIRED)
-find_package(Qt6Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
+
 # opencv
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
@@ -88,6 +88,7 @@ set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/displayFunctional.cpp
         src/image_container.cpp
         src/util.cpp
+        src/camera.cpp
 )
 set(SUSICAM_LIB_HDR src/mainwindow.h
         src/camera_interface.h
@@ -96,6 +97,7 @@ set(SUSICAM_LIB_HDR src/mainwindow.h
         src/displayFunctional.h
         src/image_container.h
         src/util.h
+        src/camera.h
 )
 set(SUSICAM_LIB_UI src/mainwindow.ui)
 
@@ -111,7 +113,7 @@ add_library(SUSICAM_LIB ${LIBTYPE}
         ${SUSICAM_LIB_HDR_MOC}
         ${SUSICAM_LIB_UI_MOC}
 )
-target_link_libraries(SUSICAM_LIB Qt6::Widgets)
+target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
 target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
 target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
@@ -121,6 +123,7 @@ target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
 ###################
 set(SUSICAM_BIN_SRC src/mainSusiCam.cpp src/CLI11.h)
 qt6_add_resources(SUSICAM_BIN_SRC resources/resources.qrc)
+qt6_add_resources(SUSICAM_BIN_SRC resources/theme_resources.qrc)
 add_executable(SUSICAM ${SUSICAM_BIN_SRC})
 target_link_libraries(SUSICAM SUSICAM_LIB)
 
