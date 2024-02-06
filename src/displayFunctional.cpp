@@ -294,12 +294,15 @@ void DisplayerFunctional::Display(XI_IMG &image) {
             static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
                                                       currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
 
-            if (m_cameraType == "spectral") {
+            if (m_cameraType == CAMERA_TYPE_SPECTRAL) {
                 this->GetBand(currentImage, raw_image, m_mainWindow->GetBand());
-            } else {
+            } else if (m_cameraType == CAMERA_TYPE_GRAY) {
                 raw_image = currentImage;
                 raw_image /= m_scaling_factor; // 10 bit to 8 bit
                 raw_image.convertTo(raw_image, CV_8UC1);
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+                throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
             cv::Mat raw_image_to_display = raw_image.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
@@ -367,13 +370,9 @@ void DisplayerFunctional::CreateWindows() {
     // create windows to display result
     cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
     cv::namedWindow(BGR_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(VHB_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(SAO2_WINDOW_NAME, cv::WINDOW_NORMAL);
 
     cv::moveWindow(DISPLAY_WINDOW_NAME, 900, 10);
     cv::moveWindow(BGR_WINDOW_NAME, 2024 + 11, 10);
-    cv::moveWindow(VHB_WINDOW_NAME, 900, 10 + 626);
-    cv::moveWindow(SAO2_WINDOW_NAME, 2024 + 11, 10 + 626);
 }
 
 

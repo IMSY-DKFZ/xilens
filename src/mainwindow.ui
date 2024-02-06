@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>681</width>
+    <width>698</width>
     <height>842</height>
    </rect>
   </property>
@@ -98,7 +98,7 @@
              <string>Record specified number of individual images on base folder</string>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(132,222,2)</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>Record snapshot</string>
@@ -206,7 +206,7 @@
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(132,222,2)</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>Record video</string>
@@ -352,6 +352,20 @@
              </widget>
             </item>
             <item>
+             <widget class="Line" name="line_9">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="timeLabel">
+              <property name="text">
+               <string>Time recording:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLCDNumber" name="timerLCDNumber">
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
@@ -466,7 +480,7 @@
                <string>Press &quot;record&quot; button to enable this button</string>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: rgb(132,222,2)</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>Record low exposure</string>
@@ -665,13 +679,6 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QLabel" name="temperatureLabel">
-              <property name="text">
-               <string>°C:</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QLCDNumber" name="temperatureLCDNumber">
               <property name="digitCount">
                <number>4</number>
@@ -682,9 +689,23 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="temperatureLabel">
+              <property name="text">
+               <string>°C</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_7">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="overexposureLabel">
               <property name="text">
-               <string>% overexp:</string>
+               <string>overexp:</string>
               </property>
              </widget>
             </item>
@@ -699,9 +720,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="percentageLabel1">
+              <property name="text">
+               <string>%</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="underexposureLabel">
               <property name="text">
-               <string>% underexp:</string>
+               <string>underexp:</string>
               </property>
              </widget>
             </item>
@@ -712,6 +740,13 @@
               </property>
               <property name="segmentStyle">
                <enum>QLCDNumber::Flat</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="percentageLabel2">
+              <property name="text">
+               <string>%</string>
               </property>
              </widget>
             </item>
@@ -754,6 +789,12 @@
         </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
+        </property>
+        <property name="invertedAppearance">
+         <bool>false</bool>
+        </property>
+        <property name="invertedControls">
+         <bool>false</bool>
         </property>
         <property name="tickPosition">
          <enum>QSlider::TicksBelow</enum>
