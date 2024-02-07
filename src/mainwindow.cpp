@@ -115,8 +115,8 @@ MainWindow::MainWindow(QWidget *parent) :
 void MainWindow::StartImageAcquisition(QString camera_identifier) {
     try {
         m_camInterface.StartAcquisition(std::move(camera_identifier));
-
         this->StartPollingThread();
+        this->StartTemperatureThread();
 
         /***************************************/
         // setup connections to displaying etc.
@@ -472,10 +472,11 @@ void MainWindow::StartTemperatureThread() {
 void MainWindow::StopTemperatureThread() {
     if (m_temperatureThread.joinable()) {
         m_temperatureThreadTimer->cancel();
-        m_temperatureThread.interrupt();
+        m_io_service.stop();
         m_temperatureThread.join();
         delete m_temperatureThreadTimer;
         m_temperatureThreadTimer = nullptr;
+        this->ui->temperatureLCDNumber->display(0);
     }
 }
 
@@ -631,7 +632,6 @@ void MainWindow::on_baseFolderButton_clicked() {
                 ui->baseFolderLineEdit->clear();
                 ui->baseFolderLineEdit->insert(this->GetBaseFolder());
                 this->WriteLogHeader();
-                this->StartTemperatureThread();
             }
         }
     }
