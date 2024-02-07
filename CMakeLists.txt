@@ -89,6 +89,7 @@ set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/image_container.cpp
         src/util.cpp
         src/camera.cpp
+        src/logger.cpp
 )
 set(SUSICAM_LIB_HDR src/mainwindow.h
         src/camera_interface.h
@@ -98,6 +99,7 @@ set(SUSICAM_LIB_HDR src/mainwindow.h
         src/image_container.h
         src/util.h
         src/camera.h
+        src/logger.h
 )
 set(SUSICAM_LIB_UI src/mainwindow.ui)
 

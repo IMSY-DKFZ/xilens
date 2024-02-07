@@ -31,6 +31,7 @@
 #include "displayFunctional.h"
 #include "displayRaw.h"
 #include "constants.h"
+#include "logger.h"
 
 
 /**
@@ -96,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent) :
         m_threadpool.create_thread([&] { return m_io_service.run(); });
     }
 
-    BOOST_LOG_TRIVIAL(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
+    LOG_SUSICAM(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
     EnableUi(false);
 }
@@ -128,7 +129,7 @@ void MainWindow::StartImageAcquisition(QString camera_identifier) {
                          &MainWindow::UpdateMinMaxPixelValues);
     }
     catch (std::runtime_error &error) {
-        BOOST_LOG_TRIVIAL(warning) << "could not start camera, got error " << error.what();
+        LOG_SUSICAM(warning) << "could not start camera, got error " << error.what();
         throw std::runtime_error(error.what());
     }
 }
@@ -423,8 +424,8 @@ void MainWindow::ScheduleTemperatureThread() {
  * \param error The error code associated with the timer expiration event, if any.
  */
 void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error) {
-    if (error) {
-        BOOST_LOG_TRIVIAL(error) << "Timer cancelled. Error: " << error;
+    if (error == boost::asio::error::operation_aborted) {
+        LOG_SUSICAM(error) << "Timer cancelled. Error: " << error;
         delete timer;
         return;
     }
@@ -823,7 +824,7 @@ void MainWindow::RecordImage() {
             FileImage f(fullPath.toStdString().c_str(), "wb");
             f.write(image);
         } catch (const std::runtime_error &e) {
-            BOOST_LOG_TRIVIAL(error) << "Error: %s\n" << e.what();
+            LOG_SUSICAM(error) << "Error: %s\n" << e.what();
         }
 
     }
@@ -861,7 +862,7 @@ void MainWindow::RecordImage(std::string subFolder) {
             FileImage f(fullPath.toStdString().c_str(), "wb");
             f.write(image);
         } catch (const std::runtime_error &e) {
-            BOOST_LOG_TRIVIAL(error) << "Error: %s\n" << e.what();
+            LOG_SUSICAM(error) << "Error: %s\n" << e.what();
         }
     }
     QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
@@ -942,9 +943,9 @@ void MainWindow::StopRecording() {
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
     this->stopTimer();
-    BOOST_LOG_TRIVIAL(info) << "Total of frames recorded: " << m_recordedCount;
-    BOOST_LOG_TRIVIAL(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
-    BOOST_LOG_TRIVIAL(info) << "Estimate for frames skipped: " << m_skippedCounter;
+    LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
+    LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
+    LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
 }
 
 
@@ -973,7 +974,7 @@ void MainWindow::CreateFolderIfNecessary(QString folder) {
 
     if (!folderDir.exists()) {
         if (folderDir.mkpath(folder)) {
-            BOOST_LOG_TRIVIAL(info) << "Directory created: " << folder.toStdString();
+            LOG_SUSICAM(info) << "Directory created: " << folder.toStdString();
         }
     }
 }
@@ -1025,9 +1026,9 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
         FileImage f(fullPath.toStdString().c_str(), "wb");
         f.write(image);
     } catch (const std::runtime_error &e) {
-        BOOST_LOG_TRIVIAL(error) << "Error: %s\n" << e.what();
+        LOG_SUSICAM(error) << "Error: %s\n" << e.what();
     }
-    BOOST_LOG_TRIVIAL(info) << "image " << fullPath.toStdString();
+    LOG_SUSICAM(info) << "image " << fullPath.toStdString();
     m_recordedCount++;
     QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
                               Q_ARG(int, m_recordedCount));
@@ -1371,11 +1372,12 @@ void MainWindow::on_skipFramesSpinBox_valueChanged() {
  */
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
     boost::lock_guard<boost::mutex> guard(mtx_);
+    // image acquisition should be stopped when index 0 (no camera) is selected from the dropdown menu
     try {
         this->StopImageAcquisition();
         m_camInterface.CloseDevice();
     } catch (std::runtime_error &e) {
-        BOOST_LOG_TRIVIAL(error) << "could not stop image acquisition: " << e.what();
+        LOG_SUSICAM(warning) << "could not stop image acquisition: " << e.what();
     }
     if (index != 0) {
         QString cameraModel = ui->cameraListComboBox->currentText();
@@ -1392,7 +1394,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
                 m_camInterface.SetCameraFamily(cameraFamily);
                 this->StartImageAcquisition(ui->cameraListComboBox->currentText());
             } catch (std::runtime_error &e) {
-                BOOST_LOG_TRIVIAL(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                LOG_SUSICAM(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
                 // restore camera type and index
                 m_display->SetCameraType(originalCameraType);
                 m_camInterface.SetCameraType(originalCameraType);
@@ -1412,7 +1414,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
                 QMetaObject::invokeMethod(ui->rgbNormSlider, "setEnabled", Q_ARG(bool, false));
             }
         } else {
-            BOOST_LOG_TRIVIAL(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
+            LOG_SUSICAM(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
         }
     } else {
         const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);

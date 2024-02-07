@@ -4,10 +4,10 @@
 *******************************************************/
 #include <QApplication>
 
+
 #include "CLI11.h"
 #include "mainwindow.h"
 #include "util.h"
-
 
 /**
  * @brief Application entry point and command line interface setup.
@@ -32,9 +32,6 @@ int main(int argc, char** argv) {
     app.add_flag("-t,--test", g_commandLineArguments.test_mode, "Test mode");
 
     CLI11_PARSE(app, argc, argv);
-
-    // initialize logging to INFO level
-    initLogging(boost::log::trivial::info);
 
     // instantiate application
     QApplication a(argc, argv);

@@ -23,6 +23,7 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "constants.h"
+#include "logger.h"
 
 /**
  * custom type that defines a pixel in an OpenCV image
@@ -301,7 +302,7 @@ void DisplayerFunctional::Display(XI_IMG &image) {
                 raw_image /= m_scaling_factor; // 10 bit to 8 bit
                 raw_image.convertTo(raw_image, CV_8UC1);
             } else {
-                BOOST_LOG_TRIVIAL(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+                LOG_SUSICAM(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
                 throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
             cv::Mat raw_image_to_display = raw_image.clone();
@@ -342,7 +343,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     try {
         cv::merge(channels, bgr_image);
     } catch (const cv::Exception &e) {
-        BOOST_LOG_TRIVIAL(error) << "OpenCV error: " << e.what();
+        LOG_SUSICAM(error) << "OpenCV error: " << e.what();
     }
 }
 

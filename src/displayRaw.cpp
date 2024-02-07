@@ -23,6 +23,7 @@
 #include "util.h"
 #include "constants.h"
 #include "displayRaw.h"
+#include "logger.h"
 
 
 /**
@@ -136,7 +137,7 @@ void mouseHandler(int event, int x, int y, int flags, void *param) {
 
         std::stringstream message;
         message << "ROI MIN: " << (unsigned int) min << " -- MAX: " << (unsigned int) max << std::endl;
-        BOOST_LOG_TRIVIAL(info) << message.str();
+        LOG_SUSICAM(info) << message.str();
 
         cv::resize(roiImg, roiImg, roiImg.size() * 5, 0., 0., cv::INTER_NEAREST);
     }

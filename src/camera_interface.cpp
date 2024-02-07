@@ -14,7 +14,7 @@
 #include "camera_interface.h"
 #include "util.h"
 #include "constants.h"
-
+#include "logger.h"
 
 /**
  * @brief A mapper that maps camera models to their corresponding type and family, e.g. (spectral, xiSpec),
@@ -81,7 +81,7 @@ int CameraInterface::StartAcquisition(QString camera_identifier) {
         stat = xiStartAcquisition(m_cameraHandle);
         HandleResult(stat, "xiStartAcquisition");
         if (stat == XI_OK){
-            BOOST_LOG_TRIVIAL(info) << "successfully initialized camera\n";
+            LOG_SUSICAM(info) << "successfully initialized camera\n";
         }
         else {
             this->CloseDevice();
@@ -110,10 +110,10 @@ int CameraInterface::StartAcquisition(QString camera_identifier) {
 int CameraInterface::StopAcquisition() {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
-        BOOST_LOG_TRIVIAL(info) << "Stopping acquisition...";
+        LOG_SUSICAM(info) << "Stopping acquisition...";
         stat = xiStopAcquisition(m_cameraHandle);
         HandleResult(stat, "xiStopAcquisition");
-        BOOST_LOG_TRIVIAL(info) << "Done!";
+        LOG_SUSICAM(info) << "Done!";
     }
     return stat;
 }
@@ -137,7 +137,7 @@ int CameraInterface::OpenDevice(DWORD cameraIdentifier) {
 
     stat = this->m_camera->InitializeCamera();
     if (stat != XI_OK) {
-        BOOST_LOG_TRIVIAL(error) << "Failed to initialize camera: " << cameraIdentifier;
+        LOG_SUSICAM(error) << "Failed to initialize camera: " << cameraIdentifier;
         return stat;
     }
     return stat;
@@ -158,11 +158,11 @@ void CameraInterface::CloseDevice() {
     StopAcquisition();
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
-        BOOST_LOG_TRIVIAL(info) << "Closing device";
+        LOG_SUSICAM(info) << "Closing device";
         stat = xiCloseDevice(this->m_cameraHandle);
         HandleResult(stat, "xiCloseDevice");
         //this->m_cameraHandle = INVALID_HANDLE_VALUE;
-        BOOST_LOG_TRIVIAL(info) << "Done!";
+        LOG_SUSICAM(info) << "Done!";
     }
 }
 
@@ -189,7 +189,7 @@ CameraInterface::CameraInterface() :
     DWORD numberDevices;
     stat = xiGetNumberDevices(&numberDevices);
     HandleResult(stat, "xiGetNumberDevices");
-    BOOST_LOG_TRIVIAL(info) << "number of ximea devices found: " << numberDevices;
+    LOG_SUSICAM(info) << "number of ximea devices found: " << numberDevices;
 }
 
 
@@ -213,7 +213,7 @@ QStringList CameraInterface::GetAvailableCameraModels() {
         HANDLE hDevice = INVALID_HANDLE_VALUE;
         stat = xiOpenDevice(i, &hDevice);
         if (stat != XI_OK){
-            BOOST_LOG_TRIVIAL(error) << "cannot open device with ID: " << i << " perhaps already open?";
+            LOG_SUSICAM(error) << "cannot open device with ID: " << i << " perhaps already open?";
         } else {
             char camera_model[256] = {0};
             xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
@@ -232,7 +232,7 @@ QStringList CameraInterface::GetAvailableCameraModels() {
  * \brief Destructor of the camera interface.
  */
 CameraInterface::~CameraInterface() {
-    BOOST_LOG_TRIVIAL(debug) << "CameraInterface::~CameraInterface()";
+    LOG_SUSICAM(debug) << "CameraInterface::~CameraInterface()";
     this->CloseDevice();
 }
 

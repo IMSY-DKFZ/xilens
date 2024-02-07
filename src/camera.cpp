@@ -5,6 +5,7 @@
 
 #include "camera.h"
 #include "util.h"
+#include "logger.h"
 
 void CameraFamily::UpdateCameraTemperature() {
 }
@@ -192,9 +193,9 @@ void Camera::SetExposure(int exp) {
         // Setting "exposure" parameter (10ms=10000us)
         stat = xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
         HandleResult(stat, "xiSetParam (exposure set)");
-        BOOST_LOG_TRIVIAL(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
+        LOG_SUSICAM(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "exposure not set: camera not initialized";
+        LOG_SUSICAM(warning) << "exposure not set: camera not initialized";
     }
 }
 
@@ -221,7 +222,7 @@ int Camera::GetExposure() {
         stat = xiGetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, &exp);
         HandleResult(stat, "xiGetParam (exposure get)");
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "exposure not determined, camera not initalized. Return standard value.";
+        LOG_SUSICAM(warning) << "exposure not determined, camera not initalized. Return standard value.";
     }
 
     return exp;
@@ -245,6 +246,6 @@ void Camera::AutoExposure(bool on) {
         stat = xiSetParamInt(*m_cameraHandle, XI_PRM_AEAG, on);
         HandleResult(stat, "xiSetParam (autoexposure on/off)");
     } else {
-        BOOST_LOG_TRIVIAL(warning) << "autoexposure not set: camera not initialized";
+        LOG_SUSICAM(warning) << "autoexposure not set: camera not initialized";
     }
 }
