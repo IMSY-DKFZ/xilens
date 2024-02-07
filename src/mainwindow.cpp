@@ -75,8 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->jet_vhb->setPixmap(pix);
 
     // set the base folder loc
-    m_baseFolderLoc = QDir::cleanPath(
-            QDir::currentPath() + QDir::separator() + QString::fromStdString(g_commandLineArguments.output_folder));
+    m_baseFolderLoc = QDir::cleanPath(QDir::homePath());
 
     ui->baseFolderLineEdit->insert(this->GetBaseFolder());
 
@@ -199,6 +198,9 @@ void MainWindow::EnableUi(bool enable) {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
     disableWidgetsInLayout(layout, enable);
     ui->exposureSlider->setEnabled(enable);
+    ui->logTextLineEdit->setEnabled(enable);
+    QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
+    disableWidgetsInLayout(layoutExtras, enable);
 }
 
 
@@ -1314,6 +1316,19 @@ void MainWindow::on_logTextLineEdit_textEdited(const QString &newText) {
 
 
 /**
+ * Formats timestamp from  yyyyMMdd_HH-mm-ss-zzz to a human readable format
+ *
+ * @param timestamp timestamp to re-format
+ * @return reformatted timestamp
+ */
+QString MainWindow::FormatTimeStamp(QString timestamp){
+    QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
+    QString formattedDate = dateTime.toString("hh:mm:ss AP");
+    return formattedDate;
+}
+
+
+/**
  * Logs the written message from the GUI to the file named in constants.h: LOG_FILE_NAME. It also resets the content of
  * of the trigger text line edit and displays all messages on GUI
  */
@@ -1326,13 +1341,14 @@ void MainWindow::on_logTextLineEdit_returnPressed() {
     // log message and update member variable for trigger text
     trigger_message.prepend(" ");
     timestamp = this->LogMessage(trigger_message, LOG_FILE_NAME, true);
-    m_triggerText = timestamp + trigger_message + "\n";
+    timestamp = FormatTimeStamp(timestamp);
+    m_triggerText = QString("<span style=\"color:gray;\">%1</span>").arg(timestamp) + QString("<b>%1</b>").arg(trigger_message) + "\n";
 
     // handle UI calls
     restoreLineEditStyle(ui->logTextLineEdit);
     ui->logTextEdit->append(m_triggerText);
     ui->logTextEdit->show();
-    ui->logTextEdit->clear();
+    ui->logTextLineEdit->clear();
 }
 
 

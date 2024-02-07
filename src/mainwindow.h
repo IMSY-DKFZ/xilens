@@ -612,6 +612,14 @@ private:
      * Stops image acquisition by disconnecting image displayer and stopping image polling to the image container.
      */
     void StopImageAcquisition();
+
+    /**
+     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human readable format
+     *
+     * @param timestamp
+     * @return
+     */
+    QString FormatTimeStamp(QString timestamp);
 };
 
 #endif // MAINWINDOW_H
