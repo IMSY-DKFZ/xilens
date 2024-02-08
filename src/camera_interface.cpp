@@ -74,10 +74,14 @@ int CameraInterface::StartAcquisition(QString camera_identifier) {
     int stat_open = XI_OK;
     stat_open = OpenDevice(m_availableCameras[camera_identifier]);
     HandleResult(stat_open, "OpenDevice");
-    printf("Starting acquisition...\n");
+
+    char cameraSN[100] = {0};
+    xiGetParamString(this->m_cameraHandle, XI_PRM_DEVICE_SN, cameraSN, sizeof(cameraSN));
+    m_cameraSN = QString::fromUtf8(cameraSN);
 
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
+        LOG_SUSICAM(info) << "Starting acquisition";
         stat = xiStartAcquisition(m_cameraHandle);
         HandleResult(stat, "xiStartAcquisition");
         if (stat == XI_OK){
@@ -203,25 +207,24 @@ CameraInterface::CameraInterface() :
  */
 QStringList CameraInterface::GetAvailableCameraModels() {
     QStringList cameraModels;
-    QStringList cameraSNs;
     // DWORD and HANDLE are defined by xiAPI
     DWORD dwCamCount = 0;
     int stat = XI_OK;
     xiGetNumberDevices(&dwCamCount);
 
     for (DWORD i = 0; i < dwCamCount; i++) {
-        HANDLE hDevice = INVALID_HANDLE_VALUE;
-        stat = xiOpenDevice(i, &hDevice);
+        HANDLE cameraHandle = INVALID_HANDLE_VALUE;
+        stat = xiOpenDevice(i, &cameraHandle);
         if (stat != XI_OK){
             LOG_SUSICAM(error) << "cannot open device with ID: " << i << " perhaps already open?";
         } else {
-            char camera_model[256] = {0};
-            xiGetParamString(hDevice, XI_PRM_DEVICE_NAME, camera_model, sizeof(camera_model));
+            char cameraModel[256] = {0};
+            xiGetParamString(cameraHandle, XI_PRM_DEVICE_NAME, cameraModel, sizeof(cameraModel));
 
-            cameraModels.append(QString::fromUtf8(camera_model));
-            m_availableCameras[QString::fromUtf8(camera_model)] = i;
+            cameraModels.append(QString::fromUtf8(cameraModel));
+            m_availableCameras[QString::fromUtf8(cameraModel)] = i;
 
-            xiCloseDevice(hDevice);
+            xiCloseDevice(cameraHandle);
         }
     }
     return cameraModels;

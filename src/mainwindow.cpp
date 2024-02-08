@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
         ui(new Ui::MainWindow),
         m_io_service(), m_work(m_io_service),
+        m_temperature_io_service(), m_temperature_work(new boost::asio::io_service::work(m_temperature_io_service)),
         m_recordedCount(0),
         m_testMode(g_commandLineArguments.test_mode),
         m_imageCounter(0),
@@ -63,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
         m_elapsedTime(0) {
     ui->setupUi(this);
     // populate available cameras
-    QStringList cameraList = m_camInterface.GetAvailableCameraModels();
+    QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItem("select camera to enable UI...");
     ui->cameraListComboBox->addItems(cameraList);
     ui->cameraListComboBox->setCurrentIndex(0);
@@ -115,7 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
  */
 void MainWindow::StartImageAcquisition(QString camera_identifier) {
     try {
-        m_camInterface.StartAcquisition(std::move(camera_identifier));
+        m_cameraInterface.StartAcquisition(std::move(camera_identifier));
         this->StartPollingThread();
         this->StartTemperatureThread();
 
@@ -149,7 +150,7 @@ void MainWindow::StartImageAcquisition(QString camera_identifier) {
 void MainWindow::StopImageAcquisition() {
     this->StopPollingThread();
     this->StopTemperatureThread();
-    m_camInterface.StopAcquisition();
+    m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
@@ -289,6 +290,7 @@ void MainWindow::UpdateMinMaxPixelValues() {
  */
 MainWindow::~MainWindow() {
     m_io_service.stop();
+    m_temperature_io_service.stop();
     m_threadpool.join_all();
 
     this->StopTemperatureThread();
@@ -314,7 +316,7 @@ void MainWindow::Snapshots() {
     int nr_images = ui->nSnapshotsSpinBox->value();
 
     for (int i = 0; i < nr_images; i++) {
-        int exp_time = m_camInterface.m_camera->GetExposureMs();
+        int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         std::stringstream name_i;
         name_i << name << "_" << i;
         this->SaveCurrentImage(name_i.str());
@@ -380,11 +382,11 @@ void MainWindow::on_snapshotPrefixLineEdit_returnPressed(){
  */
 void MainWindow::LogCameraTemperature() {
     QString message;
-    m_camInterface.m_camera->family->get()->UpdateCameraTemperature();
-    auto cameraTemperature = m_camInterface.m_camera->family->get()->m_cameraTemperature;
+    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
+    auto cameraTemperature = m_cameraInterface.m_camera->family->get()->m_cameraTemperature;
     for (const QString &key: cameraTemperature.keys()) {
-        float temp = m_camInterface.m_cameraTemperature.value(key);
-        message = QString("\t%1\t%2").arg(key).arg(temp);
+        float temp = m_cameraInterface.m_cameraTemperature.value(key);
+        message = QString("\t%1\t%2\t%3\t%4").arg(key).arg(temp).arg(this->m_cameraInterface.m_cameraModel).arg(this->m_cameraInterface.m_cameraSN);
         this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
     }
 }
@@ -394,7 +396,7 @@ void MainWindow::LogCameraTemperature() {
  * Displays the camera temperature in an LCD display on the GUI
  */
 void MainWindow::DisplayCameraTemperature() {
-    double temp = m_camInterface.m_camera->family->get()->m_cameraTemperature.value(SENSOR_BOARD_TEMP);
+    double temp = m_cameraInterface.m_camera->family->get()->m_cameraTemperature.value(SENSOR_BOARD_TEMP);
     QMetaObject::invokeMethod(ui->temperatureLCDNumber, "display", Qt::QueuedConnection,
                               Q_ARG(double, temp));
 }
@@ -408,10 +410,11 @@ void MainWindow::DisplayCameraTemperature() {
  * periodically according to the TEMP_LOG_INTERVAL variable
  */
 void MainWindow::ScheduleTemperatureThread() {
-    m_temperatureThreadTimer = new boost::asio::steady_timer(m_io_service);
+    m_temperature_work = std::make_unique<boost::asio::io_service::work>(m_temperature_io_service);
+    m_temperatureThreadTimer = std::make_shared<boost::asio::steady_timer>(m_temperature_io_service);
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
     m_temperatureThreadTimer->async_wait(
-            boost::bind(&MainWindow::HandleTimer, this, m_temperatureThreadTimer, boost::asio::placeholders::error));
+            boost::bind(&MainWindow::HandleTimer, this, boost::asio::placeholders::error));
 }
 
 
@@ -423,10 +426,9 @@ void MainWindow::ScheduleTemperatureThread() {
  * \param timer Pointer to the boost::asio::steady_timer object representing the timer.
  * \param error The error code associated with the timer expiration event, if any.
  */
-void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error) {
+void MainWindow::HandleTimer(const boost::system::error_code &error) {
     if (error == boost::asio::error::operation_aborted) {
-        LOG_SUSICAM(error) << "Timer cancelled. Error: " << error;
-        delete timer;
+        LOG_SUSICAM(warning) << "Timer cancelled. Error: " << error;
         return;
     }
 
@@ -434,8 +436,8 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
     this->DisplayCameraTemperature();
 
     // Reset timer
-    timer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
-    timer->async_wait(boost::bind(&MainWindow::HandleTimer, this, timer, boost::asio::placeholders::error));
+    m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
+    m_temperatureThreadTimer->async_wait(boost::bind(&MainWindow::HandleTimer, this, boost::asio::placeholders::error));
 }
 
 
@@ -445,19 +447,24 @@ void MainWindow::HandleTimer(boost::asio::steady_timer *timer, const boost::syst
  * This method creates a new thread to monitor the temperature by periodically calling the
  * `ReadTemperature()` method. The temperature is read and stored in a member variable for
  * further processing.
+ *
  * \see StopTemperatureThread()
  */
 void MainWindow::StartTemperatureThread() {
+    if (m_temperatureThread.joinable()) {
+        StopTemperatureThread();
+    }
     QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
     QFile file(log_filename);
     QFileInfo fileInfo(file);
     if (fileInfo.size() == 0) {
-        this->LogMessage("time\tsensor_location\ttemperature", TEMP_LOG_FILE_NAME, false);
+        this->LogMessage("time\tsensor_location\ttemperature\tcamera_model\tcamera_sn", TEMP_LOG_FILE_NAME, false);
     }
     file.close();
     m_temperatureThread = boost::thread([&]() {
         ScheduleTemperatureThread();
-        m_io_service.run();
+        m_temperature_io_service.reset();
+        m_temperature_io_service.run();
     });
 }
 
@@ -472,11 +479,12 @@ void MainWindow::StartTemperatureThread() {
  */
 void MainWindow::StopTemperatureThread() {
     if (m_temperatureThread.joinable()) {
-        m_temperatureThreadTimer->cancel();
-        m_io_service.stop();
+        if (m_temperatureThreadTimer) {
+            m_temperatureThreadTimer->cancel();
+            m_temperatureThreadTimer = nullptr;
+        }
+        m_temperature_work.reset();
         m_temperatureThread.join();
-        delete m_temperatureThreadTimer;
-        m_temperatureThreadTimer = nullptr;
         this->ui->temperatureLCDNumber->display(0);
     }
 }
@@ -505,7 +513,7 @@ void MainWindow::StopSnapshotsThread(){
  * @param value The new value of the exposure slider.
  */
 void MainWindow::on_exposureSlider_valueChanged(int value) {
-    m_camInterface.m_camera->SetExposureMs(value);
+    m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
 }
 
@@ -518,7 +526,7 @@ void MainWindow::on_exposureSlider_valueChanged(int value) {
  *
  */
 void MainWindow::UpdateExposure() {
-    int exp_ms = m_camInterface.m_camera->GetExposureMs();
+    int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
     int n_skip_frames = ui->skipFramesSpinBox->value();
     ui->exposureLineEdit->setText(QString::number((int) exp_ms));
     ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
@@ -538,7 +546,7 @@ void MainWindow::UpdateExposure() {
  */
 void MainWindow::on_exposureLineEdit_returnPressed() {
     m_label_exp = ui->exposureLineEdit->text();
-    m_camInterface.m_camera->SetExposureMs(m_label_exp.toInt());
+    m_cameraInterface.m_camera->SetExposureMs(m_label_exp.toInt());
     UpdateExposure();
     restoreLineEditStyle(ui->exposureLineEdit);
 }
@@ -571,9 +579,9 @@ void MainWindow::on_recordButton_clicked(bool checked) {
     static QString original_button_text;
 
     if (checked) {
-        QString cameraModel = ui->cameraListComboBox->currentText();
-        this->LogMessage("SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
-        this->LogMessage(QString("camera selected: %1").arg(cameraModel), LOG_FILE_NAME, true);
+        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        this->LogMessage(" SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
+        this->LogMessage(QString(" camera selected: %1 %2").arg(this->m_cameraInterface.m_cameraModel, this->m_cameraInterface.m_cameraSN), LOG_FILE_NAME, true);
 
         this->m_elapsedTimer.start();
         this->StartRecording();
@@ -584,14 +592,15 @@ void MainWindow::on_recordButton_clicked(bool checked) {
                                   Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         // button text seems to be an object property and cannot be changed by using QMetaObject::invokeMethod
-        ui->recordButton->setText("Stop recording");
+        ui->recordButton->setText(" Stop recording");
     } else {
-        this->LogMessage("SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
+        this->LogMessage(" SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,
                                   Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         ui->recordButton->setText(original_button_text);
+        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -636,6 +645,7 @@ void MainWindow::on_baseFolderButton_clicked() {
             }
         }
     }
+    this->StartTemperatureThread();
 }
 
 
@@ -999,7 +1009,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
 
     QString fileName;
     if (!m_testMode) {
-        int exp_time = m_camInterface.m_camera->GetExposureMs();
+        int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         QString exp_time_str("exp" + QString::number(exp_time) + "ms");
         QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
         QString date = (QDate::currentDate()).toString("yyyyMMdd_");
@@ -1040,7 +1050,7 @@ void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolde
  */
 void MainWindow::StartPollingThread() {
     m_imageContainer.StartPolling();
-    m_imageContainerThread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_camInterface.GetHandle(),
+    m_imageContainerThread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_cameraInterface.GetHandle(),
                                            5);
 }
 
@@ -1062,7 +1072,7 @@ void MainWindow::StopPollingThread() {
  * @param setAutoexposure whether the exposure should be set to automatic management by the camera
  */
 void MainWindow::on_autoexposureCheckbox_clicked(bool setAutoexposure) {
-    this->m_camInterface.m_camera->AutoExposure(setAutoexposure);
+    this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
     ui->exposureSlider->setEnabled(!setAutoexposure);
     ui->exposureLineEdit->setEnabled(!setAutoexposure);
     UpdateExposure();
@@ -1241,7 +1251,7 @@ void MainWindow::lowExposureRecording() {
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     std::string sub_folder_name = ui->folderLowExposureImagesLineEdit->text().toUtf8().constData();
-    int original_exposure = m_camInterface.m_camera->GetExposureMs();
+    int original_exposure = m_cameraInterface.m_camera->GetExposureMs();
     // change style of record low exposure images button and disable exposure components
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
     QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, false));
@@ -1252,7 +1262,7 @@ void MainWindow::lowExposureRecording() {
     m_topFolderName = nullptr;
     int nr_images = ui->nLowExposureImages->value() * LOW_EXPOSURE_INTEGRATION_TIMES.size();
     for (int i: LOW_EXPOSURE_INTEGRATION_TIMES) {
-        m_camInterface.m_camera->SetExposureMs(i);
+        m_cameraInterface.m_camera->SetExposureMs(i);
         waitTime = 2 * i;
         wait(waitTime);
         for (int j = 0; j < ui->nLowExposureImages->value(); j++) {
@@ -1263,7 +1273,7 @@ void MainWindow::lowExposureRecording() {
         }
     }
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
-    m_camInterface.m_camera->SetExposureMs(original_exposure);
+    m_cameraInterface.m_camera->SetExposureMs(original_exposure);
     wait(2 * original_exposure);
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, true));
     QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, true));
@@ -1357,7 +1367,7 @@ void MainWindow::on_logTextLineEdit_returnPressed() {
  * updates frames per second label in GUI when number of skipped frames is modified
  */
 void MainWindow::on_skipFramesSpinBox_valueChanged() {
-    int exp_ms = m_camInterface.m_camera->GetExposureMs();
+    int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
     int n_skip_frames = ui->skipFramesSpinBox->value();
     const QSignalBlocker blocker_label(ui->hzLabel);
     ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
@@ -1375,36 +1385,36 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
     // image acquisition should be stopped when index 0 (no camera) is selected from the dropdown menu
     try {
         this->StopImageAcquisition();
-        m_camInterface.CloseDevice();
+        m_cameraInterface.CloseDevice();
     } catch (std::runtime_error &e) {
         LOG_SUSICAM(warning) << "could not stop image acquisition: " << e.what();
     }
     if (index != 0) {
         QString cameraModel = ui->cameraListComboBox->currentText();
-        m_camInterface.m_cameraModel = cameraModel;
+        m_cameraInterface.m_cameraModel = cameraModel;
         if (CAMERA_MAPPER.contains(cameraModel)) {
             QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME);
             QString cameraFamily = CAMERA_MAPPER.value(cameraModel).value(CAMERA_FAMILY_KEY_NAME);
-            QString originalCameraType = m_camInterface.m_cameraType;
-            QString originalCameraFamily = m_camInterface.m_cameraFamilyName;
+            QString originalCameraType = m_cameraInterface.m_cameraType;
+            QString originalCameraFamily = m_cameraInterface.m_cameraFamilyName;
             try {
                 // set camera type needed by the camera interface initialization
                 m_display->SetCameraType(cameraType);
-                m_camInterface.SetCameraType(cameraType);
-                m_camInterface.SetCameraFamily(cameraFamily);
+                m_cameraInterface.SetCameraType(cameraType);
+                m_cameraInterface.SetCameraFamily(cameraFamily);
                 this->StartImageAcquisition(ui->cameraListComboBox->currentText());
             } catch (std::runtime_error &e) {
                 LOG_SUSICAM(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
                 // restore camera type and index
                 m_display->SetCameraType(originalCameraType);
-                m_camInterface.SetCameraType(originalCameraType);
-                m_camInterface.SetCameraType(originalCameraFamily);
+                m_cameraInterface.SetCameraType(originalCameraType);
+                m_cameraInterface.SetCameraType(originalCameraFamily);
                 const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
-                ui->cameraListComboBox->setCurrentIndex(m_camInterface.m_cameraIndex);
+                ui->cameraListComboBox->setCurrentIndex(m_cameraInterface.m_cameraIndex);
                 return;
             }
             // set new camera index
-            m_camInterface.SetCameraIndex(index);
+            m_cameraInterface.SetCameraIndex(index);
             this->EnableUi(true);
             if (cameraType == SPECTRAL_CAMERA) {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
@@ -1418,7 +1428,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
         }
     } else {
         const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
-        m_camInterface.SetCameraIndex(index);
+        m_cameraInterface.SetCameraIndex(index);
         this->EnableUi(false);
     }
 }

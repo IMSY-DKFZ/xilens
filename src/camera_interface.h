@@ -179,6 +179,11 @@ public:
     QString m_cameraModel;
 
     /**
+     * Serial number of camera
+     */
+    QString m_cameraSN;
+
+    /**
      * @brief The type of camera used for capturing images.
      */
     QString m_cameraType;

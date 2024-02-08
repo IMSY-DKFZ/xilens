@@ -115,7 +115,7 @@ public:
     /*
      * Handle for timer used to schedule camera temperature logging
      */
-    void HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error);
+    void HandleTimer(const boost::system::error_code &error);
 
     /*
      * Stops thread in charge of recording snapshot images
@@ -551,7 +551,7 @@ private:
     /*
      * Camera interface. Handles communication with each connected camera.
      */
-    CameraInterface m_camInterface;
+    CameraInterface m_cameraInterface;
 
     /*
      * Display in charge of displaying each image.
@@ -573,15 +573,25 @@ private:
      */
     boost::asio::io_service m_io_service;
 
+    /**
+     * ID service for recording temperature to file
+     */
+    boost::asio::io_service m_temperature_io_service;
+
     /*
      * Thread pool used for recording the data.
      */
     boost::thread_group m_threadpool;
 
     /*
-     * Async IO work. Keeps the IO service alive in the thread in charge of data recording.
+     * Async IO work. Keeps the IO service alive in the thread in charge of image recording.
      */
     boost::asio::io_service::work m_work;
+
+    /**
+     * Async IO work. Keeps the IO service alive in the thread in charge of temperature recording.
+     */
+    std::unique_ptr<boost::asio::io_service::work> m_temperature_work;
 
     /*
      * Mutual exclusion mechanism in charge of synchronization.
@@ -601,7 +611,7 @@ private:
     /*
      * Thread containing the timer for temperature recording at certain intervals.
      */
-    boost::asio::steady_timer *m_temperatureThreadTimer;
+    std::shared_ptr<boost::asio::steady_timer> m_temperatureThreadTimer;
 
     /*
      * Starts image acquisition by initializing image contained and displayer.
