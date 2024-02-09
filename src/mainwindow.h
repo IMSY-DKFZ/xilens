@@ -115,7 +115,7 @@ public:
     /*
      * Handle for timer used to schedule camera temperature logging
      */
-    void HandleTimer(const boost::system::error_code &error);
+    void HandleTemperatureTimer(const boost::system::error_code &error);
 
     /*
      * Stops thread in charge of recording snapshot images
@@ -150,7 +150,7 @@ private slots:
      * Qt slot triggered when the record button is pressed. Stars the continuous recording of images to files and stops
      * it when pressed a second time. This is synchronized with the exposure time label.
      */
-    void on_recordButton_clicked(bool checked);
+    void on_recordButton_clicked(bool clicked);
 
     /*
      * Qt slot triggered when the button to choose a base folder is clicked. Opens a dialog where a folder can be
@@ -292,8 +292,8 @@ private slots:
     void on_recLowExposureImagesButton_clicked();
 
     /*
-     * Qt slot triggered when the spin box containing the number of images to skip while recording. It skips the entered
-     * number of images before storing each image to file.
+     * Qt slot triggered when the spin box containing the number of images to skip while recording is modified.
+     * It restyles the appearance of the field.
      */
     void on_skipFramesSpinBox_valueChanged();
 
@@ -302,35 +302,42 @@ private slots:
      */
     void on_cameraListComboBox_currentIndexChanged(int index);
 
-    /*
+    /**
      * Updates the stile of a Qt LineEdit component.
+     *
+     * @param lineEdit element to update
+     * @param newString new value received from element
+     * @param originalString original value of hte element before changes occurred
      */
-    void updateLineEditStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
+    void updateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
 
     /*
      * Restores the appearance of a Qt LineEdit component.
      */
-    void restoreLineEditStyle(QLineEdit* lineEdit);
+    void RestoreLineEditStyle(QLineEdit* lineEdit);
 
     /*
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
      */
-    void on_snapshotPrefixLineEdit_textEdited(const QString &arg1);
+    void on_snapshotPrefixLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the return key is pressed on the file prefix field for snapshot images in the UI.
      */
     void on_snapshotPrefixLineEdit_returnPressed();
 
-private:
-    Ui::MainWindow *ui;
+    /*
+     * Qt slot triggered when snapshot sub folder field is edited in the UI.
+     */
+    void on_snapshotSubFolderLineEdit_textEdited(const QString &newText);
 
     /**
-     * @brief SaveCurrentImage safe the current image to tif
-     * @param baseName the base file name to be saved
-     * @param specialFolder only neccessary if you want to save the image in a special subfolder as "white" or "dark"
+     * Qt slot triggered when the return key is pressed on the sub folder field for snapshot images in the UI.
      */
-    void SaveCurrentImage(std::string baseName, std::string specialFolder = "");
+    void on_snapshotSubFolderLineEdit_returnPressed();
+
+private:
+    Ui::MainWindow *ui;
 
     /**
      * @brief Displays a new image
@@ -367,35 +374,49 @@ private:
      */
     void CreateFolderIfNecessary(QString folder);
 
-    /*
-     * Records only one image
-     */
-    void RecordImage();
-
-    /*
-     * records only one image to the specified sub folder.
-     */
-    void RecordImage(std::string subFolder);
+   /**
+    * Records image to specified sub folder and using specified file prefix to name the file
+    *
+    * @param subFolder folder to be created inside the base folder where image will be recorded
+    * @param filePrefix string used as file name prefix
+    * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
+    */
+    void RecordImage(std::string subFolder = "", std::string filePrefix = "", bool ignoreSkipping = false);
 
     /*
      * Starts IO service in a thread in charge of saving the images to files.
      */
     void ThreadedRecordImage();
 
+    /**
+     * Displays the number of recorded images in the GUI
+     */
+    void DisplayRecordCount();
+
+    /**
+     * Indicates if an image should be recorded to file or not depending on the frame number and the number of frames
+     * to skip
+     *
+     * @param nSkipFrames number of frames to skip
+     * @param ImageID frame number
+     * @return true if image should be recorded to file or false if not
+     */
+    bool ImageShouldBeRecorded(int nSkipFrames, long ImageID);
+
     /*
      * Counts how many images have been recorded.
      */
-    unsigned long m_recordedCount;
+    std::atomic<unsigned long> m_recordedCount;
 
     /*
      * Counts how many images whould have been recorded
      */
-    unsigned long m_imageCounter;
+    std::atomic< unsigned long> m_imageCounter;
 
     /*
      * Counts how many images were skipped during the recording process.
      */
-    unsigned long m_skippedCounter;
+    std::atomic<unsigned long> m_skippedCounter;
 
     /*
      * Updates image counter
@@ -418,10 +439,10 @@ private:
     void RunNetwork();
 
     /**
-     * @brief Snapshots helper method to take snapshots, basically just created to be able to
+     * @brief RecordSnapshots helper method to take snapshots, basically just created to be able to
      * thread the snapshot making :-)
      */
-    void Snapshots();
+    void RecordSnapshots();
 
     /**
      * @brief lowExposureRecording helper method to record images at different exposure times. Created to thread this recordings.
@@ -444,6 +465,13 @@ private:
     void UpdateExposure();
 
     /**
+     * Enables and disables elements of the GUI that should not me modified while recordings are in progress
+     *
+     * @param recordingInProgress
+     */
+    void HandleElementsWhileRecording(bool recordingInProgress);
+
+    /**
      * @brief MainWindow::GetWritingFolder returns the folder there the image files are written to
      * @return
      */
@@ -454,14 +482,14 @@ private:
      *
      * It automatically add the current write path and puts the name in a standard format including timestamp etc.
      *
-     * @param fileName the name of the file (snapshot, recording, liver_image, ...)
+     * @param filePrefix the name of the file (snapshot, recording, liver_image, ...)
      * @param frameNumber the acquisition frame number provided by ximea
      * @param extension file extension (.dat or .tif)
-     * @param specialFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
+     * @param subFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string fileName, long frameNumber, std::string extension,
-                                          std::string specialFolder = "");
+    QString GetFullFilenameStandardFormat(std::string&& filePrefix, long frameNumber, std::string extension,
+                                          std::string&& subFolder = "");
 
     /*
      * Queries the base folder path where data is to be stored.
@@ -471,7 +499,7 @@ private:
     /*
      * stores the folder name where images are to be stores. This is a folder inside of base folder.
      */
-    QString m_topFolderName;
+    QString m_subFolder;
 
     /*
      * file prefix to be appended to each image file name.
@@ -487,6 +515,11 @@ private:
      * Trigger text entered to the log function of the UI.
      */
     QString m_triggerText;
+
+    /**
+     * Sub folder where snapshots will be stored
+     */
+    QString m_snapshotSubFolder;
 
     /*
      * Folder path where all data is to be stored.
@@ -512,6 +545,16 @@ private:
      * Time elapsed since recordings started.
      */
     float m_elapsedTime;
+
+    /**
+     * Time offset used when recordings are paused due to snapshots or low exposure recordings
+     */
+    float m_timeOffset = 0;
+
+    /**
+     * Identified if the main recordings have been paused due to snapshots or low exposure recordings
+     */
+    bool m_mainRecordingPaused = false;
 
     /*
      * Time elapsed since recordings started as text field.

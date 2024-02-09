@@ -35,16 +35,6 @@
 
 
 /**
- * @brief XIIMGtoMat helper function which wraps a ximea image in a cv::Mat
- * @param xi_img input ximea image
- * @param mat_img output cv::Mat image
- */
-void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img) {
-    mat_img = cv::Mat(xi_img.height, xi_img.width, CV_16UC1, xi_img.bp);
-}
-
-
-/**
 * @class MainWindow
 * @brief The MainWindow class represents the main window of the application.
 *
@@ -309,24 +299,26 @@ MainWindow::~MainWindow() {
  * The snapshot button is re-styled when clicked, and the progress bar is updated in the GUI during the process of recording the
  * images. The button style is restored after the data recording has completed.
  */
-void MainWindow::Snapshots() {
-    static QString original_colour = ui->recordButton->styleSheet();
-    // create invocation to method to trigger changes in UI from the main thread
-    std::string name = ui->snapshotPrefixLineEdit->text().toUtf8().constData();
+void MainWindow::RecordSnapshots() {
+    static QString recordButtonOriginalColour = ui->recordButton->styleSheet();
     int nr_images = ui->nSnapshotsSpinBox->value();
+    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+
+    std::string name = ui->snapshotPrefixLineEdit->text().toUtf8().constData();
+    std::string snapshotSubFolderName = ui->snapshotSubFolderLineEdit->text().toUtf8().constData();
 
     for (int i = 0; i < nr_images; i++) {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
-        std::stringstream name_i;
-        name_i << name << "_" << i;
-        this->SaveCurrentImage(name_i.str());
-        // wait 2x exposure time to be sure to save new image
         int waitTime = 2 * exp_time;
         wait(waitTime);
+        std::stringstream name_i;
+        name_i << name << "_" << i;
+        this->RecordImage(snapshotSubFolderName, name_i.str(), true);
         int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
+    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
 
@@ -340,17 +332,17 @@ void MainWindow::Snapshots() {
  * @return void
  */
 void MainWindow::on_snapshotButton_clicked() {
-    m_snapshotsThread = boost::thread(&MainWindow::Snapshots, this);
+    m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
 
 /**
  * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
  *
- * @param arg1 The new text entered in the snapshotPrefixlineEdit.
+ * @param newText The new text entered in the snapshotPrefixlineEdit.
  */
-void MainWindow::on_snapshotPrefixLineEdit_textEdited(const QString &arg1){
-    updateLineEditStyle(ui->snapshotPrefixLineEdit, arg1, m_snapshotPrefix);
+void MainWindow::on_snapshotPrefixLineEdit_textEdited(const QString &newText){
+    updateComponentEditedStyle(ui->snapshotPrefixLineEdit, newText, m_snapshotPrefix);
 }
 
 
@@ -358,18 +350,37 @@ void MainWindow::on_snapshotPrefixLineEdit_textEdited(const QString &arg1){
  * @brief Slot function triggered when the return key is pressed in the snapshotPrefixlineEdit QLineEdit widget.
  * This method re-styles the appearance of the lineEdit object.
  *
- * @details This function is a slot that is connected to the returnPressed() signal of the snapshotPrefixlineEdit widget
+ * This function is a slot that is connected to the returnPressed() signal of the snapshotPrefixlineEdit widget
  * in the MainWindow class. When the user presses the return key in the snapshotPrefixlineEdit widget,
  * this function is called.
- *
- * @note This function does not return any value.
- *
- * @sa MainWindow
  */
 void MainWindow::on_snapshotPrefixLineEdit_returnPressed(){
     m_snapshotPrefix = ui->snapshotPrefixLineEdit->text();
-    restoreLineEditStyle(ui->snapshotPrefixLineEdit);
+    RestoreLineEditStyle(ui->snapshotPrefixLineEdit);
+}
 
+
+/**
+ * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
+ *
+ * @param newText The new text entered in the snapshotPrefixlineEdit.
+ */
+void MainWindow::on_snapshotSubFolderLineEdit_textEdited(const QString &newText){
+    updateComponentEditedStyle(ui->snapshotSubFolderLineEdit, newText, m_snapshotPrefix);
+}
+
+
+/**
+ * @brief Slot function triggered when the return key is pressed in the snapshotSubFolderLineEdit QLineEdit widget.
+ * This method re-styles the appearance of the lineEdit object.
+ *
+ * This function is a slot that is connected to the returnPressed() signal of the snapshotSubFolderLineEdit widget
+ * in the MainWindow class. When the user presses the return key in the snapshotSubFolderLineEdit widget,
+ * this function is called.
+ */
+void MainWindow::on_snapshotSubFolderLineEdit_returnPressed(){
+    m_snapshotPrefix = ui->snapshotSubFolderLineEdit->text();
+    RestoreLineEditStyle(ui->snapshotSubFolderLineEdit);
 }
 
 
@@ -414,7 +425,7 @@ void MainWindow::ScheduleTemperatureThread() {
     m_temperatureThreadTimer = std::make_shared<boost::asio::steady_timer>(m_temperature_io_service);
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
     m_temperatureThreadTimer->async_wait(
-            boost::bind(&MainWindow::HandleTimer, this, boost::asio::placeholders::error));
+            boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
 }
 
 
@@ -426,7 +437,7 @@ void MainWindow::ScheduleTemperatureThread() {
  * \param timer Pointer to the boost::asio::steady_timer object representing the timer.
  * \param error The error code associated with the timer expiration event, if any.
  */
-void MainWindow::HandleTimer(const boost::system::error_code &error) {
+void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error) {
     if (error == boost::asio::error::operation_aborted) {
         LOG_SUSICAM(warning) << "Timer cancelled. Error: " << error;
         return;
@@ -437,7 +448,7 @@ void MainWindow::HandleTimer(const boost::system::error_code &error) {
 
     // Reset timer
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
-    m_temperatureThreadTimer->async_wait(boost::bind(&MainWindow::HandleTimer, this, boost::asio::placeholders::error));
+    m_temperatureThreadTimer->async_wait(boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
 }
 
 
@@ -548,7 +559,7 @@ void MainWindow::on_exposureLineEdit_returnPressed() {
     m_label_exp = ui->exposureLineEdit->text();
     m_cameraInterface.m_camera->SetExposureMs(m_label_exp.toInt());
     UpdateExposure();
-    restoreLineEditStyle(ui->exposureLineEdit);
+    RestoreLineEditStyle(ui->exposureLineEdit);
 }
 
 
@@ -560,7 +571,7 @@ void MainWindow::on_exposureLineEdit_returnPressed() {
  * @param arg1 The new text entered in the label_exp QLineEdit.
  */
 void MainWindow::on_exposureLineEdit_textEdited(const QString &arg1) {
-    updateLineEditStyle(ui->exposureLineEdit, arg1, m_label_exp);
+    updateComponentEditedStyle(ui->exposureLineEdit, arg1, m_label_exp);
 }
 
 
@@ -571,36 +582,53 @@ void MainWindow::on_exposureLineEdit_textEdited(const QString &arg1) {
  * This slot function sets the style of the record button to indicate if the recordings are running or if they are not.
  * A message is also logged into the log file located at the base folder to indicate that recordings started or ended.
  *
- * @param checked The checked state of the "recordButton".
+ * @param clicked The clicked state of the "recordButton".
  * \see StartRecording()
  */
-void MainWindow::on_recordButton_clicked(bool checked) {
+void MainWindow::on_recordButton_clicked(bool clicked) {
     static QString original_colour;
     static QString original_button_text;
 
-    if (checked) {
-        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    if (clicked) {
         this->LogMessage(" SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
         this->LogMessage(QString(" camera selected: %1 %2").arg(this->m_cameraInterface.m_cameraModel, this->m_cameraInterface.m_cameraSN), LOG_FILE_NAME, true);
-
         this->m_elapsedTimer.start();
         this->StartRecording();
+        this->HandleElementsWhileRecording(clicked);
         original_colour = ui->recordButton->styleSheet();
         original_button_text = ui->recordButton->text();
-        // create invocation to method to trigger changes in UI from the main thread
-        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,
-                                  Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         // button text seems to be an object property and cannot be changed by using QMetaObject::invokeMethod
         ui->recordButton->setText(" Stop recording");
     } else {
         this->LogMessage(" SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
-        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,
-                                  Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        this->HandleElementsWhileRecording(clicked);
         ui->recordButton->setText(original_button_text);
+        if (!m_mainRecordingPaused){
+            m_timeOffset = 0;
+        }
+    }
+}
+
+
+/**
+ * Enables and disables elements of the GUI that should not me modified while recordings are in progress
+ *
+ * @param recordingInProgress
+ */
+void MainWindow::HandleElementsWhileRecording(bool recordingInProgress){
+    if (recordingInProgress) {
+        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    } else {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -699,8 +727,8 @@ QString MainWindow::LogMessage(QString message, QString log_file, bool log_time)
  * and the original style of the GUI element restored.
  */
 void MainWindow::on_subFolderLineEdit_returnPressed() {
-    m_topFolderName = ui->subFolderLineEdit->text();
-    restoreLineEditStyle(ui->subFolderLineEdit);
+    m_subFolder = ui->subFolderLineEdit->text();
+    RestoreLineEditStyle(ui->subFolderLineEdit);
 }
 
 
@@ -713,7 +741,7 @@ void MainWindow::on_subFolderLineEdit_returnPressed() {
  */
 void MainWindow::on_filePrefixLineEdit_returnPressed() {
     m_recPrefixlineEdit = ui->filePrefixLineEdit->text();
-    restoreLineEditStyle(ui->filePrefixLineEdit);
+    RestoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
 
@@ -813,70 +841,54 @@ void MainWindow::ThreadedRecordImage() {
  * It performs the necessary operations to save the current image displayed in the
  * application to a file or any other desired location.
  * The LCD displaying the number of recorded images is also updated.
+ *
+ * @param subFolder folder inside base folder where image will be recorded
+ * @param filePrefix file prefix used to name file. If not provided, the prefix specified in the GUI is used
+ * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
  */
-void MainWindow::RecordImage() {
+void MainWindow::RecordImage(std::string subFolder, std::string filePrefix, bool ignoreSkipping) {
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    static long last_id = image.acq_nframe;
-    int n_skip_frames = ui->skipFramesSpinBox->value();
-
-    if ((image.acq_nframe == last_id) || (image.acq_nframe > last_id +
-                                                             1)) { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
-        m_skippedCounter++;
-    }
-    last_id = image.acq_nframe;
-    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
-        ++m_recordedCount;
-
-        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat");
-
+    static long lastImageID = image.acq_nframe;
+    int nSkipFrames = ui->skipFramesSpinBox->value();
+    if (this->ImageShouldBeRecorded(nSkipFrames, image.acq_nframe) || ignoreSkipping) {
+        if (filePrefix.empty()){
+            filePrefix = m_recPrefixlineEdit.toUtf8().constData();
+        }
+        if (subFolder.empty()){
+            subFolder = m_subFolder.toStdString();
+        }
+        QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), image.acq_nframe, ".dat", std::move(subFolder));
         try {
             FileImage f(fullPath.toStdString().c_str(), "wb");
             f.write(image);
+            m_recordedCount++;
         } catch (const std::runtime_error &e) {
             LOG_SUSICAM(error) << "Error: %s\n" << e.what();
         }
-
+        this->DisplayRecordCount();
+    } else {
+        m_skippedCounter++;
     }
-    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
-                              Q_ARG(int, m_recordedCount));
+    lastImageID = image.acq_nframe;
 }
 
 
 /**
- * @brief Records an image to a specified folder that is created inside the base folder specified in the GUI
+ * Indicates if an image should be recorded to file or not
  *
- * This function is responsible for recording an image in the MainWindow class.
- * It performs the necessary operations to save the current image displayed in the
- * application to a file or any other desired location.
- * The LCD displaying the number of recorded images is also updated.
+ * @param nSkipFrames number of frames to skip
+ * @param ImageID unique image ID
+ * @return
  */
-void MainWindow::RecordImage(std::string subFolder) {
-    XI_IMG image = m_imageContainer.GetCurrentImage();
-    static long last_id = image.acq_nframe;
-    int n_skip_frames = ui->skipFramesSpinBox->value();
+bool MainWindow::ImageShouldBeRecorded(int nSkipFrames, long ImageID) {
+    return (nSkipFrames == 0) || (ImageID % nSkipFrames == 0);
+}
 
-    if ((image.acq_nframe == last_id) || (image.acq_nframe > last_id +
-                                                             1)) { // attention, this is not thread save and might give false result when ThreadedRecordImage is used
-        m_skippedCounter++;
-    }
-    last_id = image.acq_nframe;
-
-    if ((n_skip_frames == 0) || (image.acq_nframe % n_skip_frames == 0)) {
-        ++m_recordedCount;
-
-        std::string currentFileName = m_recPrefixlineEdit.toUtf8().constData();
-        QString fullPath = GetFullFilenameStandardFormat(currentFileName, image.acq_nframe, ".dat", subFolder);
-
-        try {
-            FileImage f(fullPath.toStdString().c_str(), "wb");
-            f.write(image);
-        } catch (const std::runtime_error &e) {
-            LOG_SUSICAM(error) << "Error: %s\n" << e.what();
-        }
-    }
-    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
-                              Q_ARG(int, m_recordedCount));
+/**
+ * Displays in the GUI the number of recorded images
+ */
+void MainWindow::DisplayRecordCount() {
+    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection, Q_ARG(int, m_recordedCount));
 }
 
 
@@ -888,6 +900,7 @@ void MainWindow::RecordImage(std::string subFolder) {
  */
 void MainWindow::updateTimer() {
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
+    m_elapsedTime += m_timeOffset;
     int totalSeconds = static_cast<int>(m_elapsedTime);
     int hours = totalSeconds / 3600;
     int minutes = (totalSeconds % 3600) / 60;
@@ -967,9 +980,7 @@ void MainWindow::StopRecording() {
  */
 QString MainWindow::GetWritingFolder() {
     QString writeFolder = GetBaseFolder();
-
-    writeFolder += QDir::separator() + m_topFolderName + QDir::separator();
-
+    writeFolder += QDir::separator();
     return QDir::cleanPath(writeFolder);
 }
 
@@ -991,20 +1002,22 @@ void MainWindow::CreateFolderIfNecessary(QString folder) {
 
 
 /**
- * Generates a filename where an image will be stored. The filename is composed of prefix + date + time + image number +
+ * Generates a filePrefix where an image will be stored. The filePrefix is composed of prefix + date + time + image number +
  * extension. The date and time are queried each time this function is called.
  *
- * @param filename the prefix used for the filename, date, time and extension are added to this
+ * @param filePrefix the prefix used for the filePrefix, date, time and extension are added to this
  * @param frameNumber number of the image that is going to be stored on this file. Used as an identified
- * @param extension file extension to use for the filename
- * @param specialFolder sub folder inside the base folder where the file should reside
+ * @param extension file extension to use for the filePrefix
+ * @param subFolder sub folder inside the base folder where the file should reside
  * @return full file path, includes the base folder where the file should reside
  */
-QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long frameNumber, std::string extension,
-                                                  std::string specialFolder) {
+QString MainWindow::GetFullFilenameStandardFormat(std::string&& filePrefix, long frameNumber, std::string extension,
+                                                  std::string&& subFolder) {
 
-    QString writingFolder =
-            GetWritingFolder() + QDir::separator() + QString::fromStdString(specialFolder) + QDir::separator();
+    QString writingFolder = GetWritingFolder() + QDir::separator() + QString::fromStdString(subFolder);
+    if (!writingFolder.endsWith(QDir::separator())){
+        writingFolder += QDir::separator();
+    }
     this->CreateFolderIfNecessary(writingFolder);
 
     QString fileName;
@@ -1013,7 +1026,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
         QString exp_time_str("exp" + QString::number(exp_time) + "ms");
         QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
         QString date = (QDate::currentDate()).toString("yyyyMMdd_");
-        fileName = QString::fromStdString(filename) + "_" + date + curr_time + "_" + exp_time_str + "_" +
+        fileName = QString::fromStdString(filePrefix) + "_" + date + curr_time + "_" + exp_time_str + "_" +
                    QString::number(frameNumber);
     } else {
         fileName = QString("test");
@@ -1021,27 +1034,6 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string filename, long fra
     fileName += QString::fromStdString(extension);
 
     return QDir::cleanPath(writingFolder + fileName);
-}
-
-
-/**
- * Saves the current image in image container in raw format
- * @param baseName file name prefix to be used for the file generation
- * @param specialFolder sub folder where the image should be stored
- */
-void MainWindow::SaveCurrentImage(std::string baseName, std::string specialFolder) {
-    XI_IMG image = m_imageContainer.GetCurrentImage();
-    QString fullPath = GetFullFilenameStandardFormat(baseName, image.acq_nframe, ".dat", specialFolder);
-    try {
-        FileImage f(fullPath.toStdString().c_str(), "wb");
-        f.write(image);
-    } catch (const std::runtime_error &e) {
-        LOG_SUSICAM(error) << "Error: %s\n" << e.what();
-    }
-    LOG_SUSICAM(info) << "image " << fullPath.toStdString();
-    m_recordedCount++;
-    QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
-                              Q_ARG(int, m_recordedCount));
 }
 
 
@@ -1093,7 +1085,7 @@ void MainWindow::on_darkCorrectionButton_clicked() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->minVhbLineEdit, newText, m_minVhb);
+    updateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
 }
 
 
@@ -1103,7 +1095,7 @@ void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText) {
 void MainWindow::on_minVhbLineEdit_returnPressed() {
     this->UpdateVhbSao2Validators();
     m_minVhb = ui->minVhbLineEdit->text();
-    restoreLineEditStyle(ui->minVhbLineEdit);
+    RestoreLineEditStyle(ui->minVhbLineEdit);
 }
 
 
@@ -1111,7 +1103,7 @@ void MainWindow::on_minVhbLineEdit_returnPressed() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText){
-    updateLineEditStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
+    updateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
 }
 
 
@@ -1121,14 +1113,14 @@ void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText){
 void MainWindow::on_maxVhbLineEdit_returnPressed() {
     this->UpdateVhbSao2Validators();
     m_maxVhb = ui->maxVhbLineEdit->text();
-    restoreLineEditStyle(ui->maxVhbLineEdit);
+    RestoreLineEditStyle(ui->maxVhbLineEdit);
 }
 
 /**
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->minSao2LineEdit, newText, m_minSao2);
+    updateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
 }
 
 
@@ -1138,7 +1130,7 @@ void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText) {
 void MainWindow::on_minSao2LineEdit_returnPressed() {
     this->UpdateVhbSao2Validators();
     m_minSao2 = ui->minSao2LineEdit->text();
-    restoreLineEditStyle(ui->minSao2LineEdit);
+    RestoreLineEditStyle(ui->minSao2LineEdit);
 }
 
 
@@ -1146,7 +1138,7 @@ void MainWindow::on_minSao2LineEdit_returnPressed() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText){
-    updateLineEditStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
+    updateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
 }
 
 
@@ -1156,7 +1148,7 @@ void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText){
 void MainWindow::on_maxSao2LineEdit_returnPressed() {
     this->UpdateVhbSao2Validators();
     m_maxSao2 = ui->maxSao2LineEdit->text();
-    restoreLineEditStyle(ui->maxSao2LineEdit);
+    RestoreLineEditStyle(ui->maxSao2LineEdit);
 }
 
 
@@ -1168,8 +1160,7 @@ void MainWindow::on_maxSao2LineEdit_returnPressed() {
  * @param newString new text of the QLineEdit object
  * @param originalString initial text of the QLineEdit object
  */
-void MainWindow::updateLineEditStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString)
-{
+void MainWindow::updateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString){
     if (QString::compare(newString, originalString, Qt::CaseSensitive)) {
         lineEdit->setStyleSheet(FIELD_EDITED_STYLE);
     } else {
@@ -1181,9 +1172,9 @@ void MainWindow::updateLineEditStyle(QLineEdit* lineEdit, const QString& newStri
 /**
  * restores the original appearance of a QLineEdit object
  *
- * @param lineEdit
+ * @param lineEdit element to change style
  */
-void MainWindow::restoreLineEditStyle(QLineEdit* lineEdit) {
+void MainWindow::RestoreLineEditStyle(QLineEdit* lineEdit) {
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
@@ -1194,7 +1185,7 @@ void MainWindow::restoreLineEditStyle(QLineEdit* lineEdit) {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->subFolderLineEdit, newText, m_topFolderName);
+    updateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
 }
 
 
@@ -1204,7 +1195,7 @@ void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText) {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
+    updateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
 }
 
 
@@ -1237,36 +1228,39 @@ void MainWindow::on_rawRadioButton_clicked() {
  * a vector exp_time and an int waitTime and set it zero.
  * We set the background color of the button recLowExposureImages to red and set exposureSlider and label_exp to false.
  * We call the methof on_recordButton_clocked and set it to false.
- * We define a Qstring tmp_topFolderName, wait 2* original_exposure and set m_topFolderName as nullptr.
+ * We define a Qstring tmp_topFolderName, wait 2* original_exposure and set m_subFolder as nullptr.
  * We iterate through exp_time in a for-loop. Within this loop we iterate through the lowExposureImages in a second loop
  * and call the method RecordImage(subfolder) to save the images.
- * Then we set the color of the button recLowExposureImages to original color, m_topFolderName back to QString and
+ * Then we set the color of the button recLowExposureImages to original color, m_subFolder back to QString and
  * method on_recordButtol_clicked, exposureSlider and lab_exp back to true.
  * Then we synchronize the sliders and textedits dis´playing the current exposure setting.
  */
 void MainWindow::lowExposureRecording() {
     int waitTime;
+    auto timeOffset = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
     // store original skip frame value and disable spin box
     int n_skip_frames = ui->skipFramesSpinBox->value();
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    std::string sub_folder_name = ui->folderLowExposureImagesLineEdit->text().toUtf8().constData();
+    std::string lowExposureSubFolder = m_folderLowExposureImages.toUtf8().constData();
     int original_exposure = m_cameraInterface.m_camera->GetExposureMs();
     // change style of record low exposure images button and disable exposure components
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
     QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, false));
 
+    m_mainRecordingPaused = true;
     this->on_recordButton_clicked(false);
-    QString tmp_topFolderName = m_topFolderName;
+    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Q_ARG(bool, false));
+    QString tmp_topFolderName = m_subFolder;
     wait(2 * original_exposure);
-    m_topFolderName = nullptr;
+    m_subFolder = nullptr;
     int nr_images = ui->nLowExposureImages->value() * LOW_EXPOSURE_INTEGRATION_TIMES.size();
     for (int i: LOW_EXPOSURE_INTEGRATION_TIMES) {
         m_cameraInterface.m_camera->SetExposureMs(i);
         waitTime = 2 * i;
         wait(waitTime);
         for (int j = 0; j < ui->nLowExposureImages->value(); j++) {
-            RecordImage(sub_folder_name);
+            RecordImage(lowExposureSubFolder);
             m_recordedCount++;
             int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
             QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
@@ -1278,8 +1272,11 @@ void MainWindow::lowExposureRecording() {
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, true));
     QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, true));
     // restore record button state
-    m_topFolderName = tmp_topFolderName;
+    m_subFolder = tmp_topFolderName;
     this->on_recordButton_clicked(true);
+    m_mainRecordingPaused = false;
+    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Q_ARG(bool, true));
+    m_timeOffset += timeOffset;
     // re-enable skip frames spin box
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, n_skip_frames));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -1302,7 +1299,7 @@ void MainWindow::on_recLowExposureImagesButton_clicked() {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_folderLowExposureImagesLineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->folderLowExposureImagesLineEdit, newText, m_folderLowExposureImages);
+    updateComponentEditedStyle(ui->folderLowExposureImagesLineEdit, newText, m_folderLowExposureImages);
 }
 
 
@@ -1312,7 +1309,7 @@ void MainWindow::on_folderLowExposureImagesLineEdit_textEdited(const QString &ne
  */
 void MainWindow::on_folderLowExposureImagesLineEdit_returnPressed() {
     m_folderLowExposureImages = ui->folderLowExposureImagesLineEdit->text();
-    restoreLineEditStyle(ui->folderLowExposureImagesLineEdit);
+    RestoreLineEditStyle(ui->folderLowExposureImagesLineEdit);
 }
 
 
@@ -1322,7 +1319,7 @@ void MainWindow::on_folderLowExposureImagesLineEdit_returnPressed() {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_logTextLineEdit_textEdited(const QString &newText) {
-    updateLineEditStyle(ui->logTextLineEdit, newText, m_triggerText);
+    updateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
 
@@ -1356,7 +1353,7 @@ void MainWindow::on_logTextLineEdit_returnPressed() {
     m_triggerText = QString("<span style=\"color:gray;\">%1</span>").arg(timestamp) + QString("<b>%1</b>").arg(trigger_message) + "\n";
 
     // handle UI calls
-    restoreLineEditStyle(ui->logTextLineEdit);
+    RestoreLineEditStyle(ui->logTextLineEdit);
     ui->logTextEdit->append(m_triggerText);
     ui->logTextEdit->show();
     ui->logTextLineEdit->clear();
@@ -1367,10 +1364,11 @@ void MainWindow::on_logTextLineEdit_returnPressed() {
  * updates frames per second label in GUI when number of skipped frames is modified
  */
 void MainWindow::on_skipFramesSpinBox_valueChanged() {
+    // spin boxes do not have a returnPressed slot in Qt, which is why the value is always updated upon changes
     int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
-    int n_skip_frames = ui->skipFramesSpinBox->value();
+    int nSkipFrames = ui->skipFramesSpinBox->value();
     const QSignalBlocker blocker_label(ui->hzLabel);
-    ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
+    ui->hzLabel->setText(QString::number((double) (1000.0 / (exp_ms * (nSkipFrames + 1))), 'g', 2));
 }
 
 

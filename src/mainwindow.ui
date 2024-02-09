@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>738</width>
+    <width>734</width>
     <height>909</height>
    </rect>
   </property>
@@ -735,7 +735,7 @@
            <rect>
             <x>0</x>
             <y>-1</y>
-            <width>761</width>
+            <width>681</width>
             <height>156</height>
            </rect>
           </property>
@@ -767,6 +767,9 @@
              </item>
              <item>
               <widget class="QSpinBox" name="nLowExposureImages">
+               <property name="toolTip">
+                <string>Number of images to store for each integration time</string>
+               </property>
                <property name="minimum">
                 <number>1</number>
                </property>
@@ -782,6 +785,9 @@
               <widget class="QLineEdit" name="folderLowExposureImagesLineEdit">
                <property name="enabled">
                 <bool>true</bool>
+               </property>
+               <property name="toolTip">
+                <string>Sub folder where low exposure iumages will be stored</string>
                </property>
                <property name="text">
                 <string/>
@@ -823,21 +829,36 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
-              <widget class="QLabel" name="snapshotLabel_3">
-               <property name="text">
-                <string>Snapshot prefix</string>
+              <widget class="QPushButton" name="snapshotButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="snapshotPrefixLineEdit">
+               <property name="toolTip">
+                <string>Record specified number of individual images on base folder</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
                <property name="text">
-                <string>snapshot</string>
+                <string>Record snapshots</string>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
+               </property>
+               <property name="checkable">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QSpinBox" name="nSnapshotsSpinBox">
+               <property name="toolTip">
+                <string>Number of snapshots to record</string>
+               </property>
                <property name="maximum">
                 <number>999</number>
                </property>
@@ -846,33 +867,41 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QLabel" name="snapshotLabel_3">
+               <property name="text">
+                <string>File prefix</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="snapshotPrefixLineEdit">
+               <property name="toolTip">
+                <string>File prefix used to prepend to anapshot file names</string>
+               </property>
+               <property name="text">
+                <string>snapshot</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="snapshotSubFolderLabel">
+               <property name="text">
+                <string>Sub folder</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="snapshotSubFolderLineEdit">
+               <property name="toolTip">
+                <string>Sub folder where snapshots are stored</string>
+               </property>
+               <property name="placeholderText">
+                <string>Sub folder to store snapshots</string>
+               </property>
+              </widget>
+             </item>
             </layout>
-           </item>
-           <item>
-            <widget class="QPushButton" name="snapshotButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Record specified number of individual images on base folder</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string>Record snapshot</string>
-             </property>
-             <property name="icon">
-              <iconset>
-               <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
-             </property>
-             <property name="checkable">
-              <bool>false</bool>
-             </property>
-            </widget>
            </item>
           </layout>
          </widget>
