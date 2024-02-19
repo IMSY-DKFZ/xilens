@@ -75,7 +75,7 @@ public:
     /*
      * Disables the UI elements
      */
-    void disableWidgetsInLayout(QLayout *layout, bool enable);
+    void DisableWidgetsInLayout(QLayout *layout, bool enable);
 
     /*
      * Writes general information as header of the log file
@@ -181,18 +181,6 @@ private slots:
      * It updates the member variable that stores the value.
      */
     void on_filePrefixLineEdit_returnPressed();
-
-    /*
-     * Qt slot triggered when name fo the folder where low exposure images are recorded is edited. Changes the
-     * appearance of the field in the UI. It does not update the value of the member variable that contains the value.
-     */
-    void on_folderLowExposureImagesLineEdit_textEdited(const QString &newText);
-
-    /*
-     * Qt slot triggered when the return key is pressed on the field that defines where low exposure recordings are
-     * stored. It updates the member variable that stores the value.
-     */
-    void on_folderLowExposureImagesLineEdit_returnPressed();
 
     /*
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control of the exposure time to camera.
@@ -319,22 +307,22 @@ private slots:
     /*
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
      */
-    void on_snapshotPrefixLineEdit_textEdited(const QString &newText);
+    void on_filePrefixExtrasLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the return key is pressed on the file prefix field for snapshot images in the UI.
      */
-    void on_snapshotPrefixLineEdit_returnPressed();
+    void on_filePrefixExtrasLineEdit_returnPressed();
 
     /*
-     * Qt slot triggered when snapshot sub folder field is edited in the UI.
+     * Qt slot triggered when extras sub folder field is edited in the UI.
      */
-    void on_snapshotSubFolderLineEdit_textEdited(const QString &newText);
+    void on_subFolderExtrasLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the sub folder field for snapshot images in the UI.
+     * Qt slot triggered when the return key is pressed on the sub folder field in the extras tab in the UI.
      */
-    void on_snapshotSubFolderLineEdit_returnPressed();
+    void on_subFolderExtrasLineEdit_returnPressed();
 
 private:
     Ui::MainWindow *ui;
@@ -509,17 +497,12 @@ private:
     /*
      * Folder path where low exposure images are to be stored. This is a folder inside the base folder.
      */
-    QString m_folderLowExposureImages;
+    QString m_extrasSubFolder;
 
     /*
      * Trigger text entered to the log function of the UI.
      */
     QString m_triggerText;
-
-    /**
-     * Sub folder where snapshots will be stored
-     */
-    QString m_snapshotSubFolder;
 
     /*
      * Folder path where all data is to be stored.
@@ -534,7 +517,7 @@ private:
     /*
      * File prefix used for snapshot images.
      */
-    QString m_snapshotPrefix;
+    QString m_extrasFilePrefix;
 
     /*
      * Elapsed timer used for the timer displayed in the UI.

@@ -160,7 +160,7 @@ void MainWindow::StopImageAcquisition() {
  * @param enable A boolean value indicating whether to enable or disable the widgets.
  *               true to enable, false to disable.
  */
-void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
+void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
         QWidget *widget = layout->itemAt(i)->widget();
@@ -170,7 +170,7 @@ void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
         }
 
         if (subLayout) {
-            disableWidgetsInLayout(subLayout, enable);
+            DisableWidgetsInLayout(subLayout, enable);
         }
     }
 }
@@ -188,11 +188,11 @@ void MainWindow::disableWidgetsInLayout(QLayout *layout, bool enable) {
  */
 void MainWindow::EnableUi(bool enable) {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
-    disableWidgetsInLayout(layout, enable);
+    DisableWidgetsInLayout(layout, enable);
     ui->exposureSlider->setEnabled(enable);
     ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
-    disableWidgetsInLayout(layoutExtras, enable);
+    DisableWidgetsInLayout(layoutExtras, enable);
 }
 
 
@@ -303,9 +303,11 @@ void MainWindow::RecordSnapshots() {
     static QString recordButtonOriginalColour = ui->recordButton->styleSheet();
     int nr_images = ui->nSnapshotsSpinBox->value();
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
 
-    std::string name = ui->snapshotPrefixLineEdit->text().toUtf8().constData();
-    std::string snapshotSubFolderName = ui->snapshotSubFolderLineEdit->text().toUtf8().constData();
+    std::string name = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
+    std::string snapshotSubFolderName = ui->subFolderExtrasLineEdit->text().toUtf8().constData();
 
     for (int i = 0; i < nr_images; i++) {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
@@ -319,6 +321,8 @@ void MainWindow::RecordSnapshots() {
     }
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
 
@@ -333,54 +337,6 @@ void MainWindow::RecordSnapshots() {
  */
 void MainWindow::on_snapshotButton_clicked() {
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
-}
-
-
-/**
- * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
- *
- * @param newText The new text entered in the snapshotPrefixlineEdit.
- */
-void MainWindow::on_snapshotPrefixLineEdit_textEdited(const QString &newText){
-    updateComponentEditedStyle(ui->snapshotPrefixLineEdit, newText, m_snapshotPrefix);
-}
-
-
-/**
- * @brief Slot function triggered when the return key is pressed in the snapshotPrefixlineEdit QLineEdit widget.
- * This method re-styles the appearance of the lineEdit object.
- *
- * This function is a slot that is connected to the returnPressed() signal of the snapshotPrefixlineEdit widget
- * in the MainWindow class. When the user presses the return key in the snapshotPrefixlineEdit widget,
- * this function is called.
- */
-void MainWindow::on_snapshotPrefixLineEdit_returnPressed(){
-    m_snapshotPrefix = ui->snapshotPrefixLineEdit->text();
-    RestoreLineEditStyle(ui->snapshotPrefixLineEdit);
-}
-
-
-/**
- * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
- *
- * @param newText The new text entered in the snapshotPrefixlineEdit.
- */
-void MainWindow::on_snapshotSubFolderLineEdit_textEdited(const QString &newText){
-    updateComponentEditedStyle(ui->snapshotSubFolderLineEdit, newText, m_snapshotPrefix);
-}
-
-
-/**
- * @brief Slot function triggered when the return key is pressed in the snapshotSubFolderLineEdit QLineEdit widget.
- * This method re-styles the appearance of the lineEdit object.
- *
- * This function is a slot that is connected to the returnPressed() signal of the snapshotSubFolderLineEdit widget
- * in the MainWindow class. When the user presses the return key in the snapshotSubFolderLineEdit widget,
- * this function is called.
- */
-void MainWindow::on_snapshotSubFolderLineEdit_returnPressed(){
-    m_snapshotPrefix = ui->snapshotSubFolderLineEdit->text();
-    RestoreLineEditStyle(ui->snapshotSubFolderLineEdit);
 }
 
 
@@ -1242,7 +1198,10 @@ void MainWindow::lowExposureRecording() {
     int n_skip_frames = ui->skipFramesSpinBox->value();
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    std::string lowExposureSubFolder = m_folderLowExposureImages.toUtf8().constData();
+    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    std::string lowExposureSubFolder = m_extrasSubFolder.toUtf8().constData();
+    std::string name = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
     int original_exposure = m_cameraInterface.m_camera->GetExposureMs();
     // change style of record low exposure images button and disable exposure components
     QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
@@ -1260,7 +1219,7 @@ void MainWindow::lowExposureRecording() {
         waitTime = 2 * i;
         wait(waitTime);
         for (int j = 0; j < ui->nLowExposureImages->value(); j++) {
-            RecordImage(lowExposureSubFolder);
+            RecordImage(lowExposureSubFolder, name, true);
             m_recordedCount++;
             int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
             QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
@@ -1280,6 +1239,8 @@ void MainWindow::lowExposureRecording() {
     // re-enable skip frames spin box
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, n_skip_frames));
     QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     UpdateExposure();
 }
 
@@ -1298,8 +1259,8 @@ void MainWindow::on_recLowExposureImagesButton_clicked() {
  *
  * @param newText new text of the QLineEdit object
  */
-void MainWindow::on_folderLowExposureImagesLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->folderLowExposureImagesLineEdit, newText, m_folderLowExposureImages);
+void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText) {
+    updateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
 }
 
 
@@ -1307,9 +1268,33 @@ void MainWindow::on_folderLowExposureImagesLineEdit_textEdited(const QString &ne
  * stores name of folder where low exposure recordings should be stored in a member variable and restores QLineEdit
  * appearance.
  */
-void MainWindow::on_folderLowExposureImagesLineEdit_returnPressed() {
-    m_folderLowExposureImages = ui->folderLowExposureImagesLineEdit->text();
-    RestoreLineEditStyle(ui->folderLowExposureImagesLineEdit);
+void MainWindow::on_subFolderExtrasLineEdit_returnPressed() {
+    m_extrasSubFolder = ui->subFolderExtrasLineEdit->text();
+    RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
+}
+
+
+/**
+ * @brief Slot function called when the text in the snapshotPrefixlineEdit is edited.
+ *
+ * @param newText The new text entered in the snapshotPrefixlineEdit.
+ */
+void MainWindow::on_filePrefixExtrasLineEdit_textEdited(const QString &newText){
+    updateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
+}
+
+
+/**
+ * @brief Slot function triggered when the return key is pressed in the snapshotPrefixlineEdit QLineEdit widget.
+ * This method re-styles the appearance of the lineEdit object.
+ *
+ * This function is a slot that is connected to the returnPressed() signal of the snapshotPrefixlineEdit widget
+ * in the MainWindow class. When the user presses the return key in the snapshotPrefixlineEdit widget,
+ * this function is called.
+ */
+void MainWindow::on_filePrefixExtrasLineEdit_returnPressed(){
+    m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
+    RestoreLineEditStyle(ui->filePrefixExtrasLineEdit);
 }
 
 

@@ -736,14 +736,14 @@
             <x>0</x>
             <y>-1</y>
             <width>681</width>
-            <height>156</height>
+            <height>164</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="extrasVerticalLayout">
            <item>
             <widget class="QLabel" name="lowExposureLabel">
              <property name="text">
-              <string>Low exposure recording controls</string>
+              <string>Low exposure and snapshots recording controls</string>
              </property>
             </widget>
            </item>
@@ -781,53 +781,6 @@
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QLineEdit" name="folderLowExposureImagesLineEdit">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="toolTip">
-                <string>Sub folder where low exposure iumages will be stored</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="placeholderText">
-                <string>Sub folder to store low exposure images</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="Line" name="line_10">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
-            <widget class="QLabel" name="snapshotsLabel">
-             <property name="text">
-              <string>Snapshot controls</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_14">
              <item>
               <widget class="QPushButton" name="snapshotButton">
                <property name="sizePolicy">
@@ -867,6 +820,40 @@
                </property>
               </widget>
              </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Sub folder</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="subFolderExtrasLineEdit">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="toolTip">
+                <string>Sub folder where low exposure iumages will be stored</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="placeholderText">
+                <string>Sub folder to store low exposure images</string>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="QLabel" name="snapshotLabel_3">
                <property name="text">
@@ -875,33 +862,32 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="snapshotPrefixLineEdit">
+              <widget class="QLineEdit" name="filePrefixExtrasLineEdit">
                <property name="toolTip">
                 <string>File prefix used to prepend to anapshot file names</string>
                </property>
                <property name="text">
-                <string>snapshot</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="snapshotSubFolderLabel">
-               <property name="text">
-                <string>Sub folder</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="snapshotSubFolderLineEdit">
-               <property name="toolTip">
-                <string>Sub folder where snapshots are stored</string>
+                <string/>
                </property>
                <property name="placeholderText">
-                <string>Sub folder to store snapshots</string>
+                <string>File prefix to append to each stored file</string>
                </property>
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
