@@ -34,10 +34,12 @@ build:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test:
+  variables:
+    QT_QPA_PLATFORM: "offscreen"
   script:
     - cd cmake-build
     - ENV QT_QPA_PLATFORM offscreen
-      RUN xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
+    - RUN xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
     - gcovr --xml-pretty --print-summary -o coverage.xml --verbose -e '/.*cmake-build.*/.*' --root ${CI_PROJECT_DIR}
     - mv Testing/Test.xml ../report.xml
     - mv coverage.xml ../coverage.xml

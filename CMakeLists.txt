@@ -144,7 +144,7 @@ add_executable(
         tests/mocks.h
         tests/utilTest.cpp
         tests/cameraInterfaceTest.cpp
-        tests/displayFunctionalTest.cpp
+        tests/displayersTest.cpp
 )
 target_link_libraries(
         SUSICAM_TESTS
