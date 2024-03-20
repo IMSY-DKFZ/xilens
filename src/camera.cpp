@@ -45,48 +45,48 @@ int Camera::InitializeCameraCommonParameters() {
     int current_max_framerate;
     int stat = XI_OK;
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_IMAGE_DATA_FORMAT, XI_RAW16);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_IMAGE_DATA_FORMAT, XI_RAW16);
     HandleResult(stat, "xiSetParam (data format raw16)");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_RECENT_FRAME, 1);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_RECENT_FRAME, 1);
     HandleResult(stat, "xiSetParam (set to acquire most recent frame)");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_AUTO_BANDWIDTH_CALCULATION, XI_ON);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_AUTO_BANDWIDTH_CALCULATION, XI_ON);
     HandleResult(stat, "xiSetParam (set auto bandwidth calc to on)");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_GAIN, XI_GAIN_SELECTOR_ALL);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_GAIN, XI_GAIN_SELECTOR_ALL);
     HandleResult(stat, "xiSetParam (set gain selector to all)");
 
-    stat = xiSetParamFloat(*m_cameraHandle, XI_PRM_GAIN, 0.);
+    stat = this->m_apiWrapper->xiSetParamFloat(*m_cameraHandle, XI_PRM_GAIN, 0.);
     HandleResult(stat, "xiSetParam (set gain to zero)");
 
-    stat = xiGetParamInt(*m_cameraHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
+    stat = this->m_apiWrapper->xiGetParamInt(*m_cameraHandle, XI_PRM_FRAMERATE XI_PRM_INFO_MAX, &current_max_framerate);
     HandleResult(stat,"get current maximum frame rate");
 
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_FRAMERATE, std::min(FRAMERATE_MAX, current_max_framerate));
     HandleResult(stat,"set maximum frame rate for ultra-fast cameras");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING, 1);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING, 1);
     HandleResult(stat, "xiSetParam (no downsampling)");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_COUNTER_SELECTOR, XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_COUNTER_SELECTOR, XI_CNT_SEL_TRANSPORT_SKIPPED_FRAMES);
     HandleResult(stat, "skipping frames on transport layer");
 
     // check if this creates a problem, I don't think so if buffer is large enough
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_BUFFER_POLICY, XI_BP_UNSAFE);
     HandleResult(stat, "set unsafe buffuring policy");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_LUT_EN, 0);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_LUT_EN, 0);
     HandleResult(stat, "switch off lut");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_OUTPUT_DATA_PACKING, XI_OFF);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_OUTPUT_DATA_PACKING, XI_OFF);
     HandleResult(stat, "disable bit packing");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_BUFFER_SIZE, 70 * 1000 * 1000);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_BUFFER_SIZE, 70 * 1000 * 1000);
     HandleResult(stat, "set acquistion buffer to 70MB. This should give us a buffer of about 1s");
 
-    stat = xiSetParamFloat(*m_cameraHandle, XI_PRM_EXP_PRIORITY, 1.);
+    stat = this->m_apiWrapper->xiSetParamFloat(*m_cameraHandle, XI_PRM_EXP_PRIORITY, 1.);
     HandleResult(stat, "if autoexposure is used: only change exposure, not gain");
 
     this->SetExposure(40000);
@@ -107,10 +107,10 @@ int Camera::InitializeCameraCommonParameters() {
 int SpectralCamera::InitializeCamera() {
     int stat = XI_OK;
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
     HandleResult(stat,"set acquisition timing mode to framerate");
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
     HandleResult(stat, "xiSetParam (downsampling mode set to binning)");
 
     stat = this->InitializeCameraCommonParameters();
@@ -133,11 +133,11 @@ int SpectralCamera::InitializeCamera() {
 int GrayCamera::InitializeCamera() {
     int stat = XI_OK;
 
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE_LIMIT);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE_LIMIT);
     HandleResult(stat,"set acquisition timing mode to framerate");
 
     // XIMEA xiC camera models only allow skipping mode
-    stat = xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_SKIPPING);
     HandleResult(stat, "xiSetParam (downsampling mode set to skipping)");
 
     stat = this->InitializeCameraCommonParameters();
@@ -153,10 +153,10 @@ int GrayCamera::InitializeCamera() {
 void XiSpecFamily::UpdateCameraTemperature() {
     float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
 
-    xiGetParamFloat(*m_cameraHandle, XI_PRM_CHIP_TEMP, &chipTemp);
-    xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_TEMP, &houseTemp);
-    xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &houseBackSideTemp);
-    xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
+    this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_CHIP_TEMP, &chipTemp);
+    this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_TEMP, &houseTemp);
+    this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &houseBackSideTemp);
+    this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
     this->m_cameraTemperature[CHIP_TEMP] = chipTemp;
     this->m_cameraTemperature[HOUSE_TEMP] = houseTemp;
     this->m_cameraTemperature[HOUSE_BACK_TEMP] = houseBackSideTemp;
@@ -171,7 +171,7 @@ void XiSpecFamily::UpdateCameraTemperature() {
  */
 void XiCFamily::UpdateCameraTemperature() {
     float sensorBoardTemp;
-    xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
+    this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 
@@ -191,7 +191,7 @@ void Camera::SetExposure(int exp) {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != *m_cameraHandle) {
         // Setting "exposure" parameter (10ms=10000us)
-        stat = xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
+        stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
         HandleResult(stat, "xiSetParam (exposure set)");
         LOG_SUSICAM(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
     } else {
@@ -219,7 +219,7 @@ int Camera::GetExposure() {
     int exp = 40000;
     if (INVALID_HANDLE_VALUE != *m_cameraHandle) {
         // Setting "exposure" parameter (10ms=10000us)
-        stat = xiGetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, &exp);
+        stat = this->m_apiWrapper->xiGetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, &exp);
         HandleResult(stat, "xiGetParam (exposure get)");
     } else {
         LOG_SUSICAM(warning) << "exposure not determined, camera not initalized. Return standard value.";
@@ -243,7 +243,7 @@ int Camera::GetExposureMs() {
 void Camera::AutoExposure(bool on) {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != *m_cameraHandle) {
-        stat = xiSetParamInt(*m_cameraHandle, XI_PRM_AEAG, on);
+        stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_AEAG, on);
         HandleResult(stat, "xiSetParam (autoexposure on/off)");
     } else {
         LOG_SUSICAM(warning) << "autoexposure not set: camera not initialized";

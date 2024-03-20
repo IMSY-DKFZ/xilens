@@ -40,8 +40,7 @@ typedef cv::Point3_<uint8_t> Pixel;
  *
  * @param mainWindow a pointer to the MainWindow object
  */
-DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) :
-        Displayer(), m_mainWindow(mainWindow) {
+DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow) {
     CreateWindows();
 }
 
@@ -222,7 +221,7 @@ void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowN
  * @param band_image The output band image
  * @param band_nr The number of the band to extract
  */
-void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr) {
+void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr) {
     // compute location of first value
     int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
     int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];

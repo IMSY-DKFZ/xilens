@@ -7,7 +7,7 @@
 #include <xiApi.h>
 #include <boost/thread.hpp>
 
-#include "image_container.h"
+#include "imageContainer.h"
 #include "util.h"
 #include "logger.h"
 

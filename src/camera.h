@@ -11,13 +11,24 @@
 #include <QMap>
 
 #include "constants.h"
+#include "xiAPIWrapper.h"
 
 class CameraFamily{
 protected:
+
+    /**
+     * Camera identifier used by API to communicate with camera
+     */
     HANDLE* m_cameraHandle;
+
 
 public:
     explicit CameraFamily(HANDLE* handle) : m_cameraHandle(handle) {}
+
+    /**
+     * Wrapper to xiAPI, useful for mocking the aPI during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_apiWrapper;
 
     /**
      * @brief The camera temperature data structure.
@@ -135,7 +146,12 @@ public:
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    Camera(std::unique_ptr<CameraFamily> *family, HANDLE* handle): family(family), m_cameraHandle(handle) {}
+    Camera(std::unique_ptr<CameraFamily> *family, HANDLE* handle):family(family), m_cameraHandle(handle) {}
+
+    /**
+     * Wrapper to xiAPI, useful for mocking the aPI during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_apiWrapper;
 
     /**
      * Unique pointer to camera family

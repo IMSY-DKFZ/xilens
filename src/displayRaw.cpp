@@ -32,8 +32,7 @@
  *
  * @param mainWindow reference to main window application
  */
-DisplayerRaw::DisplayerRaw(MainWindow *mainWindow) :
-        Displayer(), m_mainWindow(mainWindow) {
+DisplayerRaw::DisplayerRaw(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow) {
     CreateWindows();
 }
 

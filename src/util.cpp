@@ -3,20 +3,7 @@
  * License: see LICENSE.md file
 *******************************************************/
 #include "logger.h"
-#include "displayRaw.h"
-#include "displayFunctional.h"
-#include "image_container.h"
-#include "ui_mainwindow.h"
-#include "mainwindow.h"
-#include <QTextStream>
-#include <QDateTime>
-#include <QDir>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QCloseEvent>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/core/core.hpp>
-#include <utility>
 #include <string>
 #include <iostream>
 #include <boost/chrono.hpp>
@@ -24,7 +11,6 @@
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <opencv2/imgproc.hpp>
 
 #include "util.h"
 #include "constants.h"

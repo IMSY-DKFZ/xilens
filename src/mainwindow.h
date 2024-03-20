@@ -15,8 +15,9 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-#include "camera_interface.h"
+#include "cameraInterface.h"
 #include "display.h"
+#include "xiAPIWrapper.h"
 
 
 /*
@@ -33,7 +34,7 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0,  std::shared_ptr<XiAPIWrapper> xiAPIWrapper = nullptr);
 
     ~MainWindow();
 
@@ -50,7 +51,7 @@ public:
     /*
      * Queries the band number to be displayed
      */
-    unsigned GetBand() const;
+    virtual unsigned GetBand() const;
 
     /*
      * Queries the normalization factor to be used
@@ -578,6 +579,11 @@ private:
      * Camera interface. Handles communication with each connected camera.
      */
     CameraInterface m_cameraInterface;
+
+    /**
+     * Wrapper to xiAPI, useful for mocking during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_xiAPIWrapper = std::make_shared<XiAPIWrapper>();
 
     /*
      * Display in charge of displaying each image.

@@ -16,6 +16,7 @@
 #include "display.h"
 #include "constants.h"
 #include "util.h"
+#include "mainwindow.h"
 
 
 class MainWindow;
@@ -40,7 +41,19 @@ class DisplayerFunctional : public Displayer {
 Q_OBJECT
 
 public:
+    /**
+     * Constructor of functional displayer
+     *
+     * @param mainWindow reference to main window application
+     */
     explicit DisplayerFunctional(MainWindow *mainWindow);
+
+    /**
+     * Constructor of functional displayer
+     *
+     * @param mainWindow reference to main window application
+     */
+    explicit DisplayerFunctional() : Displayer() {};
 
     /**
      * Destructor of the DisplayerFunctional class. It destroy the windows created by the displayer.
@@ -73,6 +86,11 @@ public:
     cv::Mat m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR);
 
 protected:
+
+    /**
+     * reference to main window, necessary to detect if normalization is turned on / which band to display
+     */
+    MainWindow* m_mainWindow;
 
     /**
      * @brief Creates windows where images are displayed
@@ -124,11 +142,6 @@ private:
     void DisplayImage(cv::Mat &image, const std::string windowName);
 
     /**
-     * reference to main window, necessary to detect if normalization is turned on / which band to display
-     */
-    const MainWindow *const m_mainWindow;
-
-    /**
      * explicit mutex declaration
      */
     boost::mutex mtx_;
@@ -166,7 +179,7 @@ private:
      * @param band_image The output band image
      * @param band_nr The number of the band to extract
      */
-    void GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr);
+    void GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr);
 
     /**
      * @brief Get the BGR image from the input image by splitting it into separate channels,

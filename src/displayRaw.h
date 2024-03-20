@@ -14,6 +14,7 @@
 
 #include "display.h"
 #include "constants.h"
+#include "mainwindow.h"
 
 
 class MainWindow;
@@ -34,6 +35,13 @@ public:
      * @param mainWindow reference to main window application
      */
     explicit DisplayerRaw(MainWindow *mainWindow);
+
+    /**
+     * Constructor of raw displayer
+     *
+     * @param mainWindow reference to main window application
+     */
+    explicit DisplayerRaw() : Displayer() {};
 
     /**
      * Draws histogram based of displayed image based on an region of interest (ROI)
@@ -64,6 +72,10 @@ public:
 
 
 protected:
+    /**
+     * reference to main window, necessary to detect if normalization is turned on / which band to display
+     */
+    MainWindow* m_mainWindow;
 
     /**
      * Creates OpenCV windows where images will be displayed
@@ -108,11 +120,6 @@ private:
      * @param windowName name of the window where image will be displayed
      */
     void DisplayImage(cv::Mat &image, const std::string windowName);
-
-    /**
-     * reference to main window, necessary to detect if normalization is turned on
-     */
-    const MainWindow *const m_mainWindow;
 
     /**
      * explicit call to mutex

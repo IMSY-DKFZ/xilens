@@ -27,11 +27,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "util.h"
-#include "image_container.h"
+#include "imageContainer.h"
 #include "displayFunctional.h"
 #include "displayRaw.h"
 #include "constants.h"
 #include "logger.h"
+#include "xiAPIWrapper.h"
 
 
 /**
@@ -41,17 +42,20 @@
 * This class inherits from QMainWindow and is responsible for initializing the user interface.
 * It also manages the IO service, work, and other variables related to image recording and testing.
 */
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapper) :
         QMainWindow(parent),
         ui(new Ui::MainWindow),
         m_io_service(), m_work(m_io_service),
         m_temperature_io_service(), m_temperature_work(new boost::asio::io_service::work(m_temperature_io_service)),
+        m_cameraInterface(),
         m_recordedCount(0),
         m_testMode(g_commandLineArguments.test_mode),
         m_imageCounter(0),
         m_skippedCounter(0),
         m_elapsedTimeTextStream(&m_elapsedTimeText),
         m_elapsedTime(0) {
+    this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
+    m_cameraInterface.Initialize(this->m_xiAPIWrapper);
     ui->setupUi(this);
     // populate available cameras
     QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();

@@ -16,8 +16,9 @@
 #include <QtCore>
 
 #include "constants.h"
-#include "image_container.h"
+#include "imageContainer.h"
 #include "camera.h"
+#include "xiAPIWrapper.h"
 
 
 class CameraInterface : public QObject {
@@ -33,7 +34,17 @@ public:
      * The CameraInterface class does not include any example code or implementation details. It serves
      * as a high-level documentation for the camera interface.
      */
-    CameraInterface();
+    CameraInterface() : m_cameraHandle(INVALID_HANDLE_VALUE)  {};
+
+    /**
+     * Check if XIMEA cameras are connected and counts them
+     */
+    void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
+
+    /**
+     * Wrapper to xiAPI, useful for mocking the aPI during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_apiWrapper;
 
     /**
      * @brief Destructor of camera interface
@@ -210,8 +221,6 @@ public:
      */
     QString m_cameraFamilyName;
 
-
-private:
     /**
      * @brief The handle for managing the camera device.
      *
