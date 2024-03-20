@@ -38,7 +38,7 @@ test:
     QT_QPA_PLATFORM: "offscreen"
   script:
     - cd cmake-build
-    - RUN xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
+    - xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
     - gcovr --xml-pretty --print-summary -o coverage.xml --verbose -e '/.*cmake-build.*/.*' --root ${CI_PROJECT_DIR}
     - mv Testing/Test.xml ../report.xml
     - mv coverage.xml ../coverage.xml
