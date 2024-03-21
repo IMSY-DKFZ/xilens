@@ -42,9 +42,6 @@ const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 1
 // camera frame rate limit
 const int FRAMERATE_MAX = 30;
 
-// low exposure recordings integration times
-const std::vector<int> LOW_EXPOSURE_INTEGRATION_TIMES = {5, 10, 20, 40, 60, 80, 100, 150};
-
 // value ranges for blood volume fraction and oxygenation
 const unsigned MAX_SAO2 = 100;
 const unsigned MAX_VHB = 30;
