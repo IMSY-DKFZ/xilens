@@ -168,6 +168,9 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
         QWidget *widget = layout->itemAt(i)->widget();
+        if (widget) {
+            widget->setEnabled(enable);
+        }
         if (subLayout) {
             DisableWidgetsInLayout(subLayout, enable);
         }
