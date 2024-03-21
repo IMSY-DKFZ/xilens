@@ -289,6 +289,7 @@ MainWindow::~MainWindow() {
 
     this->StopTemperatureThread();
     this->StopSnapshotsThread();
+    this->StopReferenceRecordingThread();
 
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
 
@@ -476,6 +477,15 @@ void MainWindow::StopSnapshotsThread(){
 }
 
 /**
+ * This function joins the thread responsible for recording the white and dark reference images
+ */
+void MainWindow::StopReferenceRecordingThread(){
+    if (m_referenceRecordingThread.joinable()){
+        m_referenceRecordingThread.join();
+    }
+}
+
+/**
  * @brief Handles the value changed event of the exposure slider.
  *
  * This function is called when the value of the exposure slider is changed.
@@ -583,12 +593,16 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress){
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     } else {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -1031,13 +1045,81 @@ void MainWindow::on_autoexposureCheckbox_clicked(bool setAutoexposure) {
 }
 
 
+/**
+ * Launches thread to record white reference images.
+ *
+ * @see MainWindow::RecordReferenceImages
+ */
 void MainWindow::on_whiteBalanceButton_clicked() {
-
+    if (m_referenceRecordingThread.joinable()) {
+        m_referenceRecordingThread.join();
+    }
+    m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "white");
 }
 
 
+/**
+ * Launches thread to record dark reference images.
+ *
+ * @see MainWindow::RecordReferenceImages
+ */
 void MainWindow::on_darkCorrectionButton_clicked() {
+    if (m_referenceRecordingThread.joinable()) {
+        m_referenceRecordingThread.join();
+    }
+    m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "dark");
+}
 
+
+/**
+ * Record reference images (white or dark). The number of images to be recorded is defined by
+ * constants:NR_REFERENCE_IMAGES_TO_RECORD. After recording each image an amount of time equal to twice the integration
+ * time is waited before recording the next image.
+ *
+ * @param referenceType
+ */
+void MainWindow::RecordReferenceImages(QString referenceType) {
+    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    if (referenceType == "white"){
+        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    } else if (referenceType == "dark"){
+        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    }
+
+    QString baseFolder = ui->baseFolderLineEdit->text();
+    QDir dir(baseFolder);
+    QStringList nameFilters;
+    nameFilters << referenceType + "*";
+    QStringList folderNameList = dir.entryList(nameFilters, QDir::Dirs | QDir::NoDotAndDotDot);
+    QRegularExpression re("^" + referenceType + "(\\d*)$");
+
+    QString referenceFolderName = referenceType;
+    for(const QString& folderName : folderNameList){
+        QRegularExpressionMatch match = re.match(folderName);
+        if(match.hasMatch()) {
+            int folderNum = match.captured(1).toInt();
+            ++folderNum;
+            referenceFolderName = referenceType + QString::number(folderNum);
+        }
+    }
+
+    for (int i = 0; i < NR_REFERENCE_IMAGES_TO_RECORD; i++) {
+        int exp_time = m_cameraInterface.m_camera->GetExposureMs();
+        int waitTime = 2 * exp_time;
+        wait(waitTime);
+        std::stringstream name_i;
+        name_i << referenceType.toStdString();
+        this->RecordImage(referenceFolderName.toStdString(), name_i.str(), true);
+        int progress = static_cast<int>((static_cast<float>(i + 1) / NR_REFERENCE_IMAGES_TO_RECORD) * 100);
+        QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
+    }
+    QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
+    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    if (referenceType == "white"){
+        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    } else if (referenceType == "dark"){
+        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    }
 }
 
 

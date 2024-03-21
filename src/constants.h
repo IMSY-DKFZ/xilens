@@ -64,4 +64,7 @@ const QString CAMERA_FAMILY_KEY_NAME = "cameraFamily";
 const QString CAMERA_FAMILY_XISPEC = "xiSpec";
 const QString CAMERA_FAMILY_XIC = "xiC";
 
+// Image recording constants
+const int NR_REFERENCE_IMAGES_TO_RECORD = 100;
+
 #endif

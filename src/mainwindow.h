@@ -194,6 +194,16 @@ private slots:
      */
     void on_whiteBalanceButton_clicked();
 
+    /**
+     * Records the white reference to a folder called "white"
+     */
+    void RecordReferenceImages(QString referenceType);
+
+    /**
+     * Stops the thread responsible for recording the reference images (white and dark)
+     */
+    void StopReferenceRecordingThread();
+
     /*
      * Qt slot triggered when the dark correction button is pressed. Records a new dark image and sets it in the network
      * model.
@@ -639,6 +649,11 @@ private:
      * Snapshot image recording thread.
      */
     boost::thread m_snapshotsThread;
+
+    /**
+     * thread where white and dark references are recorded
+     */
+    boost::thread m_referenceRecordingThread;
 
     /*
      * Thread containing the timer for temperature recording at certain intervals.
