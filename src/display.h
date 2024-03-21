@@ -21,7 +21,7 @@ public:
 
     QString m_cameraType;
 
-    virtual void SetCameraType(QString camera_type) = 0;
+    virtual void SetCameraType(QString cameraType) = 0;
 
 
 protected:

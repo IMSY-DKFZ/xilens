@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
-    <qresource>
+    <qresource prefix="/resources">
         <file>jet_photo.jpg</file>
+        <file>dark_amber.qss</file>
     </qresource>
 </RCC>

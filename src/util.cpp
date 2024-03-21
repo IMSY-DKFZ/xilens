@@ -2,12 +2,15 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
 *******************************************************/
+#include "logger.h"
+#include <opencv2/core/core.hpp>
+#include <string>
+#include <iostream>
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <opencv2/imgproc.hpp>
 
 #include "util.h"
 #include "constants.h"
@@ -122,6 +125,16 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color) {
         }
     }
     return Lut;
+}
+
+/**
+ * @brief Helper function which wraps a ximea image in a cv::Mat
+ *
+ * @param xi_img input ximea image
+ * @param mat_img output cv::Mat image
+ */
+void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img) {
+    mat_img = cv::Mat(xi_img.height, xi_img.width, CV_16UC1, xi_img.bp);
 }
 
 /**

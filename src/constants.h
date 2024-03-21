@@ -2,6 +2,7 @@
 #define CONSTANTS_H
 
 #include <QString>
+#include <opencv2/opencv.hpp>
 
 // opencv window display image resolution
 const int MAX_WIDTH_DISPLAY_WINDOW = 1024;
@@ -10,7 +11,7 @@ const int MAX_HEIGHT_DISPLAY_WINDOW = 544;
 // camera types and mapper
 const QString SPECTRAL_CAMERA = "spectral";
 const QString GRAY_CAMERA = "gray";
-extern const QMap<QString, QString> CAMERA_TYPE_MAPPER;
+extern const QMap<QString, QMap<QString, QString>> CAMERA_MAPPER;
 
 // opencv window names
 const std::string DISPLAY_WINDOW_NAME = "RAW image";
@@ -34,9 +35,9 @@ const QString SENSOR_BOARD_TEMP = "sensor_board";
 const int TEMP_LOG_INTERVAL = 5;
 
 // GUI item colors
-const QString BUTTON_PRESSED_STYLE = "background-color: rgb(255, 0, 0)";
-const QString FIELD_ORIGINAL_STYLE = "background-color: rgb(255, 255, 255)";
-const QString FIELD_EDITED_STYLE = "background-color: rgb(255, 105, 180)";
+const QString BUTTON_PRESSED_STYLE = "QLineEdit {background-color: rgb(255, 0, 0);}";
+const QString FIELD_ORIGINAL_STYLE = "QLineEdit {background-color: rgba(35, 38, 41, 0.75);}";
+const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 134, 1);}";
 
 // camera frame rate limit
 const int FRAMERATE_MAX = 30;
@@ -53,5 +54,17 @@ const unsigned MIN_VHB = 0;
 // boundaries for under-saturation and over-saturation pixel color assignments
 const int OVEREXPOSURE_PIXEL_BOUNDARY_VALUE = 225;
 const int UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE = 10;
+
+// camera types and families
+const QString CAMERA_TYPE_KEY_NAME = "cameraType";
+const QString CAMERA_TYPE_SPECTRAL = "spectral";
+const QString CAMERA_TYPE_GRAY = "gray";
+const QString CAMERA_TYPE_RGB = "rgb";
+const QString CAMERA_FAMILY_KEY_NAME = "cameraFamily";
+const QString CAMERA_FAMILY_XISPEC = "xiSpec";
+const QString CAMERA_FAMILY_XIC = "xiC";
+
+// Image recording constants
+const int NR_REFERENCE_IMAGES_TO_RECORD = 100;
 
 #endif

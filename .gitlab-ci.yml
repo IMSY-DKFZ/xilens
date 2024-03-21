@@ -8,7 +8,7 @@ before_script:
   - export DEBIAN_FRONTEND=noninteractive
   - export TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
-  - apt-get -y install build-essential uuid-dev libgl1-mesa-dev qt6-base-dev libqt6svg6-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev gcovr --no-install-recommends libboost-all-dev curl cmake
+  - apt-get -y install build-essential uuid-dev libgl1-mesa-dev qt6-base-dev libqt6svg6-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev gcovr --no-install-recommends libboost-all-dev curl cmake xvfb
   - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
   - tar xzf XIMEA_Linux_SP.tgz
   - cd package
@@ -34,9 +34,11 @@ build:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test:
+  variables:
+    QT_QPA_PLATFORM: "offscreen"
   script:
     - cd cmake-build
-    - ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
+    - xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
     - gcovr --xml-pretty --print-summary -o coverage.xml --verbose -e '/.*cmake-build.*/.*' --root ${CI_PROJECT_DIR}
     - mv Testing/Test.xml ../report.xml
     - mv coverage.xml ../coverage.xml

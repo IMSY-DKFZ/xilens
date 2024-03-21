@@ -1,9 +1,8 @@
 [Desktop Entry]
-Version=0.1
 Name=susicam
 GenericName=Surgical Spectral Imaging Camera
 Comment=Application to record spectral data
-Exec=susiCam
+Exec=SUSICAM
 Icon=icon.png
 Terminal=True
 Type=Application

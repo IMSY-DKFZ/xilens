@@ -15,8 +15,9 @@
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 
-#include "camera_interface.h"
+#include "cameraInterface.h"
 #include "display.h"
+#include "xiAPIWrapper.h"
 
 
 /*
@@ -33,7 +34,7 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0,  std::shared_ptr<XiAPIWrapper> xiAPIWrapper = nullptr);
 
     ~MainWindow();
 
@@ -50,7 +51,7 @@ public:
     /*
      * Queries the band number to be displayed
      */
-    unsigned GetBand() const;
+    virtual unsigned GetBand() const;
 
     /*
      * Queries the normalization factor to be used
@@ -75,7 +76,7 @@ public:
     /*
      * Disables the UI elements
      */
-    void disableWidgetsInLayout(QLayout *layout, bool enable);
+    void DisableWidgetsInLayout(QLayout *layout, bool enable);
 
     /*
      * Writes general information as header of the log file
@@ -115,7 +116,7 @@ public:
     /*
      * Handle for timer used to schedule camera temperature logging
      */
-    void HandleTimer(boost::asio::steady_timer *timer, const boost::system::error_code &error);
+    void HandleTemperatureTimer(const boost::system::error_code &error);
 
     /*
      * Stops thread in charge of recording snapshot images
@@ -150,7 +151,7 @@ private slots:
      * Qt slot triggered when the record button is pressed. Stars the continuous recording of images to files and stops
      * it when pressed a second time. This is synchronized with the exposure time label.
      */
-    void on_recordButton_clicked(bool checked);
+    void on_recordButton_clicked(bool clicked);
 
     /*
      * Qt slot triggered when the button to choose a base folder is clicked. Opens a dialog where a folder can be
@@ -183,18 +184,6 @@ private slots:
     void on_filePrefixLineEdit_returnPressed();
 
     /*
-     * Qt slot triggered when name fo the folder where low exposure images are recorded is edited. Changes the
-     * appearance of the field in the UI. It does not update the value of the member variable that contains the value.
-     */
-    void on_folderLowExposureImagesLineEdit_textEdited(const QString &newText);
-
-    /*
-     * Qt slot triggered when the return key is pressed on the field that defines where low exposure recordings are
-     * stored. It updates the member variable that stores the value.
-     */
-    void on_folderLowExposureImagesLineEdit_returnPressed();
-
-    /*
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control of the exposure time to camera.
      */
     void on_autoexposureCheckbox_clicked(bool setAutoexposure);
@@ -204,6 +193,16 @@ private slots:
      * model.
      */
     void on_whiteBalanceButton_clicked();
+
+    /**
+     * Records the white reference to a folder called "white"
+     */
+    void RecordReferenceImages(QString referenceType);
+
+    /**
+     * Stops the thread responsible for recording the reference images (white and dark)
+     */
+    void StopReferenceRecordingThread();
 
     /*
      * Qt slot triggered when the dark correction button is pressed. Records a new dark image and sets it in the network
@@ -292,8 +291,8 @@ private slots:
     void on_recLowExposureImagesButton_clicked();
 
     /*
-     * Qt slot triggered when the spin box containing the number of images to skip while recording. It skips the entered
-     * number of images before storing each image to file.
+     * Qt slot triggered when the spin box containing the number of images to skip while recording is modified.
+     * It restyles the appearance of the field.
      */
     void on_skipFramesSpinBox_valueChanged();
 
@@ -302,35 +301,42 @@ private slots:
      */
     void on_cameraListComboBox_currentIndexChanged(int index);
 
-    /*
+    /**
      * Updates the stile of a Qt LineEdit component.
+     *
+     * @param lineEdit element to update
+     * @param newString new value received from element
+     * @param originalString original value of hte element before changes occurred
      */
-    void updateLineEditStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
+    void updateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
 
     /*
      * Restores the appearance of a Qt LineEdit component.
      */
-    void restoreLineEditStyle(QLineEdit* lineEdit);
+    void RestoreLineEditStyle(QLineEdit* lineEdit);
 
     /*
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
      */
-    void on_snapshotPrefixLineEdit_textEdited(const QString &arg1);
+    void on_filePrefixExtrasLineEdit_textEdited(const QString &newText);
 
     /*
      * Qt slot triggered when the return key is pressed on the file prefix field for snapshot images in the UI.
      */
-    void on_snapshotPrefixLineEdit_returnPressed();
+    void on_filePrefixExtrasLineEdit_returnPressed();
+
+    /*
+     * Qt slot triggered when extras sub folder field is edited in the UI.
+     */
+    void on_subFolderExtrasLineEdit_textEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed on the sub folder field in the extras tab in the UI.
+     */
+    void on_subFolderExtrasLineEdit_returnPressed();
 
 private:
     Ui::MainWindow *ui;
-
-    /**
-     * @brief SaveCurrentImage safe the current image to tif
-     * @param baseName the base file name to be saved
-     * @param specialFolder only neccessary if you want to save the image in a special subfolder as "white" or "dark"
-     */
-    void SaveCurrentImage(std::string baseName, std::string specialFolder = "");
 
     /**
      * @brief Displays a new image
@@ -367,35 +373,49 @@ private:
      */
     void CreateFolderIfNecessary(QString folder);
 
-    /*
-     * Records only one image
-     */
-    void RecordImage();
-
-    /*
-     * records only one image to the specified sub folder.
-     */
-    void RecordImage(std::string subFolder);
+   /**
+    * Records image to specified sub folder and using specified file prefix to name the file
+    *
+    * @param subFolder folder to be created inside the base folder where image will be recorded
+    * @param filePrefix string used as file name prefix
+    * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
+    */
+    void RecordImage(std::string subFolder = "", std::string filePrefix = "", bool ignoreSkipping = false);
 
     /*
      * Starts IO service in a thread in charge of saving the images to files.
      */
     void ThreadedRecordImage();
 
+    /**
+     * Displays the number of recorded images in the GUI
+     */
+    void DisplayRecordCount();
+
+    /**
+     * Indicates if an image should be recorded to file or not depending on the frame number and the number of frames
+     * to skip
+     *
+     * @param nSkipFrames number of frames to skip
+     * @param ImageID frame number
+     * @return true if image should be recorded to file or false if not
+     */
+    bool ImageShouldBeRecorded(int nSkipFrames, long ImageID);
+
     /*
      * Counts how many images have been recorded.
      */
-    unsigned long m_recordedCount;
+    std::atomic<unsigned long> m_recordedCount;
 
     /*
      * Counts how many images whould have been recorded
      */
-    unsigned long m_imageCounter;
+    std::atomic< unsigned long> m_imageCounter;
 
     /*
      * Counts how many images were skipped during the recording process.
      */
-    unsigned long m_skippedCounter;
+    std::atomic<unsigned long> m_skippedCounter;
 
     /*
      * Updates image counter
@@ -418,10 +438,10 @@ private:
     void RunNetwork();
 
     /**
-     * @brief Snapshots helper method to take snapshots, basically just created to be able to
+     * @brief RecordSnapshots helper method to take snapshots, basically just created to be able to
      * thread the snapshot making :-)
      */
-    void Snapshots();
+    void RecordSnapshots();
 
     /**
      * @brief lowExposureRecording helper method to record images at different exposure times. Created to thread this recordings.
@@ -444,6 +464,13 @@ private:
     void UpdateExposure();
 
     /**
+     * Enables and disables elements of the GUI that should not me modified while recordings are in progress
+     *
+     * @param recordingInProgress
+     */
+    void HandleElementsWhileRecording(bool recordingInProgress);
+
+    /**
      * @brief MainWindow::GetWritingFolder returns the folder there the image files are written to
      * @return
      */
@@ -454,14 +481,14 @@ private:
      *
      * It automatically add the current write path and puts the name in a standard format including timestamp etc.
      *
-     * @param fileName the name of the file (snapshot, recording, liver_image, ...)
+     * @param filePrefix the name of the file (snapshot, recording, liver_image, ...)
      * @param frameNumber the acquisition frame number provided by ximea
      * @param extension file extension (.dat or .tif)
-     * @param specialFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
+     * @param subFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string fileName, long frameNumber, std::string extension,
-                                          std::string specialFolder = "");
+    QString GetFullFilenameStandardFormat(std::string&& filePrefix, long frameNumber, std::string extension,
+                                          std::string&& subFolder = "");
 
     /*
      * Queries the base folder path where data is to be stored.
@@ -471,7 +498,7 @@ private:
     /*
      * stores the folder name where images are to be stores. This is a folder inside of base folder.
      */
-    QString m_topFolderName;
+    QString m_subFolder;
 
     /*
      * file prefix to be appended to each image file name.
@@ -481,7 +508,7 @@ private:
     /*
      * Folder path where low exposure images are to be stored. This is a folder inside the base folder.
      */
-    QString m_folderLowExposureImages;
+    QString m_extrasSubFolder;
 
     /*
      * Trigger text entered to the log function of the UI.
@@ -501,7 +528,7 @@ private:
     /*
      * File prefix used for snapshot images.
      */
-    QString m_snapshotPrefix;
+    QString m_extrasFilePrefix;
 
     /*
      * Elapsed timer used for the timer displayed in the UI.
@@ -512,6 +539,16 @@ private:
      * Time elapsed since recordings started.
      */
     float m_elapsedTime;
+
+    /**
+     * Time offset used when recordings are paused due to snapshots or low exposure recordings
+     */
+    float m_timeOffset = 0;
+
+    /**
+     * Identified if the main recordings have been paused due to snapshots or low exposure recordings
+     */
+    bool m_mainRecordingPaused = false;
 
     /*
      * Time elapsed since recordings started as text field.
@@ -551,7 +588,12 @@ private:
     /*
      * Camera interface. Handles communication with each connected camera.
      */
-    CameraInterface m_camInterface;
+    CameraInterface m_cameraInterface;
+
+    /**
+     * Wrapper to xiAPI, useful for mocking during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_xiAPIWrapper = std::make_shared<XiAPIWrapper>();
 
     /*
      * Display in charge of displaying each image.
@@ -573,15 +615,25 @@ private:
      */
     boost::asio::io_service m_io_service;
 
+    /**
+     * ID service for recording temperature to file
+     */
+    boost::asio::io_service m_temperature_io_service;
+
     /*
      * Thread pool used for recording the data.
      */
     boost::thread_group m_threadpool;
 
     /*
-     * Async IO work. Keeps the IO service alive in the thread in charge of data recording.
+     * Async IO work. Keeps the IO service alive in the thread in charge of image recording.
      */
     boost::asio::io_service::work m_work;
+
+    /**
+     * Async IO work. Keeps the IO service alive in the thread in charge of temperature recording.
+     */
+    std::unique_ptr<boost::asio::io_service::work> m_temperature_work;
 
     /*
      * Mutual exclusion mechanism in charge of synchronization.
@@ -598,10 +650,15 @@ private:
      */
     boost::thread m_snapshotsThread;
 
+    /**
+     * thread where white and dark references are recorded
+     */
+    boost::thread m_referenceRecordingThread;
+
     /*
      * Thread containing the timer for temperature recording at certain intervals.
      */
-    boost::asio::steady_timer *m_temperatureThreadTimer;
+    std::shared_ptr<boost::asio::steady_timer> m_temperatureThreadTimer;
 
     /*
      * Starts image acquisition by initializing image contained and displayer.
@@ -612,6 +669,14 @@ private:
      * Stops image acquisition by disconnecting image displayer and stopping image polling to the image container.
      */
     void StopImageAcquisition();
+
+    /**
+     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human readable format
+     *
+     * @param timestamp
+     * @return
+     */
+    QString FormatTimeStamp(QString timestamp);
 };
 
 #endif // MAINWINDOW_H
