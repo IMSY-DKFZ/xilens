@@ -137,6 +137,14 @@ struct CommandLineArguments {
 };
 
 /**
+ * @brief Helper function which wraps a ximea image in a cv::Mat
+ *
+ * @param xi_img input ximea image
+ * @param mat_img output cv::Mat image
+ */
+void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
+
+/**
  * Contains the CLI arguments that can be used through a terminal
  */
 extern struct CommandLineArguments g_commandLineArguments;

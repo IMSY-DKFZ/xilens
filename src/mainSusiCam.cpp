@@ -4,10 +4,10 @@
 *******************************************************/
 #include <QApplication>
 
+
 #include "CLI11.h"
 #include "mainwindow.h"
 #include "util.h"
-
 
 /**
  * @brief Application entry point and command line interface setup.
@@ -33,11 +33,14 @@ int main(int argc, char** argv) {
 
     CLI11_PARSE(app, argc, argv);
 
-    // initialize logging to INFO level
-    initLogging(boost::log::trivial::info);
-
     // instantiate application
     QApplication a(argc, argv);
+    QFile themeFile(":/resources/dark_amber.qss");
+    if (themeFile.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream stream(&themeFile);
+        QString stylesheetContent = stream.readAll();
+        a.setStyleSheet(stylesheetContent);
+    }
     MainWindow w;
     w.move(400, 10);
     w.show();

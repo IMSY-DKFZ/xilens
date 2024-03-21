@@ -23,6 +23,7 @@
 #include "mainwindow.h"
 #include "util.h"
 #include "constants.h"
+#include "logger.h"
 
 /**
  * custom type that defines a pixel in an OpenCV image
@@ -39,8 +40,7 @@ typedef cv::Point3_<uint8_t> Pixel;
  *
  * @param mainWindow a pointer to the MainWindow object
  */
-DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) :
-        Displayer(), m_mainWindow(mainWindow) {
+DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow) {
     CreateWindows();
 }
 
@@ -221,7 +221,7 @@ void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowN
  * @param band_image The output band image
  * @param band_nr The number of the band to extract
  */
-void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, int band_nr) {
+void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr) {
     // compute location of first value
     int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
     int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
@@ -294,12 +294,15 @@ void DisplayerFunctional::Display(XI_IMG &image) {
             static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
                                                       currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
 
-            if (m_cameraType == "spectral") {
+            if (m_cameraType == CAMERA_TYPE_SPECTRAL) {
                 this->GetBand(currentImage, raw_image, m_mainWindow->GetBand());
-            } else {
+            } else if (m_cameraType == CAMERA_TYPE_GRAY) {
                 raw_image = currentImage;
                 raw_image /= m_scaling_factor; // 10 bit to 8 bit
                 raw_image.convertTo(raw_image, CV_8UC1);
+            } else {
+                LOG_SUSICAM(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+                throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
             cv::Mat raw_image_to_display = raw_image.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
@@ -339,7 +342,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     try {
         cv::merge(channels, bgr_image);
     } catch (const cv::Exception &e) {
-        BOOST_LOG_TRIVIAL(error) << "OpenCV error: " << e.what();
+        LOG_SUSICAM(error) << "OpenCV error: " << e.what();
     }
 }
 
@@ -367,13 +370,9 @@ void DisplayerFunctional::CreateWindows() {
     // create windows to display result
     cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
     cv::namedWindow(BGR_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(VHB_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(SAO2_WINDOW_NAME, cv::WINDOW_NORMAL);
 
     cv::moveWindow(DISPLAY_WINDOW_NAME, 900, 10);
     cv::moveWindow(BGR_WINDOW_NAME, 2024 + 11, 10);
-    cv::moveWindow(VHB_WINDOW_NAME, 900, 10 + 626);
-    cv::moveWindow(SAO2_WINDOW_NAME, 2024 + 11, 10 + 626);
 }
 
 

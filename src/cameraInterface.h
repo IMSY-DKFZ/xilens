@@ -16,7 +16,9 @@
 #include <QtCore>
 
 #include "constants.h"
-#include "image_container.h"
+#include "imageContainer.h"
+#include "camera.h"
+#include "xiAPIWrapper.h"
 
 
 class CameraInterface : public QObject {
@@ -32,58 +34,24 @@ public:
      * The CameraInterface class does not include any example code or implementation details. It serves
      * as a high-level documentation for the camera interface.
      */
-    CameraInterface();
+    CameraInterface() : m_cameraHandle(INVALID_HANDLE_VALUE)  {};
+
+    /**
+     * Check if XIMEA cameras are connected and counts them
+     */
+    void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
+
+    /**
+     * Wrapper to xiAPI, useful for mocking the aPI during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_apiWrapper;
 
     /**
      * @brief Destructor of camera interface
      */
     ~CameraInterface();
 
-    /**
-     * @brief Sets the exposure value for the camera.
-     *
-     * This function is used to set the exposure value for the camera.
-     *
-     * @param exp The exposure value to be set.
-     */
-    void SetExposure(int exp);
-
-    /**
-     * \brief Sets the exposure time in milliseconds.
-     *
-     * This function is used to set the exposure time in milliseconds for a device.
-     *
-     * \param exp The exposure time in milliseconds.
-     */
-    void SetExposureMs(int exp);
-
-    /**
-     * @brief Retrieves the exposure value.
-     *
-     * This function returns the exposure value, which represents the amount of light
-     * that reaches the camera sensor. The exposure value determines the brightness
-     * of the captured image.
-     *
-     * @return The exposure value.
-     */
-    int GetExposure();
-
-    /**
-     * @brief Retrieves the exposure time in milliseconds.
-     *
-     * This function is used to retrieve the exposure time in milliseconds.
-     *
-     * @return The exposure time in milliseconds.
-     */
-    int GetExposureMs();
-
-    /**
-     * \brief A method to control auto exposure settings.
-     *
-     * The AutoExposure method enables or disables auto exposure for a given camera.
-     * It is used to adjust the camera settings automatically based on the lighting conditions.
-     */
-    void AutoExposure(bool on);
+    void setCamera(QString cameraType, QString cameraFamily);
 
     /**
      * @brief Initializes a device with the specified camera ID.
@@ -126,16 +94,6 @@ public:
      */
     void CloseDevice();
 
-    /**
-     * @brief This function updates the recorded temperature of a camera.
-     *
-     * This function is responsible for updating the recorded temperature of a camera.
-     *
-     * This function does not return any value. However, it modifies the state of the camera's recorded temperature.
-     *
-     * @note This function assumes that the camera object has already been instantiated and the necessary data has been set.
-     */
-    void UpdateRecordedCameraTemperature();
 
     /**
      * \brief Set the camera type.
@@ -144,9 +102,12 @@ public:
      * The camera type is specified using a QString parameter which should
      * contain the appropriate camera type.
      *
-     * \param camera_type A QString specifying the camera type.
+     * \param cameraType A QString specifying the camera type.
      */
-    void SetCameraType(QString camera_type);
+    void SetCameraType(QString cameraType);
+
+
+    void SetCameraFamily(QString cameraFamily);
 
     /**
      * @brief Sets the camera index.
@@ -229,23 +190,36 @@ public:
     QString m_cameraModel;
 
     /**
+     * Serial number of camera
+     */
+    QString m_cameraSN;
+
+    /**
      * @brief The type of camera used for capturing images.
      */
     QString m_cameraType;
+
+    /**
+     * camera index in dropdown menu of GUI
+     */
     int m_cameraIndex;
 
-
-private:
     /**
-     * @brief Initializes the camera.
-     *
-     * This function initializes the camera and prepares it for capturing images.
-     *
-     * @note Before calling this function, ensure that the camera is properly connected and accessible.
-     *
-     * @warning This function may throw an exception if the camera initialization fails.
+     * Custom camera object used to differentiate the actions that need to be taken into account across different types
+     * of cameras: gray scale, RGB and spectral. E.g. number of bands, etc.
      */
-    int InitializeCamera();
+    std::unique_ptr<Camera> m_camera;
+
+    /**
+     * Camera family used to identify the behaviour of different families: xiQ, xiSpec, xiC, etc. E.g. xiSpec support
+     * some API calls that xiC does not.
+     */
+    std::unique_ptr<CameraFamily> m_cameraFamily;
+
+    /**
+     * Camera family name, e.g. xiSpec, xiC, etc.
+     */
+    QString m_cameraFamilyName;
 
     /**
      * @brief The handle for managing the camera device.
@@ -268,7 +242,7 @@ private:
      * @note This variable should be properly initialized before use and released when no longer
      * required to avoid resource leaks and ensure correct behavior of the camera module.
      */
-    HANDLE m_camHandle;
+    HANDLE m_cameraHandle;
 };
 
 #endif // CAMERA_INTERFACE_H

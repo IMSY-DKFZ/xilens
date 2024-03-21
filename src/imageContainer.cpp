@@ -7,8 +7,9 @@
 #include <xiApi.h>
 #include <boost/thread.hpp>
 
-#include "image_container.h"
+#include "imageContainer.h"
 #include "util.h"
+#include "logger.h"
 
 
 /**
@@ -27,7 +28,7 @@ ImageContainer::ImageContainer() : m_PollImage(true) {
  * Destructor of image container
  */
 ImageContainer::~ImageContainer() {
-    BOOST_LOG_TRIVIAL(info) << "Destroying image container";
+    LOG_SUSICAM(info) << "Destroying image container";
 }
 
 
