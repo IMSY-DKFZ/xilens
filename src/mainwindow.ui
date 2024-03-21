@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>734</width>
+    <width>738</width>
     <height>909</height>
    </rect>
   </property>
@@ -20,7 +20,7 @@
       <item>
        <widget class="QTabWidget" name="tabWidget">
         <property name="toolTip">
-         <string>Extra recording controls e.g. low exposure and snapshots</string>
+         <string>Extra recording controls e.g. snapshots</string>
         </property>
         <property name="tabPosition">
          <enum>QTabWidget::West</enum>
@@ -725,7 +725,7 @@
         </widget>
         <widget class="QWidget" name="extrasTab">
          <property name="toolTip">
-          <string>Extra controls like snapshots and low exposure recordings</string>
+          <string>Extra controls like snapshots recordings</string>
          </property>
          <attribute name="title">
           <string>Extras</string>
@@ -743,44 +743,12 @@
            <item>
             <widget class="QLabel" name="lowExposureLabel">
              <property name="text">
-              <string>Low exposure and snapshots recording controls</string>
+              <string>Extras like snapshots recording controls</string>
              </property>
             </widget>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <item>
-              <widget class="QPushButton" name="recLowExposureImagesButton">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <property name="toolTip">
-                <string>Press &quot;record&quot; button to enable this button</string>
-               </property>
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-               <property name="text">
-                <string>Record low exposure</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="nLowExposureImages">
-               <property name="toolTip">
-                <string>Number of images to store for each integration time</string>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>100</number>
-               </property>
-               <property name="value">
-                <number>10</number>
-               </property>
-              </widget>
-             </item>
              <item>
               <widget class="QPushButton" name="snapshotButton">
                <property name="sizePolicy">
@@ -844,13 +812,13 @@
                 <bool>true</bool>
                </property>
                <property name="toolTip">
-                <string>Sub folder where low exposure iumages will be stored</string>
+                <string>Sub folder where extra recordings (e.g. snapshots) will be stored</string>
                </property>
                <property name="text">
                 <string/>
                </property>
                <property name="placeholderText">
-                <string>Sub folder to store low exposure images</string>
+                <string>Sub folder to store extra recordings like snapshot images</string>
                </property>
               </widget>
              </item>
@@ -899,7 +867,7 @@
         <item>
          <widget class="QProgressBar" name="progressBar">
           <property name="toolTip">
-           <string>Progress bar triggered during snapshots and low exposure recordings</string>
+           <string>Progress bar triggered during some recordings like snapshots (fixed number of images)</string>
           </property>
           <property name="value">
            <number>0</number>

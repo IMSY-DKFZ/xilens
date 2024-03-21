@@ -286,11 +286,6 @@ private slots:
     void on_logTextLineEdit_returnPressed();
 
     /*
-     * Qt slot triggered when button to record low exposure images is pressed. Triggers the recording process.
-     */
-    void on_recLowExposureImagesButton_clicked();
-
-    /*
      * Qt slot triggered when the spin box containing the number of images to skip while recording is modified.
      * It restyles the appearance of the field.
      */
@@ -444,11 +439,6 @@ private:
     void RecordSnapshots();
 
     /**
-     * @brief lowExposureRecording helper method to record images at different exposure times. Created to thread this recordings.
-     */
-    void lowExposureRecording();
-
-    /**
      * @brief UpdateMinMaxPixelValues read the min/max values from an roi in the image and display in statusbar
      */
     void UpdateMinMaxPixelValues();
@@ -506,7 +496,7 @@ private:
     QString m_recPrefixlineEdit;
 
     /*
-     * Folder path where low exposure images are to be stored. This is a folder inside the base folder.
+     * Folder path where extra images are to be stored (e.g. snapshots). This is a folder inside the base folder.
      */
     QString m_extrasSubFolder;
 
@@ -539,16 +529,6 @@ private:
      * Time elapsed since recordings started.
      */
     float m_elapsedTime;
-
-    /**
-     * Time offset used when recordings are paused due to snapshots or low exposure recordings
-     */
-    float m_timeOffset = 0;
-
-    /**
-     * Identified if the main recordings have been paused due to snapshots or low exposure recordings
-     */
-    bool m_mainRecordingPaused = false;
 
     /*
      * Time elapsed since recordings started as text field.

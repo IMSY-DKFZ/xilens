@@ -168,11 +168,9 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
         QWidget *widget = layout->itemAt(i)->widget();
-
-        if (widget && (widget->objectName() != "recLowExposureImagesButton")) {
+        if (widget) {
             widget->setEnabled(enable);
         }
-
         if (subLayout) {
             DisableWidgetsInLayout(subLayout, enable);
         }
@@ -574,9 +572,6 @@ void MainWindow::on_recordButton_clicked(bool clicked) {
         this->StopRecording();
         this->HandleElementsWhileRecording(clicked);
         ui->recordButton->setText(original_button_text);
-        if (!m_mainRecordingPaused){
-            m_timeOffset = 0;
-        }
     }
 }
 
@@ -591,7 +586,6 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress){
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -599,7 +593,6 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress){
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->recLowExposureImagesButton, "setEnabled", Qt::QueuedConnection,Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -874,7 +867,6 @@ void MainWindow::DisplayRecordCount() {
  */
 void MainWindow::updateTimer() {
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
-    m_elapsedTime += m_timeOffset;
     int totalSeconds = static_cast<int>(m_elapsedTime);
     int hours = totalSeconds / 3600;
     int minutes = (totalSeconds % 3600) / 60;
@@ -1264,84 +1256,7 @@ void MainWindow::on_rawRadioButton_clicked() {
 
 
 /**
- * @brief MainWindow::lowExposureRecording
- *
- * We definde a static QString for the original color, a string sub_folder_name, an int original_exposure, a string prefix,
- * a vector exp_time and an int waitTime and set it zero.
- * We set the background color of the button recLowExposureImages to red and set exposureSlider and label_exp to false.
- * We call the methof on_recordButton_clocked and set it to false.
- * We define a Qstring tmp_topFolderName, wait 2* original_exposure and set m_subFolder as nullptr.
- * We iterate through exp_time in a for-loop. Within this loop we iterate through the lowExposureImages in a second loop
- * and call the method RecordImage(subfolder) to save the images.
- * Then we set the color of the button recLowExposureImages to original color, m_subFolder back to QString and
- * method on_recordButtol_clicked, exposureSlider and lab_exp back to true.
- * Then we synchronize the sliders and textedits dis´playing the current exposure setting.
- */
-void MainWindow::lowExposureRecording() {
-    int waitTime;
-    auto timeOffset = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
-    // store original skip frame value and disable spin box
-    int n_skip_frames = ui->skipFramesSpinBox->value();
-    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
-    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    std::string lowExposureSubFolder = m_extrasSubFolder.toUtf8().constData();
-    std::string name = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
-    int original_exposure = m_cameraInterface.m_camera->GetExposureMs();
-    // change style of record low exposure images button and disable exposure components
-    QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, false));
-
-    m_mainRecordingPaused = true;
-    this->on_recordButton_clicked(false);
-    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Q_ARG(bool, false));
-    QString tmp_topFolderName = m_subFolder;
-    wait(2 * original_exposure);
-    m_subFolder = nullptr;
-    int nr_images = ui->nLowExposureImages->value() * LOW_EXPOSURE_INTEGRATION_TIMES.size();
-    for (int i: LOW_EXPOSURE_INTEGRATION_TIMES) {
-        m_cameraInterface.m_camera->SetExposureMs(i);
-        waitTime = 2 * i;
-        wait(waitTime);
-        for (int j = 0; j < ui->nLowExposureImages->value(); j++) {
-            RecordImage(lowExposureSubFolder, name, true);
-            m_recordedCount++;
-            int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
-            QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
-        }
-    }
-    QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
-    m_cameraInterface.m_camera->SetExposureMs(original_exposure);
-    wait(2 * original_exposure);
-    QMetaObject::invokeMethod(ui->exposureSlider, "setEnabled", Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->exposureLineEdit, "setEnabled", Q_ARG(bool, true));
-    // restore record button state
-    m_subFolder = tmp_topFolderName;
-    this->on_recordButton_clicked(true);
-    m_mainRecordingPaused = false;
-    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Q_ARG(bool, true));
-    m_timeOffset += timeOffset;
-    // re-enable skip frames spin box
-    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setValue", Qt::QueuedConnection, Q_ARG(int, n_skip_frames));
-    QMetaObject::invokeMethod(ui->skipFramesSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    UpdateExposure();
-}
-
-
-/**
- * Triggers the recording of low exposure images on a new thread. The specific integrations times to be recorded are
- * defined in constants.h: LOW_EXPOSURE_INTEGRATION_TIMES
- */
-void MainWindow::on_recLowExposureImagesButton_clicked() {
-    boost::thread(&MainWindow::lowExposureRecording, this);
-}
-
-
-/**
- * Updates the appearance of the low exposure folder name field in the GUI when edited
+ * Updates the appearance of the "extras" folder name field in the GUI when edited
  *
  * @param newText new text of the QLineEdit object
  */
@@ -1351,7 +1266,7 @@ void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText) {
 
 
 /**
- * stores name of folder where low exposure recordings should be stored in a member variable and restores QLineEdit
+ * stores name of folder where "extras" recordings should be stored in a member variable and restores QLineEdit
  * appearance.
  */
 void MainWindow::on_subFolderExtrasLineEdit_returnPressed() {
