@@ -82,8 +82,8 @@ python_tests_xml/
 *.log
 
 # Sphinx documentation
-doc/_build/
-doc/
+doc/build/
+doc/doxygen/
 
 # PyBuilder
 target/

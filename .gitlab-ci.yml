@@ -52,3 +52,17 @@ test:
         path: coverage.xml
   rules:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
+
+pages:
+  script:
+    - apt install -y doxygen
+    - pip install -U sphinx furo breathe
+    - cd doc
+    - doxygen Doxyfile
+    - make html SPHINXOPTS="-j4"
+    - mv build/html/ ../public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"

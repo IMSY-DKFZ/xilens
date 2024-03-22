@@ -166,7 +166,6 @@ int CameraInterface::OpenDevice(DWORD cameraIdentifier) {
  *
  * @see OpenDevice()
  */
-
 void CameraInterface::CloseDevice() {
     StopAcquisition();
     int stat = XI_INVALID_HANDLE;
@@ -235,7 +234,14 @@ CameraInterface::~CameraInterface() {
     this->CloseDevice();
 }
 
-
+/**
+ * Sets the camera type as a member variable of camera and camera family members
+ *
+ * @param cameraType camera type
+ * @param cameraFamily camera family
+ *
+ * @see CAMERA_MAPPER
+ */
 void CameraInterface::setCamera(QString cameraType, QString cameraFamily) {
     if (cameraType == CAMERA_TYPE_SPECTRAL){
         this->m_cameraFamily = std::make_unique<XiSpecFamily>(&this->m_cameraHandle);
