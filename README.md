@@ -7,7 +7,7 @@ NOTE: You will need `CUDA` library and drivers installed in your computer in ord
 To build susicam you only need to install the dependencies and run the build as in the following commands.
 
 ```bash
-sudo apt install libopencv-dev libboost-all-dev libgtest-dev qt6-base-dev cmake g++ wget
+sudo apt install libopencv-dev libboost-all-dev libgtest-dev gcovr libqt6svg6-dev qt6-base-dev cmake g++ wget 
 ```
 
 You will also have to install the xiAPI package provided my XIMEA
@@ -30,7 +30,7 @@ make all -j
 ctest # to check that all tests pass 
 ```
 
-# Using  susicam
+# Increase USB buffer limit
 After building `susicam`, you have to increase the buffer size for the data transfer via USB.  This can be done every 
 time you start your computer by running the following command. 
 
@@ -63,9 +63,21 @@ service usb-buffer-size status
 ```
 You should see that the service is marked as `active`.
 
-Finally, you can start the application by doing `./susiCam`.
+# Launching the application
+You can start the application by doing `./SUSICAM` from the terminal. Alternatively you can create an application 
+launcher by copying the `susicam.deskptop` and `icon.png` files to `~/.local/share/applications`. After copying these
+files, you will have to modify the paths inside `~/.local/share/applications/susicam.deskptop` to represent the 
+full path to the executable and the `icon.png` file:
+
+```bash
+Exec=/home/<user-name>/<path-to-build-dir>/SUSICAM
+Icon=/home/<user-name>/.local/share/applications/icon.png
+```
 
 ## Build docker image
+Running a Qt application inside docker is not straight forward. Building the docker image can serve to test your 
+developed code to make sure that it will work in other systems, however running the application inside docker is still 
+under development. 
 
 ```bash
 docker compose --verbose build --progress plain
@@ -85,56 +97,7 @@ docker run -it --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix
 conda uninstall libtiff
 ```
 
-2. Error Common for cuda versions above 10.0:
-
-```bash    
-CMake Error: The following variables are used in this project, but they are set to NOTFOUND.
-Please set them or make sure they are set and tested correctly in the CMake files:
-CUDA_cublas_LIBRARY (ADVANCED)
-linked by target "caffe" in directory ../caffe/src/caffe
-CUDA_cublas_device_LIBRARY (ADVANCED)
-linked by target "caffe" in directory ../caffe/src/caffe
-```
-
-**Solution:** 
-cublas is no longer dispatched with cuda above 10.0 so cmake can not find it try upgrading `cmake`:
-```bash    
-sudo apt purge cmake
-sudo snap intall cmake --classic
-```    
-If this does not work try also downgrading cuda to version 10
-
-3. Error Common for cuda 10 installations:
-```bash
-error: ‘cudaGraph_t’ has not been declared
-```
-**Solution**
-Try modifying the line in `/usr/include/cudnn.h`: `#include "driver_types.h"` for `#include <driver_types.h>`
-
-4. Error: Common for cuda 10 installations
-```bash
-error: expected ‘)’ before ‘*’ token cuda_runtime_api.h
-```
-**Solution:**
-
-Definitions in cuda runtime api have to me modified. Try this:
-```bash
-sudo gedit /usr/local/cuda/include/cuda_runtime_api.h
-```
-Then add before this line:
-```cpp
-typedef void (CUDART_CB *cudaStreamCallback_t)(cudaStream_t stream, cudaError_t status, void *userData);
-```
-the following code:
-```cpp
-#ifdef _WIN32
-#define CUDART_CB __stdcall
-#else
-#define CUDART_CB
-#endif
-```
-
-5. Error: Linking error of `libuuid`
+2. Error: Linking error of `libuuid`
 ```bash
 can not link -luuid
 ```
@@ -143,7 +106,7 @@ You most likely are missing the `uuid-dev` package, to fix this you cna install 
 sudo apt install uuid-dev
 ```
 
-6. Error: Number of XIMAE devices found:0
+3. Error: Number of XIMAE devices found:0
 
 ```bash
 number of ximea devices found: 0
