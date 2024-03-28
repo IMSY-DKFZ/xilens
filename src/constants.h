@@ -1,7 +1,13 @@
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
 #include <QString>
+#include <QVariant>
+#include <QMap>
 #include <opencv2/opencv.hpp>
 
 /**
@@ -10,15 +16,6 @@
  */
 const int MAX_WIDTH_DISPLAY_WINDOW = 1024;
 const int MAX_HEIGHT_DISPLAY_WINDOW = 544;
-///@}
-
-/**
- *  \name Camera Types and Mapper
- * @{
- */
-const QString SPECTRAL_CAMERA = "spectral";
-const QString GRAY_CAMERA = "gray";
-extern const QMap<QString, QMap<QString, QString>> CAMERA_MAPPER;
 ///@}
 
 /**
@@ -62,7 +59,6 @@ const int TEMP_LOG_INTERVAL = 5;
  *  \name GUI Item Colors
  * @{
  */
-const QString BUTTON_PRESSED_STYLE = "QLineEdit {background-color: rgb(255, 0, 0);}";
 const QString FIELD_ORIGINAL_STYLE = "QLineEdit {background-color: rgba(35, 38, 41, 0.75);}";
 const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 134, 1);}";
 ///@}
@@ -100,20 +96,18 @@ const int UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE = 10;
  *  These variables are used for camera types and families.
  * @{
  */
-/// Camera type key name.
-const QString CAMERA_TYPE_KEY_NAME = "cameraType";
 /// Camera type: Spectral.
 const QString CAMERA_TYPE_SPECTRAL = "spectral";
 /// Camera type: Gray.
 const QString CAMERA_TYPE_GRAY = "gray";
 /// Camera type: RGB.
 const QString CAMERA_TYPE_RGB = "rgb";
-/// Camera family key name.
-const QString CAMERA_FAMILY_KEY_NAME = "cameraFamily";
 /// Camera family: Xispec.
 const QString CAMERA_FAMILY_XISPEC = "xiSpec";
 /// Camera family: Xic.
 const QString CAMERA_FAMILY_XIC = "xiC";
+/// Camera family: XiQ.
+const QString CAMERA_FAMILY_XIQ = "xiQ";
 ///@}
 
 /**
@@ -124,5 +118,29 @@ const QString CAMERA_FAMILY_XIC = "xiC";
 /// Number of reference images to record.
 const int NR_REFERENCE_IMAGES_TO_RECORD = 100;
 ///@}
+
+
+/**
+ * Structure to hold camera meta information such as type, family and mosaic shape.
+ */
+struct CameraData {
+    QString cameraType;
+    QString cameraFamily;
+    std::vector<int> mosaicShape;
+};
+
+
+/**
+ * @brief A mapper that maps camera models to their corresponding type and family, e.g. (spectral, xiSpec),
+ * (gray, xiC), etc.
+ *
+ * This mapper is represented as a constant map with camera models as keys and camera types as values.
+ */
+const QMap<QString, CameraData> CAMERA_MAPPER = {
+    {"MQ022HG-IM-SM4X4-VIS", CameraData{CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC, {4, 4}}},
+    {"MQ022HG-IM-SM4X4-VIS3", CameraData{CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC, {4, 4}}},
+    {"MC050MG-SY-UB", CameraData{CAMERA_TYPE_GRAY, CAMERA_FAMILY_XIC, {0, 0}}},
+    {"MQ042CG-CM", CameraData{CAMERA_TYPE_RGB, CAMERA_FAMILY_XIQ, {0, 0}}}
+};
 
 #endif

@@ -56,6 +56,10 @@ public:
         return ::xiStopAcquisition(hDevice);
     }
 
+    virtual int xiGetImage(IN HANDLE hDevice, IN DWORD timeout, OUT LPXI_IMG img){
+        return ::xiGetImage(hDevice, timeout, img);
+    }
+
 };
 
 #endif //SUSICAM_XIAPIWRAPPER_H

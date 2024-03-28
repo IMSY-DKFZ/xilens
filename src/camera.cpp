@@ -128,7 +128,7 @@ int SpectralCamera::InitializeCamera() {
  * - `XI_PRM_DOWNSAMPLING_TYPE`
  *
  * @return status code as an integer
- * @see SpectralCamera::InitializeCameraCommonParameters
+ * @see GrayCameraCamera::InitializeCameraCommonParameters
  */
 int GrayCamera::InitializeCamera() {
     int stat = XI_OK;
@@ -141,9 +141,37 @@ int GrayCamera::InitializeCamera() {
     HandleResult(stat, "xiSetParam (downsampling mode set to skipping)");
 
     stat = this->InitializeCameraCommonParameters();
+    HandleResult(stat,"set camera common parameters");
 
     return stat;
 }
+
+
+/**
+ * Initializes the common parameters across all supported cameras and specific values only supported by the gray scale
+ * cameras:
+ *
+ * - `XI_PRM_ACQ_TIMING_MODE`
+ * - `XI_PRM_DOWNSAMPLING_TYPE`
+ *
+ * @return status code as an integer
+ * @see SpectralCamera::InitializeCameraCommonParameters
+ */
+int RGBCamera::InitializeCamera() {
+    int stat = XI_OK;
+
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_ACQ_TIMING_MODE, XI_ACQ_TIMING_MODE_FRAME_RATE);
+    HandleResult(stat,"set acquisition timing mode to framerate");
+
+    stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_DOWNSAMPLING_TYPE, XI_BINNING);
+    HandleResult(stat, "xiSetParam (downsampling mode set to binning)");
+
+    stat = this->InitializeCameraCommonParameters();
+    HandleResult(stat,"set camera common parameters");
+
+    return stat;
+}
+
 
 /**
  * @brief Updates the recorded temperature of the camera.
@@ -173,6 +201,26 @@ void XiCFamily::UpdateCameraTemperature() {
     float sensorBoardTemp;
     this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
+}
+
+
+/**
+ * @brief Updates the recorded temperature of the camera.
+ *
+ * @return void
+ */
+void XiQFamily::UpdateCameraTemperature() {
+    float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
+    if (*m_cameraHandle != INVALID_HANDLE_VALUE){
+        this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_CHIP_TEMP, &chipTemp);
+        this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_TEMP, &houseTemp);
+        this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_HOUS_BACK_SIDE_TEMP, &houseBackSideTemp);
+        this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
+        this->m_cameraTemperature[CHIP_TEMP] = chipTemp;
+        this->m_cameraTemperature[HOUSE_TEMP] = houseTemp;
+        this->m_cameraTemperature[HOUSE_BACK_TEMP] = houseBackSideTemp;
+        this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
+    }
 }
 
 

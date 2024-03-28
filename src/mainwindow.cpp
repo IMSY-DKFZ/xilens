@@ -56,14 +56,17 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
         m_elapsedTime(0) {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
+    m_imageContainer.Initialize(this->m_xiAPIWrapper);
     ui->setupUi(this);
+
+    // Display needs to be instantiated before changing camera list because calling setCurrentIndex on the list.
+    m_display = new DisplayerFunctional(this);
+
     // populate available cameras
     QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItem("select camera to enable UI...");
     ui->cameraListComboBox->addItems(cameraList);
     ui->cameraListComboBox->setCurrentIndex(0);
-
-    m_display = new DisplayerFunctional(this);
 
     // hack until we implement proper resource management
     QPixmap pix(":/resources/jet_photo.jpg");
@@ -110,6 +113,7 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
  */
 void MainWindow::StartImageAcquisition(QString camera_identifier) {
     try {
+        this->m_display->StartDisplayer();
         m_cameraInterface.StartAcquisition(std::move(camera_identifier));
         this->StartPollingThread();
         this->StartTemperatureThread();
@@ -119,9 +123,6 @@ void MainWindow::StartImageAcquisition(QString camera_identifier) {
         /***************************************/
         // when a new image arrives, display it
         QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-        // display min/max values in small center roi of image
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
-                         &MainWindow::UpdateMinMaxPixelValues);
     }
     catch (std::runtime_error &error) {
         LOG_SUSICAM(warning) << "could not start camera, got error " << error.what();
@@ -142,13 +143,13 @@ void MainWindow::StartImageAcquisition(QString camera_identifier) {
  * The corresponding signals and slots are also disconnected from NewImage
  */
 void MainWindow::StopImageAcquisition() {
+    this->m_display->StopDisplayer();
     this->StopPollingThread();
     this->StopTemperatureThread();
     m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
-                        &MainWindow::UpdateMinMaxPixelValues);
+    LOG_SUSICAM(info) << "Stopped Image Acquisition";
 }
 
 
@@ -164,7 +165,7 @@ void MainWindow::StopImageAcquisition() {
  * @param enable A boolean value indicating whether to enable or disable the widgets.
  *               true to enable, false to disable.
  */
-void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
+void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
         QWidget *widget = layout->itemAt(i)->widget();
@@ -172,7 +173,7 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
             widget->setEnabled(enable);
         }
         if (subLayout) {
-            DisableWidgetsInLayout(subLayout, enable);
+            EnableWidgetsInLayout(subLayout, enable);
         }
     }
 }
@@ -190,11 +191,17 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
  */
 void MainWindow::EnableUi(bool enable) {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
-    DisableWidgetsInLayout(layout, enable);
+    EnableWidgetsInLayout(layout, enable);
     ui->exposureSlider->setEnabled(enable);
     ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
-    DisableWidgetsInLayout(layoutExtras, enable);
+    EnableWidgetsInLayout(layoutExtras, enable);
+    QLayout *functionalLayout = ui->functionalParametersColoringVerticalLayout->layout();
+    if(m_cameraInterface.m_cameraType != CAMERA_TYPE_SPECTRAL){
+        EnableWidgetsInLayout(functionalLayout, false);
+    } else{
+        EnableWidgetsInLayout(functionalLayout, enable);
+    }
 }
 
 
@@ -233,44 +240,6 @@ void MainWindow::UpdateVhbSao2Validators() {
     ui->maxVhbLineEdit->setValidator(new QIntValidator(ui->minVhbLineEdit->text().toInt(), MAX_VHB, this));
     ui->minSao2LineEdit->setValidator(new QIntValidator(MIN_SAO2, ui->maxSao2LineEdit->text().toInt(), this));
     ui->maxSao2LineEdit->setValidator(new QIntValidator(ui->minSao2LineEdit->text().toInt(), MAX_SAO2, this));
-}
-
-
-/**
- * @brief Updates the minimum and maximum pixel values of the main window.
- *
- * This function calculates the minimum and maximum pixel values from the current image data
- * and updates the corresponding member variables of the main window.
- *
- * @note This function should be called whenever there is a change in the image data that may
- * affect the minimum and maximum pixel values.
- *
- * @todo This method does not seem to be used for anything and could potentially be removed
- */
-void MainWindow::UpdateMinMaxPixelValues() {
-    const unsigned refresh_rate_ms = 1000; // refresh all 1000ms
-
-    static boost::posix_time::ptime last = boost::posix_time::microsec_clock::local_time();
-    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-
-    long time_since_last = (now - last).total_milliseconds();
-
-    if (time_since_last > refresh_rate_ms) {
-        XI_IMG xi_img = m_imageContainer.GetCurrentImage();
-        cv::Mat mat_img;
-        XIIMGtoMat(xi_img, mat_img);
-
-        // Select ROI
-        int w = 32, h = 32;
-        cv::Rect roi = cv::Rect(2048 / 2 - cvRound(w / 2), 1024 / 2 - cvRound(h / 2), w, h);
-        cv::Mat subImg = mat_img(roi);
-        double min, max;
-
-        cv::minMaxLoc(subImg, &min, &max);
-        std::stringstream message;
-        message << "min: " << (unsigned) min << " -- max: " << (unsigned) max;
-        last = now;
-    }
 }
 
 
@@ -436,6 +405,7 @@ void MainWindow::StartTemperatureThread() {
         m_temperature_io_service.reset();
         m_temperature_io_service.run();
     });
+    LOG_SUSICAM(info) << "Started temperature thread";
 }
 
 
@@ -456,6 +426,7 @@ void MainWindow::StopTemperatureThread() {
         m_temperature_work.reset();
         m_temperatureThread.join();
         this->ui->temperatureLCDNumber->display(0);
+        LOG_SUSICAM(info) << "Stopped temperature thread";
     }
 }
 
@@ -660,26 +631,26 @@ void MainWindow::WriteLogHeader() {
 /**
  * @brief Logs a message to a file with optional timestamp.
  *
- * This function appends the given message to a log file. The log_file parameter specifies the path of the log file.
- * If log_time is set to true, the current timestamp will be added to the log entry. Otherwise, only the message will be logged.
+ * This function appends the given message to a log file. The logFile parameter specifies the path of the log file.
+ * If logTime is set to true, the current timestamp will be added to the log entry. Otherwise, only the message will be logged.
  *
  * @param message The message to be logged.
- * @param log_file The path of the log file.
- * @param log_time Specifies whether to log the timestamp along with the message.
+ * @param logFile The path of the log file.
+ * @param logTime Specifies whether to log the timestamp along with the message.
  *
  * @note If the log file does not exist, it will be created. If it already exists, the message will be appended to it.
  * @note The function does not handle exceptions or errors when writing to the log file. It assumes the file can be written to successfully.
  */
-QString MainWindow::LogMessage(QString message, QString log_file, bool log_time) {
+QString MainWindow::LogMessage(QString message, QString logFile, bool logTime) {
     QString timestamp;
     QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
     QString date = (QDate::currentDate()).toString("yyyyMMdd_");
     timestamp = date + curr_time;
-    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + log_file);
+    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + logFile);
     QFile file(log_filename);
     file.open(QIODevice::Append);
     QTextStream stream(&file);
-    if (log_time) {
+    if (logTime) {
         stream << timestamp;
     }
     stream << message << "\n";
@@ -1008,8 +979,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string&& filePrefix, long
  */
 void MainWindow::StartPollingThread() {
     m_imageContainer.StartPolling();
-    m_imageContainerThread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, m_cameraInterface.GetHandle(),
-                                           5);
+    m_imageContainerThread = boost::thread(&ImageContainer::PollImage, &m_imageContainer, &m_cameraInterface.m_cameraHandle,5);
 }
 
 
@@ -1017,9 +987,9 @@ void MainWindow::StartPollingThread() {
  * Stops the thread in charge of the image container and stops polling the images on the image container
  */
 void MainWindow::StopPollingThread() {
+    m_imageContainer.StopPolling();
     m_imageContainerThread.interrupt();
     m_imageContainerThread.join();
-    m_imageContainer.StopPolling();
 }
 
 
@@ -1240,6 +1210,9 @@ void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText) {
 void MainWindow::on_functionalRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerFunctional(this);
+    m_display->StartDisplayer();
+    QString cameraModel = ui->cameraListComboBox->currentText();
+    m_display->SetCameraProperties(cameraModel);
 }
 
 
@@ -1252,6 +1225,9 @@ void MainWindow::on_functionalRadioButton_clicked() {
 void MainWindow::on_rawRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerRaw(this);
+    m_display->StartDisplayer();
+    QString cameraModel = ui->cameraListComboBox->currentText();
+    m_display->SetCameraProperties(cameraModel);
 }
 
 
@@ -1377,22 +1353,18 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
         QString cameraModel = ui->cameraListComboBox->currentText();
         m_cameraInterface.m_cameraModel = cameraModel;
         if (CAMERA_MAPPER.contains(cameraModel)) {
-            QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME);
-            QString cameraFamily = CAMERA_MAPPER.value(cameraModel).value(CAMERA_FAMILY_KEY_NAME);
-            QString originalCameraType = m_cameraInterface.m_cameraType;
-            QString originalCameraFamily = m_cameraInterface.m_cameraFamilyName;
+            QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
+            QString originalCameraModel = m_cameraInterface.m_cameraModel;
             try {
                 // set camera type needed by the camera interface initialization
-                m_display->SetCameraType(cameraType);
-                m_cameraInterface.SetCameraType(cameraType);
-                m_cameraInterface.SetCameraFamily(cameraFamily);
+                m_display->SetCameraProperties(cameraModel);
+                m_cameraInterface.SetCameraProperties(cameraModel);
                 this->StartImageAcquisition(ui->cameraListComboBox->currentText());
             } catch (std::runtime_error &e) {
                 LOG_SUSICAM(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
                 // restore camera type and index
-                m_display->SetCameraType(originalCameraType);
-                m_cameraInterface.SetCameraType(originalCameraType);
-                m_cameraInterface.SetCameraType(originalCameraFamily);
+                m_display->SetCameraProperties(originalCameraModel);
+                m_cameraInterface.SetCameraProperties(originalCameraModel);
                 const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
                 ui->cameraListComboBox->setCurrentIndex(m_cameraInterface.m_cameraIndex);
                 return;
@@ -1400,12 +1372,10 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
             // set new camera index
             m_cameraInterface.SetCameraIndex(index);
             this->EnableUi(true);
-            if (cameraType == SPECTRAL_CAMERA) {
+            if (cameraType == CAMERA_TYPE_SPECTRAL) {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
-                QMetaObject::invokeMethod(ui->rgbNormSlider, "setEnabled", Q_ARG(bool, true));
             } else {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, false));
-                QMetaObject::invokeMethod(ui->rgbNormSlider, "setEnabled", Q_ARG(bool, false));
             }
         } else {
             LOG_SUSICAM(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();

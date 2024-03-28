@@ -12,18 +12,6 @@
 #include "constants.h"
 #include "logger.h"
 
-/**
- * @brief A mapper that maps camera models to their corresponding type and family, e.g. (spectral, xiSpec),
- * (gray, xiC), etc.
- *
- * This mapper is represented as a constant map with camera models as keys and camera types as values.
- */
-const QMap<QString, QMap<QString, QString>> CAMERA_MAPPER = {
-        {"MQ022HG-IM-SM4X4-VIS",  {{CAMERA_TYPE_KEY_NAME, CAMERA_TYPE_SPECTRAL}, {CAMERA_FAMILY_KEY_NAME, CAMERA_FAMILY_XISPEC} }},
-        {"MQ022HG-IM-SM4X4-VIS3", {{CAMERA_TYPE_KEY_NAME, CAMERA_TYPE_SPECTRAL}, {CAMERA_FAMILY_KEY_NAME, CAMERA_FAMILY_XISPEC} }},
-        {"MC050MG-SY-UB",         {{CAMERA_TYPE_KEY_NAME, CAMERA_TYPE_GRAY}, {CAMERA_FAMILY_KEY_NAME, CAMERA_FAMILY_XIC} }}
-};
-
 
 /**
  * Check if XIMEA cameras are connected and counts them
@@ -41,17 +29,15 @@ void CameraInterface::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper){
 /**
  * \brief Sets the camera type.
  *
- * This function sets the camera type for the camera interface.
- * The camera type is represented by a QString parameter called cameraType.
+ * This function sets the camera properties such as camera type and mosaic shape for the camera interface.
+ * The camera type is represented by a QString parameter called cameraModel.
  *
- * \param cameraType The camera type to be set.
+ * \param cameraModel The camera type to be set.
  */
-void CameraInterface::SetCameraType(QString cameraType) {
+void CameraInterface::SetCameraProperties(QString cameraModel) {
+    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
+    QString cameraFamily = CAMERA_MAPPER.value(cameraModel).cameraFamily;
     this->m_cameraType = std::move(cameraType);
-}
-
-
-void CameraInterface::SetCameraFamily(QString cameraFamily) {
     this->m_cameraFamilyName = std::move(cameraFamily);
 }
 
@@ -80,30 +66,22 @@ void CameraInterface::SetCameraIndex(int index) {
  * @see StopAcquisition()
  */
 int CameraInterface::StartAcquisition(QString camera_identifier) {
-    int stat_open = XI_OK;
-    stat_open = OpenDevice(m_availableCameras[camera_identifier]);
+    int stat_open = OpenDevice(m_availableCameras[camera_identifier]);
     HandleResult(stat_open, "OpenDevice");
 
     char cameraSN[100] = {0};
     this->m_apiWrapper->xiGetParamString(this->m_cameraHandle, XI_PRM_DEVICE_SN, cameraSN, sizeof(cameraSN));
-    m_cameraSN = QString::fromUtf8(cameraSN);
+    this->m_cameraSN = QString::fromUtf8(cameraSN);
 
-    int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
         LOG_SUSICAM(info) << "Starting acquisition";
-        stat = this->m_apiWrapper->xiStartAcquisition(m_cameraHandle);
+        int stat = this->m_apiWrapper->xiStartAcquisition(this->m_cameraHandle);
         HandleResult(stat, "xiStartAcquisition");
-        if (stat == XI_OK){
-            LOG_SUSICAM(info) << "successfully initialized camera\n";
-        }
-        else {
-            this->CloseDevice();
-            throw std::runtime_error("could not start camera, camera acquisition start failed");
-        }
+        LOG_SUSICAM(info) << "successfully initialized camera\n";
+        return stat;
     } else {
         throw std::runtime_error("didn't start acquisition, camera invalid handle");
     }
-    return stat;
 }
 
 
@@ -124,9 +102,9 @@ int CameraInterface::StopAcquisition() {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
         LOG_SUSICAM(info) << "Stopping acquisition...";
-        stat = this->m_apiWrapper->xiStopAcquisition(m_cameraHandle);
+        stat = this->m_apiWrapper->xiStopAcquisition(this->m_cameraHandle);
         HandleResult(stat, "xiStopAcquisition");
-        LOG_SUSICAM(info) << "Done!";
+        LOG_SUSICAM(info) << "Acquisition stopped";
     }
     return stat;
 }
@@ -167,13 +145,12 @@ int CameraInterface::OpenDevice(DWORD cameraIdentifier) {
  * @see OpenDevice()
  */
 void CameraInterface::CloseDevice() {
-    StopAcquisition();
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
         LOG_SUSICAM(info) << "Closing device";
         stat = this->m_apiWrapper->xiCloseDevice(this->m_cameraHandle);
+        this->m_cameraHandle = INVALID_HANDLE_VALUE;
         HandleResult(stat, "xiCloseDevice");
-        //this->m_cameraHandle = INVALID_HANDLE_VALUE;
         LOG_SUSICAM(info) << "Done!";
     }
 }
@@ -204,12 +181,11 @@ QStringList CameraInterface::GetAvailableCameraModels() {
     QStringList cameraModels;
     // DWORD and HANDLE are defined by xiAPI
     DWORD dwCamCount = 0;
-    int stat = XI_OK;
     this->m_apiWrapper->xiGetNumberDevices(&dwCamCount);
 
     for (DWORD i = 0; i < dwCamCount; i++) {
         HANDLE cameraHandle = INVALID_HANDLE_VALUE;
-        stat = this->m_apiWrapper->xiOpenDevice(i, &cameraHandle);
+        int stat = this->m_apiWrapper->xiOpenDevice(i, &cameraHandle);
         if (stat != XI_OK){
             LOG_SUSICAM(error) << "cannot open device with ID: " << i << " perhaps already open?";
         } else {
@@ -231,7 +207,9 @@ QStringList CameraInterface::GetAvailableCameraModels() {
  */
 CameraInterface::~CameraInterface() {
     LOG_SUSICAM(debug) << "CameraInterface::~CameraInterface()";
-    this->CloseDevice();
+    if (this->m_cameraHandle != INVALID_HANDLE_VALUE){
+        this->CloseDevice();
+    }
 }
 
 /**
@@ -251,7 +229,12 @@ void CameraInterface::setCamera(QString cameraType, QString cameraFamily) {
     }
     else if (cameraType == CAMERA_TYPE_GRAY){
         this->m_cameraFamily = std::make_unique<XiCFamily>(&this->m_cameraHandle);
-        this->m_camera = std::make_unique<SpectralCamera>(&m_cameraFamily, &this->m_cameraHandle);
+        this->m_camera = std::make_unique<GrayCamera>(&m_cameraFamily, &this->m_cameraHandle);
+        this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
+        this->m_camera->m_apiWrapper = this->m_apiWrapper;
+    } else if (cameraType == CAMERA_TYPE_RGB){
+        this->m_cameraFamily = std::make_unique<XiQFamily>(&this->m_cameraHandle);
+        this->m_camera = std::make_unique<RGBCamera>(&m_cameraFamily, &this->m_cameraHandle);
         this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
         this->m_camera->m_apiWrapper = this->m_apiWrapper;
     }

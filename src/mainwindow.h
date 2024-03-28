@@ -76,7 +76,7 @@ public:
     /**
      * Disables the UI elements
      */
-    void DisableWidgetsInLayout(QLayout *layout, bool enable);
+    void EnableWidgetsInLayout(QLayout *layout, bool enable);
 
     /**
      * Writes general information as header of the log file
@@ -86,7 +86,7 @@ public:
     /**
      * Logs message to log file and returns the timestamp used during logging
      */
-    QString LogMessage(QString message, QString log_filename, bool log_time);
+    QString LogMessage(QString message, QString logFile, bool logTime);
 
     /**
      * Logs camera temperature to log file
@@ -437,11 +437,6 @@ private:
      * thread the snapshot making :-)
      */
     void RecordSnapshots();
-
-    /**
-     * @brief UpdateMinMaxPixelValues read the min/max values from an roi in the image and display in statusbar
-     */
-    void UpdateMinMaxPixelValues();
 
     /**
      * Updates the blood volume fraction and oxygenation value validators.

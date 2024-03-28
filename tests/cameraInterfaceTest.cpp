@@ -14,9 +14,10 @@ TEST(CameraInterfaceTest, SetCameraTypeTest) {
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
-    QString testCameraType = "TestType";
-    cameraInterface.SetCameraType(testCameraType);
-    ASSERT_EQ(cameraInterface.m_cameraType, testCameraType);
+    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
+    cameraInterface.SetCameraProperties(testCameraModel);
+
+    ASSERT_EQ(cameraInterface.m_cameraType, CAMERA_TYPE_SPECTRAL);
 }
 
 
@@ -25,10 +26,9 @@ TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle) {
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
     cameraInterface.setCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
-    QString camera_identifier = "TestType";
+    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
 
-
-    EXPECT_THROW(cameraInterface.StartAcquisition(camera_identifier), std::runtime_error);
+    EXPECT_THROW(cameraInterface.StartAcquisition(testCameraModel), std::runtime_error);
 }
 
 

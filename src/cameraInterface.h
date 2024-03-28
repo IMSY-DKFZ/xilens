@@ -102,12 +102,10 @@ public:
      * The camera type is specified using a QString parameter which should
      * contain the appropriate camera type.
      *
-     * \param cameraType A QString specifying the camera type.
+     * \param cameraModel A QString specifying the camera type.
      */
-    void SetCameraType(QString cameraType);
+    void SetCameraProperties(QString cameraModel);
 
-
-    void SetCameraFamily(QString cameraFamily);
 
     /**
      * @brief Sets the camera index.

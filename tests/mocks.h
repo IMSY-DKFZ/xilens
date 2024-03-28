@@ -59,6 +59,10 @@ public:
         return 0;
     }
 
+    int xiGetImage(IN HANDLE hDevice, IN DWORD timeout, OUT LPXI_IMG img) override {
+        return 0;
+    }
+
 };
 
 

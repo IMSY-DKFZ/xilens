@@ -101,6 +101,7 @@ set(SUSICAM_LIB_HDR src/mainwindow.h
         src/camera.h
         src/logger.h
         src/xiAPIWrapper.h
+        src/constants.h
 )
 set(SUSICAM_LIB_UI src/mainwindow.ui)
 
@@ -145,6 +146,7 @@ add_executable(
         tests/utilTest.cpp
         tests/cameraInterfaceTest.cpp
         tests/displayersTest.cpp
+        tests/imageContainerTest.cpp
 )
 target_link_libraries(
         SUSICAM_TESTS
