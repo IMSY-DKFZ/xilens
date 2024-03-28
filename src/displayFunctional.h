@@ -78,7 +78,12 @@ public:
     /**
      * type of camera being used: spectral, gray, etc.
      */
-    QString m_cameraType = SPECTRAL_CAMERA;
+    QString m_cameraType = CAMERA_TYPE_SPECTRAL;
+
+    /**
+     * Mosaic shape, particularly used for mosaic type cameras
+     */
+    std::vector<int> m_mosaicShape;
 
     /**
      * Look up table used to assign pixel colors to undersaturated and oversaturated pixels

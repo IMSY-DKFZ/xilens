@@ -87,11 +87,6 @@ const char *libfiveGitRevision(void);
 const char *libfiveGitBranch(void);
 
 /**
- * Variable that stores the mosaic shape used to demosaic the images during display
- */
-const std::vector<int> MOSAIC_SHAPE = {4, 4};
-
-/**
  * Initializes the logging by setting a severity
  * @param severity level of logging to set
  */

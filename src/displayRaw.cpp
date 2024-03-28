@@ -246,7 +246,7 @@ void DisplayerRaw::Display(XI_IMG &image) {
  * @param cameraModel camera type to be set
  */
 void DisplayerRaw::SetCameraProperties(QString cameraModel) {
-    QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME).toString();
+    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
     this->m_cameraType = std::move(cameraType);
 }
 

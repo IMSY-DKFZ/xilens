@@ -213,7 +213,7 @@ void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowN
 /**
  * @brief Function that extracts a specific band (channel) from an image
  *
- * This function computes the location of the first value of the desired band based on the MOSAIC_SHAPE.
+ * This function computes the location of the first value of the desired band based on the mosaic shape.
  * It then selects data from the specific band and stores it in band_image. band_image is converted
  * to an 8-bit image and divided by the scaling factor to convert it from 10-bit to 8-bit.
  *
@@ -223,13 +223,13 @@ void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowN
  */
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr) {
     // compute location of first value
-    int init_col = (band_nr - 1) % MOSAIC_SHAPE[0];
-    int init_row = (band_nr - 1) / MOSAIC_SHAPE[1];
+    int init_col = (band_nr - 1) % this->m_mosaicShape[0];
+    int init_row = (band_nr - 1) / this->m_mosaicShape[1];
     // select data from specific band
     int row = 0;
-    for (int i = init_row; i < image.rows; i += MOSAIC_SHAPE[0]) {
+    for (int i = init_row; i < image.rows; i += this->m_mosaicShape[0]) {
         int col = 0;
-        for (int j = init_col; j < image.cols; j += MOSAIC_SHAPE[1]) {
+        for (int j = init_col; j < image.cols; j += this->m_mosaicShape[1]) {
             band_image.at<ushort>(row, col) = image.at<ushort>(i, j);
             col++;
         }
@@ -281,7 +281,6 @@ void DisplayerFunctional::Display(XI_IMG &image) {
         return;
     }
     static int selected_display = 0;
-
     selected_display++;
     // give it some time to draw the first frame. For some reason neccessary.
     // probably has to do with missing waitkeys after imshow (these crash the application)
@@ -292,20 +291,19 @@ void DisplayerFunctional::Display(XI_IMG &image) {
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat rawImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
-                                                          currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
+            cv::Mat rawImage;
             static cv::Mat bgrImage;
 
             if (m_cameraType == CAMERA_TYPE_SPECTRAL) {
+                rawImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],currentImage.cols / this->m_mosaicShape[1], CV_16UC1);
                 this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
-                bgrImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
+                bgrImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0], currentImage.cols / this->m_mosaicShape[1], CV_8UC3);
                 this->GetBGRImage(currentImage, bgrImage);
             } else if (m_cameraType == CAMERA_TYPE_GRAY) {
                 rawImage = currentImage.clone();
                 rawImage /= m_scaling_factor; // 10 bit to 8 bit
                 rawImage.convertTo(rawImage, CV_8UC1);
-                bgrImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
-                this->GetBGRImage(currentImage, bgrImage);
+                cv::cvtColor(rawImage, bgrImage, cv::COLOR_GRAY2BGR);
             } else if (m_cameraType == CAMERA_TYPE_RGB){
                 rawImage = currentImage.clone();
                 rawImage /= m_scaling_factor; // 10 bit to 8 bit
@@ -353,7 +351,7 @@ void DisplayerFunctional::Display(XI_IMG &image) {
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
     std::vector<cv::Mat> channels;
     for (int i: m_bgr_channels) {
-        cv::Mat band_image = cv::Mat::zeros(image.rows / MOSAIC_SHAPE[0], image.cols / MOSAIC_SHAPE[1], CV_16UC1);
+        cv::Mat band_image = cv::Mat::zeros(image.rows / this->m_mosaicShape[0], image.cols / this->m_mosaicShape[1], CV_16UC1);
         this->GetBand(image, band_image, i);
         channels.push_back(band_image);
     }
@@ -373,8 +371,10 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
  * This string is moved to the m_cameraType member variable.
  */
 void DisplayerFunctional::SetCameraProperties(QString cameraModel) {
-    QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME).toString();
+    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
     this->m_cameraType = std::move(cameraType);
+    auto mosaicShape = CAMERA_MAPPER.value(cameraModel).mosaicShape;
+    this->m_mosaicShape = std::move(mosaicShape);
 }
 
 

@@ -1341,7 +1341,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
         QString cameraModel = ui->cameraListComboBox->currentText();
         m_cameraInterface.m_cameraModel = cameraModel;
         if (CAMERA_MAPPER.contains(cameraModel)) {
-            QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME).toString();
+            QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
             QString originalCameraModel = m_cameraInterface.m_cameraModel;
             try {
                 // set camera type needed by the camera interface initialization
@@ -1360,7 +1360,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index) {
             // set new camera index
             m_cameraInterface.SetCameraIndex(index);
             this->EnableUi(true);
-            if (cameraType == SPECTRAL_CAMERA) {
+            if (cameraType == CAMERA_TYPE_SPECTRAL) {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
             } else {
                 QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, false));

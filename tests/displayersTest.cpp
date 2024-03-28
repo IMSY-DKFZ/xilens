@@ -22,8 +22,8 @@ TEST(DisplayerFunctional, DisplayImage) {
     df.m_cameraType = CAMERA_TYPE_SPECTRAL;
 
     auto* image = new XI_IMG;
-    image->width = MOSAIC_SHAPE[1] * 512;
-    image->height = MOSAIC_SHAPE[0] * 272;
+    image->width = 4 * 512;
+    image->height = 4 * 272;
     image->bp = new unsigned char[image->width * image->height * 2]();
 
     EXPECT_NO_THROW(df.Display(*image));
@@ -44,8 +44,8 @@ TEST(DisplayerRaw, DisplayImage) {
     dr.m_cameraType = CAMERA_TYPE_SPECTRAL;
 
     auto* image = new XI_IMG;
-    image->width = MOSAIC_SHAPE[1] * 512;
-    image->height = MOSAIC_SHAPE[0] * 272;
+    image->width = 4 * 512;
+    image->height = 4 * 272;
     image->bp = new unsigned char[image->width * image->height * 2]();
 
     EXPECT_NO_THROW(dr.Display(*image));

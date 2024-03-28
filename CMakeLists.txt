@@ -90,7 +90,6 @@ set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/util.cpp
         src/camera.cpp
         src/logger.cpp
-        src/constants.cpp
 )
 set(SUSICAM_LIB_HDR src/mainwindow.h
         src/cameraInterface.h
