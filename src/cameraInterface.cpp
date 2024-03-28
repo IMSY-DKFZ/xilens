@@ -149,6 +149,7 @@ void CameraInterface::CloseDevice() {
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle) {
         LOG_SUSICAM(info) << "Closing device";
         stat = this->m_apiWrapper->xiCloseDevice(this->m_cameraHandle);
+        this->m_cameraHandle = INVALID_HANDLE_VALUE;
         HandleResult(stat, "xiCloseDevice");
         LOG_SUSICAM(info) << "Done!";
     }
@@ -206,7 +207,9 @@ QStringList CameraInterface::GetAvailableCameraModels() {
  */
 CameraInterface::~CameraInterface() {
     LOG_SUSICAM(debug) << "CameraInterface::~CameraInterface()";
-    this->CloseDevice();
+    if (this->m_cameraHandle != INVALID_HANDLE_VALUE){
+        this->CloseDevice();
+    }
 }
 
 /**
