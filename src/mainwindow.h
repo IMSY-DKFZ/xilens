@@ -439,11 +439,6 @@ private:
     void RecordSnapshots();
 
     /**
-     * @brief UpdateMinMaxPixelValues read the min/max values from an roi in the image and display in statusbar
-     */
-    void UpdateMinMaxPixelValues();
-
-    /**
      * Updates the blood volume fraction and oxygenation value validators.
      */
     void UpdateVhbSao2Validators();

@@ -123,9 +123,6 @@ void MainWindow::StartImageAcquisition(QString camera_identifier) {
         /***************************************/
         // when a new image arrives, display it
         QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-        // display min/max values in small center roi of image
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
-                         &MainWindow::UpdateMinMaxPixelValues);
     }
     catch (std::runtime_error &error) {
         LOG_SUSICAM(warning) << "could not start camera, got error " << error.what();
@@ -152,8 +149,6 @@ void MainWindow::StopImageAcquisition() {
     m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-    QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
-                        &MainWindow::UpdateMinMaxPixelValues);
     LOG_SUSICAM(info) << "Stopped Image Acquisition";
 }
 
@@ -239,44 +234,6 @@ void MainWindow::UpdateVhbSao2Validators() {
     ui->maxVhbLineEdit->setValidator(new QIntValidator(ui->minVhbLineEdit->text().toInt(), MAX_VHB, this));
     ui->minSao2LineEdit->setValidator(new QIntValidator(MIN_SAO2, ui->maxSao2LineEdit->text().toInt(), this));
     ui->maxSao2LineEdit->setValidator(new QIntValidator(ui->minSao2LineEdit->text().toInt(), MAX_SAO2, this));
-}
-
-
-/**
- * @brief Updates the minimum and maximum pixel values of the main window.
- *
- * This function calculates the minimum and maximum pixel values from the current image data
- * and updates the corresponding member variables of the main window.
- *
- * @note This function should be called whenever there is a change in the image data that may
- * affect the minimum and maximum pixel values.
- *
- * @todo This method does not seem to be used for anything and could potentially be removed
- */
-void MainWindow::UpdateMinMaxPixelValues() {
-    const unsigned refresh_rate_ms = 1000; // refresh all 1000ms
-
-    static boost::posix_time::ptime last = boost::posix_time::microsec_clock::local_time();
-    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-
-    long time_since_last = (now - last).total_milliseconds();
-
-    if (time_since_last > refresh_rate_ms) {
-        XI_IMG xi_img = m_imageContainer.GetCurrentImage();
-        cv::Mat mat_img;
-        XIIMGtoMat(xi_img, mat_img);
-
-        // Select ROI
-        int w = 32, h = 32;
-        cv::Rect roi = cv::Rect(2048 / 2 - cvRound(w / 2), 1024 / 2 - cvRound(h / 2), w, h);
-        cv::Mat subImg = mat_img(roi);
-        double min, max;
-
-        cv::minMaxLoc(subImg, &min, &max);
-        std::stringstream message;
-        message << "min: " << (unsigned) min << " -- max: " << (unsigned) max;
-        last = now;
-    }
 }
 
 
