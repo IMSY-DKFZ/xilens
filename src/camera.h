@@ -130,6 +130,30 @@ public:
 };
 
 /**
+ * xiQ camera family
+ */
+class XiQFamily: public CameraFamily{
+private:
+    /**
+     * Camera handle used to handle all interactions with it
+     */
+    HANDLE* m_cameraHandle;
+
+public:
+    /**
+     * Constructor of camera family
+     *
+     * @param handle camera handle used for all interactions with it
+     */
+    explicit XiQFamily(HANDLE* handle): CameraFamily(handle), m_cameraHandle(handle){}
+
+    /**
+     * Updates camera temperature
+     */
+    void UpdateCameraTemperature() override;
+};
+
+/**
  * Base camera class
  */
 class Camera {
@@ -241,7 +265,7 @@ public:
 };
 
 /**
- * Gray scale camera handle
+ * Gray scale camera-specific components
  */
 class GrayCamera: public Camera{
 public:
@@ -255,6 +279,29 @@ public:
 
     /**
      * Initializes the camera by setting parameters common to all cameras and also specific values for gray scale
+     * cameras.
+     *
+     * @param cameraHandle camera handle used to manage all interactions with it
+     */
+    int InitializeCamera() override;
+};
+
+
+/**
+ * GRGB camera-specific components
+ */
+class RGBCamera: public Camera{
+public:
+    /**
+     * Constructor of RGB camera construct
+     *
+     * @param family family of the camera to be constructed
+     * @param handle camera handle used for all interactions with it
+     */
+    RGBCamera(std::unique_ptr<CameraFamily> *family, HANDLE* handle): Camera(family, handle) {}
+
+    /**
+     * Initializes the camera by setting parameters common to all cameras and also specific values for RGB
      * cameras.
      *
      * @param cameraHandle camera handle used to manage all interactions with it

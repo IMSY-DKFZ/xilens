@@ -15,7 +15,7 @@ TEST(CameraInterfaceTest, SetCameraTypeTest) {
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
     QString testCameraType = "TestType";
-    cameraInterface.SetCameraType(testCameraType);
+    cameraInterface.SetCameraProperties(testCameraType);
     ASSERT_EQ(cameraInterface.m_cameraType, testCameraType);
 }
 

@@ -61,11 +61,11 @@ public:
     ~DisplayerFunctional() override;
 
     /**
-     * Assigns camera type to member variable
+     * Assigns camera properties such as type and mosaic shape.
      *
-     * @param camera_type camera type to set
+     * @param cameraModel camera type to set
      */
-    void SetCameraType(QString camera_type) override;
+    void SetCameraProperties(QString cameraModel) override;
 
     /**
      * Down-samples image in case it is bigger than maximum dimensions defined by constants::MAX_WIDTH_DISPLAY_WINDOW

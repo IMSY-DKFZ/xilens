@@ -41,17 +41,19 @@ ImageContainer::~ImageContainer() {
  *
  * A lock guard is used to avoid overwriting the current container image when other processes are using it.
  *
- * @param camHandle The handle to the camera device.
+ * @param cameraHandle The handle to the camera device.
  * @param pollingRate The polling rate in milliseconds.
  */
-void ImageContainer::PollImage(HANDLE camHandle, int pollingRate) {
+void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate) {
     static unsigned lastImageId = 0;
     while (m_PollImage) {
-        int stat = XI_OK;
         {
             boost::lock_guard<boost::mutex> guard(mtx_);
-            stat = xiGetImage(camHandle, 5000, &m_Image);
-            HandleResult(stat, "xiGetImage");
+            boost::this_thread::interruption_point();
+            if (cameraHandle != INVALID_HANDLE_VALUE){
+                int stat = xiGetImage(*cameraHandle, 5000, &m_Image);
+                HandleResult(stat, "xiGetImage");
+            }
             if (m_Image.acq_nframe != lastImageId) {
                 emit NewImage();
                 lastImageId = m_Image.acq_nframe;

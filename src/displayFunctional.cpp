@@ -277,6 +277,9 @@ void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat &image) {
  * @see constants.h
  */
 void DisplayerFunctional::Display(XI_IMG &image) {
+    if (m_stop){
+        return;
+    }
     static int selected_display = 0;
 
     selected_display++;
@@ -289,36 +292,52 @@ void DisplayerFunctional::Display(XI_IMG &image) {
             boost::lock_guard<boost::mutex> guard(mtx_);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat raw_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
+            cv::Mat rawImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
                                                           currentImage.cols / MOSAIC_SHAPE[1], CV_16UC1);
-            static cv::Mat bgr_image = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0],
-                                                      currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
+            static cv::Mat bgrImage;
 
             if (m_cameraType == CAMERA_TYPE_SPECTRAL) {
-                this->GetBand(currentImage, raw_image, m_mainWindow->GetBand());
+                this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
+                bgrImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
+                this->GetBGRImage(currentImage, bgrImage);
             } else if (m_cameraType == CAMERA_TYPE_GRAY) {
-                raw_image = currentImage;
-                raw_image /= m_scaling_factor; // 10 bit to 8 bit
-                raw_image.convertTo(raw_image, CV_8UC1);
+                rawImage = currentImage.clone();
+                rawImage /= m_scaling_factor; // 10 bit to 8 bit
+                rawImage.convertTo(rawImage, CV_8UC1);
+                bgrImage = cv::Mat::zeros(currentImage.rows / MOSAIC_SHAPE[0], currentImage.cols / MOSAIC_SHAPE[1], CV_8UC3);
+                this->GetBGRImage(currentImage, bgrImage);
+            } else if (m_cameraType == CAMERA_TYPE_RGB){
+                rawImage = currentImage.clone();
+                rawImage /= m_scaling_factor; // 10 bit to 8 bit
+                rawImage.convertTo(rawImage, CV_8UC3);
+
+                bgrImage = currentImage.clone();
+                if (image.color_filter_array == XI_CFA_BAYER_GBRG){
+                cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2RGB);
+                } else {
+                    LOG_SUSICAM(error) << "Could not interpret filter array of type: " << image.color_filter_array;
+                }
+
+                bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
             } else {
                 LOG_SUSICAM(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
                 throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
-            cv::Mat raw_image_to_display = raw_image.clone();
+            cv::Mat raw_image_to_display = rawImage.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
             this->PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
             DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
 
             // display BGR image
-            this->GetBGRImage(currentImage, bgr_image);
-            DownsampleImageIfNecessary(bgr_image);
+            DownsampleImageIfNecessary(bgrImage);
             if (m_mainWindow->GetNormalize()) {
-                NormalizeBGRImage(bgr_image);
+                NormalizeBGRImage(bgrImage);
             } else {
-                PrepareBGRImage(bgr_image, m_mainWindow->GetBGRNorm());
+                PrepareBGRImage(bgrImage, m_mainWindow->GetBGRNorm());
             }
-            DisplayImage(bgr_image, BGR_WINDOW_NAME);
-            m_mainWindow->UpdateSaturationPercentageLCDDisplays(raw_image);
+            DisplayImage(bgrImage, BGR_WINDOW_NAME);
+            // update saturation displays
+            m_mainWindow->UpdateSaturationPercentageLCDDisplays(rawImage);
         }
     }
 }
@@ -350,11 +369,12 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) {
 /**
  * @brief Sets the camera type for the DisplayerFunctional instance.
  *
- * @param camera_type A QString that represents the type of the camera.
+ * @param cameraModel A QString that represents the type of the camera.
  * This string is moved to the m_cameraType member variable.
  */
-void DisplayerFunctional::SetCameraType(QString camera_type) {
-    this->m_cameraType = std::move(camera_type);
+void DisplayerFunctional::SetCameraProperties(QString cameraModel) {
+    QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME).toString();
+    this->m_cameraType = std::move(cameraType);
 }
 
 

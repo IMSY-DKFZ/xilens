@@ -86,7 +86,7 @@ public:
     /**
      * Logs message to log file and returns the timestamp used during logging
      */
-    QString LogMessage(QString message, QString log_filename, bool log_time);
+    QString LogMessage(QString message, QString logFile, bool logTime);
 
     /**
      * Logs camera temperature to log file

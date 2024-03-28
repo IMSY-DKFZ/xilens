@@ -983,6 +983,36 @@ QSlider::add-page:vertical {
 background: #ffd740;
 }
 
+QSlider::handle:horizontal:disabled {
+    image: url(:/icon/theme/disabled/slider.svg);
+    width: 18px;
+    height: 18px;
+    margin: -18px -9px;
+}
+
+QSlider::handle:vertical:disabled {
+    image: url(:/icon/theme/disabled/slider.svg);
+    width: 18px;
+    height: 18px;
+    margin: -18px -9px;
+}
+
+QSlider::add-page:horizontal:disabled {
+background: #232629;
+}
+
+QSlider::sub-page:horizontal:disabled {
+background: #4F5B62;
+}
+
+QSlider::sub-page:vertical:disabled {
+background: #232629;
+}
+
+QSlider::add-page:vertical:disabled {
+background: #4F5B62;
+}
+
 /*  ------------------------------------------------------------------------  */
 /*  QLabel  */
 

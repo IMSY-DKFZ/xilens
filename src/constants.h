@@ -1,7 +1,13 @@
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+*******************************************************/
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
 #include <QString>
+#include <QVariant>
+#include <QMap>
 #include <opencv2/opencv.hpp>
 
 /**
@@ -13,12 +19,12 @@ const int MAX_HEIGHT_DISPLAY_WINDOW = 544;
 ///@}
 
 /**
- *  \name Camera Types and Mapper
+ *  \name Camera Types
  * @{
  */
 const QString SPECTRAL_CAMERA = "spectral";
 const QString GRAY_CAMERA = "gray";
-extern const QMap<QString, QMap<QString, QString>> CAMERA_MAPPER;
+const QString RGB_CAMERA = "rgb";
 ///@}
 
 /**
@@ -114,6 +120,10 @@ const QString CAMERA_FAMILY_KEY_NAME = "cameraFamily";
 const QString CAMERA_FAMILY_XISPEC = "xiSpec";
 /// Camera family: Xic.
 const QString CAMERA_FAMILY_XIC = "xiC";
+/// Camera family: XiQ.
+const QString CAMERA_FAMILY_XIQ = "xiQ";
+/// Camera mosaic size
+const QString CAMERA_MOSAIC_SIZE_NAME = "mosaicSize";
 ///@}
 
 /**
@@ -124,5 +134,13 @@ const QString CAMERA_FAMILY_XIC = "xiC";
 /// Number of reference images to record.
 const int NR_REFERENCE_IMAGES_TO_RECORD = 100;
 ///@}
+
+/**
+ * @brief A mapper that maps camera models to their corresponding type and family, e.g. (spectral, xiSpec),
+ * (gray, xiC), etc.
+ *
+ * This mapper is represented as a constant map with camera models as keys and camera types as values.
+ */
+extern const QMap<QString, QMap<QString, QVariant>> CAMERA_MAPPER;
 
 #endif

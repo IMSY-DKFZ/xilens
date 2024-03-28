@@ -221,6 +221,9 @@ void DisplayerRaw::DisplayImage(cv::Mat &image, const std::string windowName) {
  * @param image image to be displayed
  */
 void DisplayerRaw::Display(XI_IMG &image) {
+    if (m_stop){
+        return;
+    }
     static int selected_display = 0;
 
     selected_display++;
@@ -240,10 +243,11 @@ void DisplayerRaw::Display(XI_IMG &image) {
 /**
  * Sets camera type
  *
- * @param camera_type camera type to be set
+ * @param cameraModel camera type to be set
  */
-void DisplayerRaw::SetCameraType(QString camera_type) {
-    this->m_cameraType = std::move(camera_type);
+void DisplayerRaw::SetCameraProperties(QString cameraModel) {
+    QString cameraType = CAMERA_MAPPER.value(cameraModel).value(CAMERA_TYPE_KEY_NAME).toString();
+    this->m_cameraType = std::move(cameraType);
 }
 
 

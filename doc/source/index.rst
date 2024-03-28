@@ -8,7 +8,7 @@ This application aims at providing an easy to use graphical user interface (GUI)
 .. important::
 
     This applications has mainly been developed to be used in **UNIX systems**, however it might also be possible
-    to sue it in **Windows systems**.
+    to use it in **Windows systems**.
 
 Getting started
 ===============

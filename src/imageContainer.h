@@ -33,10 +33,10 @@ public:
      *
      * A lock guard is used to avoid overwriting the current container image when other processes are using it.
      *
-     * @param camHandle The handle to the camera device.
+     * @param cameraHandle The handle to the camera device.
      * @param pollingRate The polling rate in milliseconds.
      */
-    void PollImage(HANDLE camHandle, int pollingRate);
+    void PollImage(HANDLE *cameraHandle, int pollingRate);
 
     /**
      * Queries current imag ein container
