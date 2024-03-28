@@ -165,7 +165,7 @@ void MainWindow::StopImageAcquisition() {
  * @param enable A boolean value indicating whether to enable or disable the widgets.
  *               true to enable, false to disable.
  */
-void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
+void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable) {
     for (int i = 0; i < layout->count(); ++i) {
         QLayout *subLayout = layout->itemAt(i)->layout();
         QWidget *widget = layout->itemAt(i)->widget();
@@ -173,7 +173,7 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
             widget->setEnabled(enable);
         }
         if (subLayout) {
-            DisableWidgetsInLayout(subLayout, enable);
+            EnableWidgetsInLayout(subLayout, enable);
         }
     }
 }
@@ -191,11 +191,17 @@ void MainWindow::DisableWidgetsInLayout(QLayout *layout, bool enable) {
  */
 void MainWindow::EnableUi(bool enable) {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
-    DisableWidgetsInLayout(layout, enable);
+    EnableWidgetsInLayout(layout, enable);
     ui->exposureSlider->setEnabled(enable);
     ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
-    DisableWidgetsInLayout(layoutExtras, enable);
+    EnableWidgetsInLayout(layoutExtras, enable);
+    QLayout *functionalLayout = ui->functionalParametersColoringVerticalLayout->layout();
+    if(m_cameraInterface.m_cameraType != CAMERA_TYPE_SPECTRAL){
+        EnableWidgetsInLayout(functionalLayout, false);
+    } else{
+        EnableWidgetsInLayout(functionalLayout, enable);
+    }
 }
 
 
@@ -1204,6 +1210,9 @@ void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText) {
 void MainWindow::on_functionalRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerFunctional(this);
+    m_display->StartDisplayer();
+    QString cameraModel = ui->cameraListComboBox->currentText();
+    m_display->SetCameraProperties(cameraModel);
 }
 
 
@@ -1216,6 +1225,9 @@ void MainWindow::on_functionalRadioButton_clicked() {
 void MainWindow::on_rawRadioButton_clicked() {
     delete m_display;
     m_display = new DisplayerRaw(this);
+    m_display->StartDisplayer();
+    QString cameraModel = ui->cameraListComboBox->currentText();
+    m_display->SetCameraProperties(cameraModel);
 }
 
 

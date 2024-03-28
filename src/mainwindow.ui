@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>738</width>
-    <height>909</height>
+    <height>925</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,7 +54,7 @@
            <item>
             <layout class="QHBoxLayout" name="mainUiHorizontalLayout">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_5">
+              <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,1,0">
                <property name="sizeConstraint">
                 <enum>QLayout::SetDefaultConstraint</enum>
                </property>
@@ -66,7 +66,7 @@
                 </widget>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="mainUiVerticalLayout">
+                <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
                  <item>
                   <widget class="QRadioButton" name="functionalRadioButton">
                    <property name="enabled">
@@ -469,13 +469,16 @@
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="Line" name="line_8">
-                   <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="functionalParametersColoringVerticalLayout" stretch="0,0,0,0,0">
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <property name="sizeConstraint">
+                  <enum>QLayout::SetDefaultConstraint</enum>
+                 </property>
                  <item>
                   <widget class="QCheckBox" name="scaleParamtersCheckBox">
                    <property name="text">
@@ -972,6 +975,42 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>cameraListComboBox</tabstop>
+  <tabstop>functionalRadioButton</tabstop>
+  <tabstop>rawRadioButton</tabstop>
+  <tabstop>filePrefixLineEdit</tabstop>
+  <tabstop>subFolderLineEdit</tabstop>
+  <tabstop>baseFolderButton</tabstop>
+  <tabstop>baseFolderLineEdit</tabstop>
+  <tabstop>recordButton</tabstop>
+  <tabstop>darkCorrectionButton</tabstop>
+  <tabstop>whiteBalanceButton</tabstop>
+  <tabstop>exposureLineEdit</tabstop>
+  <tabstop>skipFramesSpinBox</tabstop>
+  <tabstop>normalizeCheckbox</tabstop>
+  <tabstop>autoexposureCheckbox</tabstop>
+  <tabstop>rgbNormSlider</tabstop>
+  <tabstop>bandSlider</tabstop>
+  <tabstop>scaleParamtersCheckBox</tabstop>
+  <tabstop>minVhbLineEdit</tabstop>
+  <tabstop>maxVhbLineEdit</tabstop>
+  <tabstop>minSao2LineEdit</tabstop>
+  <tabstop>maxSao2LineEdit</tabstop>
+  <tabstop>exposureSlider</tabstop>
+  <tabstop>logTextEdit</tabstop>
+  <tabstop>minVhbLineEdit</tabstop>
+  <tabstop>maxVhbLineEdit</tabstop>
+  <tabstop>logTextLineEdit</tabstop>
+  <tabstop>minSao2LineEdit</tabstop>
+  <tabstop>maxSao2LineEdit</tabstop>
+  <tabstop>subFolderExtrasLineEdit</tabstop>
+  <tabstop>filePrefixExtrasLineEdit</tabstop>
+  <tabstop>scaleParamtersCheckBox</tabstop>
+  <tabstop>snapshotButton</tabstop>
+  <tabstop>nSnapshotsSpinBox</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

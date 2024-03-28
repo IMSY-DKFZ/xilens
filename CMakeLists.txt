@@ -146,6 +146,7 @@ add_executable(
         tests/utilTest.cpp
         tests/cameraInterfaceTest.cpp
         tests/displayersTest.cpp
+        tests/imageContainerTest.cpp
 )
 target_link_libraries(
         SUSICAM_TESTS

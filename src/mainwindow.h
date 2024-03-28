@@ -76,7 +76,7 @@ public:
     /**
      * Disables the UI elements
      */
-    void DisableWidgetsInLayout(QLayout *layout, bool enable);
+    void EnableWidgetsInLayout(QLayout *layout, bool enable);
 
     /**
      * Writes general information as header of the log file

@@ -19,6 +19,8 @@ TEST(DisplayerFunctional, DisplayImage) {
     auto app = QApplication(argc, argv);
 
     MockDisplayerFunctional df;
+    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
+    df.SetCameraProperties(testCameraModel);
     df.m_cameraType = CAMERA_TYPE_SPECTRAL;
 
     auto* image = new XI_IMG;
