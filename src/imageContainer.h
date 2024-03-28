@@ -9,15 +9,29 @@
 #include <boost/thread.hpp>
 #include <QObject>
 
+#include "xiAPIWrapper.h"
+
 
 class ImageContainer : public QObject {
 Q_OBJECT
 
 public:
     /**
+     * Wrapper to xiAPI, useful for mocking the aPI during testing
+     */
+    std::shared_ptr<XiAPIWrapper> m_apiWrapper;
+
+    /**
      * Constructor of image container. The memory of the current image in container is set here with memset
      */
     ImageContainer();
+
+    /**
+     * Initializes the container by setting the API for communication with the cameras
+     *
+     * @param apiWrapper
+     */
+    void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
 
     /**
      * Destructor of image container

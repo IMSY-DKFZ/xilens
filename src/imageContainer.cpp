@@ -25,6 +25,16 @@ ImageContainer::ImageContainer() : m_PollImage(true) {
 
 
 /**
+ * The member variable for the API wrapper is set to the global API wrapper a a shared pointer.
+ *
+ * @param apiWrapper
+ */
+void ImageContainer::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper) {
+    this->m_apiWrapper = apiWrapper;
+}
+
+
+/**
  * Destructor of image container
  */
 ImageContainer::~ImageContainer() {
@@ -51,7 +61,7 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate) {
             boost::lock_guard<boost::mutex> guard(mtx_);
             boost::this_thread::interruption_point();
             if (cameraHandle != INVALID_HANDLE_VALUE){
-                int stat = xiGetImage(*cameraHandle, 5000, &m_Image);
+                int stat = m_apiWrapper->xiGetImage(*cameraHandle, 5000, &m_Image);
                 HandleResult(stat, "xiGetImage");
             }
             if (m_Image.acq_nframe != lastImageId) {

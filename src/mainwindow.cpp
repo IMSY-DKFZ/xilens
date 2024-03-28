@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
         m_elapsedTime(0) {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
+    m_imageContainer.Initialize(this->m_xiAPIWrapper);
     ui->setupUi(this);
 
     // Display needs to be instantiated before changing camera list because calling setCurrentIndex on the list.
