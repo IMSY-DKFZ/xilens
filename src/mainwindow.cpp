@@ -45,7 +45,7 @@
 MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapper) :
         QMainWindow(parent),
         ui(new Ui::MainWindow),
-        m_io_service(), m_work(m_io_service),
+        m_IOService(), m_work(m_IOService),
         m_temperature_io_service(), m_temperature_work(new boost::asio::io_service::work(m_temperature_io_service)),
         m_cameraInterface(),
         m_recordedCount(0),
@@ -88,12 +88,6 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     QString initialExpString = QString::number(slider->value());
     expEdit->setText(initialExpString);
     UpdateVhbSao2Validators();
-
-    // create thread pool
-    for (int i = 0; i < 2; i++) // put 2 threads in thread pool
-    {
-        m_threadpool.create_thread([&] { return m_io_service.run(); });
-    }
 
     LOG_SUSICAM(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
@@ -250,7 +244,7 @@ void MainWindow::UpdateVhbSao2Validators() {
  * This destructor is automatically called when the object is destroyed.
  */
 MainWindow::~MainWindow() {
-    m_io_service.stop();
+    m_IOService.stop();
     m_temperature_io_service.stop();
     m_threadpool.join_all();
 
@@ -278,16 +272,25 @@ void MainWindow::RecordSnapshots() {
     QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
 
-    std::string name = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
-    std::string snapshotSubFolderName = ui->subFolderExtrasLineEdit->text().toUtf8().constData();
+    std::string filePrefix = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
+    std::string subFolder = ui->subFolderExtrasLineEdit->text().toUtf8().constData();
+
+    if (filePrefix.empty()){
+        filePrefix = m_recPrefixlineEdit.toUtf8().constData();
+    }
+    if (subFolder.empty()){
+        subFolder = m_subFolder.toStdString();
+    }
+    QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
+    auto image = m_imageContainer.GetCurrentImage();
+    FileImage snapshotsFile(filePath.toStdString().c_str(), image.height, image.width);
 
     for (int i = 0; i < nr_images; i++) {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         int waitTime = 2 * exp_time;
         wait(waitTime);
-        std::stringstream name_i;
-        name_i << name << "_" << i;
-        this->RecordImage(snapshotSubFolderName, name_i.str(), true);
+        image = m_imageContainer.GetCurrentImage();
+        snapshotsFile.write(image);
         int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
@@ -768,7 +771,19 @@ QString MainWindow::GetBaseFolder() const {
  * \brief Executes image recording in a separate thread.
  */
 void MainWindow::ThreadedRecordImage() {
-    m_io_service.post([this] { RecordImage(); });
+    this->m_IOService.post([this] { RecordImage(false); });
+}
+
+
+void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string filePrefix){
+    if (filePrefix.empty()){
+        filePrefix = m_recPrefixlineEdit.toUtf8().constData();
+    }
+    if (subFolder.empty()){
+        subFolder = m_subFolder.toStdString();
+    }
+    QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
+    this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
 }
 
 
@@ -780,28 +795,20 @@ void MainWindow::ThreadedRecordImage() {
  * application to a file or any other desired location.
  * The LCD displaying the number of recorded images is also updated.
  *
- * @param subFolder folder inside base folder where image will be recorded
- * @param filePrefix file prefix used to name file. If not provided, the prefix specified in the GUI is used
  * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
  */
-void MainWindow::RecordImage(std::string subFolder, std::string filePrefix, bool ignoreSkipping) {
+void MainWindow::RecordImage(bool ignoreSkipping) {
+    boost::this_thread::interruption_point();
     XI_IMG image = m_imageContainer.GetCurrentImage();
+    boost::lock_guard<boost::mutex> guard(this->mtx_);
     static long lastImageID = image.acq_nframe;
     int nSkipFrames = ui->skipFramesSpinBox->value();
     if (this->ImageShouldBeRecorded(nSkipFrames, image.acq_nframe) || ignoreSkipping) {
-        if (filePrefix.empty()){
-            filePrefix = m_recPrefixlineEdit.toUtf8().constData();
-        }
-        if (subFolder.empty()){
-            subFolder = m_subFolder.toStdString();
-        }
-        QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), image.acq_nframe, ".dat", std::move(subFolder));
         try {
-            FileImage f(fullPath.toStdString().c_str(), "wb");
-            f.write(image);
+            this->m_imageContainer.m_imageFile->write(image);
             m_recordedCount++;
         } catch (const std::runtime_error &e) {
-            LOG_SUSICAM(error) << "Error: %s\n" << e.what();
+            LOG_SUSICAM(error) << "Error while saving image: %s\n" << e.what();
         }
         this->DisplayRecordCount();
     } else {
@@ -885,6 +892,13 @@ void MainWindow::CountImages() {
  * @note Make sure to call StopRecording() to stop the recording process.
  */
 void MainWindow::StartRecording() {
+    // create thread for running the tasks posted to the IO service
+    this->m_IOWork = std::make_unique<boost::asio::io_service::work>(this->m_IOService);
+    for (int i = 0; i < 4; i++) // put 2 threads in thread pool
+    {
+        m_threadpool.create_thread([&] { return m_IOService.run(); });
+    }
+    this->InitializeImageFileRecorder();
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
@@ -903,6 +917,11 @@ void MainWindow::StopRecording() {
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
     this->stopTimer();
+    this->m_IOWork.reset();
+    this->m_IOWork = nullptr;
+    this->m_threadpool.interrupt_all();
+    this->m_threadpool.join_all();
+    this->m_imageContainer.m_imageFile->AppendMetadata();
     LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
     LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
     LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
@@ -943,13 +962,12 @@ void MainWindow::CreateFolderIfNecessary(QString folder) {
  * extension. The date and time are queried each time this function is called.
  *
  * @param filePrefix the prefix used for the filePrefix, date, time and extension are added to this
- * @param frameNumber number of the image that is going to be stored on this file. Used as an identified
  * @param extension file extension to use for the filePrefix
  * @param subFolder sub folder inside the base folder where the file should reside
  * @return full file path, includes the base folder where the file should reside
  */
-QString MainWindow::GetFullFilenameStandardFormat(std::string&& filePrefix, long frameNumber, std::string extension,
-                                                  std::string&& subFolder) {
+QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
+                                                  std::string &&subFolder) {
 
     QString writingFolder = GetWritingFolder() + QDir::separator() + QString::fromStdString(subFolder);
     if (!writingFolder.endsWith(QDir::separator())){
@@ -959,12 +977,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string&& filePrefix, long
 
     QString fileName;
     if (!m_testMode) {
-        int exp_time = m_cameraInterface.m_camera->GetExposureMs();
-        QString exp_time_str("exp" + QString::number(exp_time) + "ms");
-        QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-        QString date = (QDate::currentDate()).toString("yyyyMMdd_");
-        fileName = QString::fromStdString(filePrefix) + "_" + date + curr_time + "_" + exp_time_str + "_" +
-                   QString::number(frameNumber);
+        fileName = QString::fromStdString(filePrefix);
     } else {
         fileName = QString("test");
     }
@@ -1052,26 +1065,29 @@ void MainWindow::RecordReferenceImages(QString referenceType) {
     QDir dir(baseFolder);
     QStringList nameFilters;
     nameFilters << referenceType + "*";
-    QStringList folderNameList = dir.entryList(nameFilters, QDir::Dirs | QDir::NoDotAndDotDot);
-    QRegularExpression re("^" + referenceType + "(\\d*)$");
+    QStringList fileNameList = dir.entryList(nameFilters, QDir::Files | QDir::NoDotAndDotDot);
+    QRegularExpression re("^" + referenceType + "(\\d*)\\.[a-zA-Z0-9]+");
 
-    QString referenceFolderName = referenceType;
-    for(const QString& folderName : folderNameList){
-        QRegularExpressionMatch match = re.match(folderName);
+    int fileNum = 0;
+    for(const QString& fileName : fileNameList){
+        QRegularExpressionMatch match = re.match(fileName);
         if(match.hasMatch()) {
-            int folderNum = match.captured(1).toInt();
-            ++folderNum;
-            referenceFolderName = referenceType + QString::number(folderNum);
+            fileNum = match.captured(1).toInt();
+            ++fileNum;
         }
     }
-
+    std::string filename;
+    if(fileNum > 0) {
+        filename = referenceType.toStdString() + std::to_string(fileNum);
+    } else {
+        filename = referenceType.toStdString();
+    }
+    this->InitializeImageFileRecorder("", filename);
     for (int i = 0; i < NR_REFERENCE_IMAGES_TO_RECORD; i++) {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         int waitTime = 2 * exp_time;
         wait(waitTime);
-        std::stringstream name_i;
-        name_i << referenceType.toStdString();
-        this->RecordImage(referenceFolderName.toStdString(), name_i.str(), true);
+        this->RecordImage(true);
         int progress = static_cast<int>((static_cast<float>(i + 1) / NR_REFERENCE_IMAGES_TO_RECORD) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }

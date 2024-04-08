@@ -60,6 +60,12 @@ ELSE ()
     add_definitions(-DBOOST_LOG_DYN_LINK)
 ENDIF ()
 
+# BLOSC2
+find_package(Blosc2 2.14.0 CONFIG REQUIRED)
+
+# Message pack for metadata serialization
+find_package(msgpack REQUIRED)
+
 # qt
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
 
@@ -121,6 +127,7 @@ target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
 target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
 target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
+target_link_libraries(SUSICAM_LIB Blosc2::blosc2_shared)
 
 ###################
 ##### susiCam #####
@@ -147,12 +154,9 @@ add_executable(
         tests/cameraInterfaceTest.cpp
         tests/displayersTest.cpp
         tests/imageContainerTest.cpp
+        tests/bloscTest.cpp
 )
-target_link_libraries(
-        SUSICAM_TESTS
-        GTest::gtest_main
-        SUSICAM_LIB
-)
+target_link_libraries(SUSICAM_TESTS GTest::gtest_main SUSICAM_LIB Blosc2::blosc2_shared)
 
 include(GoogleTest)
 gtest_discover_tests(SUSICAM_TESTS)

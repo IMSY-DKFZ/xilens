@@ -1,11 +1,32 @@
-FROM susicam-base
+FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
 
-# install dependencies
-RUN apt update --fix-missing
-RUN apt install -y uuid-dev libgl1-mesa-dev qt6-base-dev libqt6svg6-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module xvfb
+# Avoid Docker build freeze due to region selection
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Berlin
+RUN apt update && apt-get -y install tzdata
 
-WORKDIR /home/susicam
-COPY . .
+# Basic tools
+RUN apt update && apt install -y \
+    build-essential \
+    sudo \
+    udev \
+    wget \
+    libcanberra-gtk-module  \
+    libcanberra-gtk3-module  \
+    cmake \
+    xvfb \
+    uuid-dev  \
+    libgl1-mesa-dev  \
+    git
+
+RUN apt install -y  \
+    libmsgpack-dev  \
+    qt6-base-dev  \
+    libqt6svg6-dev  \
+    libgtest-dev \
+    gcovr \
+    libopencv-dev \
+    --no-install-recommends libboost-all-dev
 
 # install xiAPI
 WORKDIR /home
@@ -17,7 +38,18 @@ WORKDIR /home/package
 RUN ./install
 RUN echo "echo 0 > /sys/module/usbcore/parameters/usbfs_memory_mb" >> /etc/rc.local
 
+# install BLOSC2
+WORKDIR /home
+RUN git clone https://github.com/Blosc/c-blosc2.git
+WORKDIR /home/c-blosc2
+RUN git checkout v2.14.0
+WORKDIR /home/c-blosc2/build
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
+    cmake --build . --target install --parallel
+
 # build susicam
+WORKDIR /home/susicam
+COPY . .
 WORKDIR /home/susicam/cmake-build
 RUN cmake --version
 RUN cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 -D ENABLE_COVERAGE=ON ..

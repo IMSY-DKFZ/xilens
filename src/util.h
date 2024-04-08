@@ -9,6 +9,8 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <b2nd.h>
+#include <msgpack.hpp>
 
 #include <xiApi.h>
 #include <opencv2/core/core.hpp>
@@ -26,6 +28,7 @@ enum {
 };
 #endif
 
+
 /**
  * Handles the result from the XiAPI, shows an error message and throws a runtime error if not XI_OK
  * @throw runtime
@@ -38,15 +41,55 @@ enum {
     }
 
 
+/**
+ * Handles the result after BLOSC2 operations when return code is != 0
+ * @throws runtime
+ */
+#define HandleBLOSCResult(res, place) \
+    if (res != 0) { \
+        std::stringstream errormsg; \
+        errormsg << "Error after " << place << " " << res << "\n"; \
+        throw std::runtime_error(errormsg.str()); \
+    }
+
+
 class FileImage {
-    FILE *file;
 public:
     /**
-     * Opens a file and throws runtime error when opening fails
-     * @param filename path to file to open
-     * @param mode mode in which the file should be open, e.g. "r"
+     * exposure time in microseconds
      */
-    FileImage(const char *filename, const char *mode);
+    std::vector<int> m_exposureMetadata;
+
+    /**
+     * number of frame acquired by the camera
+     */
+    std::vector<int> m_acqNframeMetadata;
+
+    /**
+     * string determining the type of filter array of an RGB camera
+     */
+    std::vector<std::string> m_colorFilterArray;
+
+    /**
+     * path to file location
+     */
+    char *filePath;
+
+    /**
+     * Storage context
+     */
+    b2nd_context_t* ctx;
+
+    /**
+     * Array storage created temporarily for BLOSC
+     */
+    b2nd_array_t *src;  // New member to store array
+
+    /**
+     * Opens a file and throws runtime error when opening fails
+     * @param filePath path to file to open
+     */
+    FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
     /**
      * Closes file when object is destructed
@@ -58,6 +101,8 @@ public:
      * @param image Ximea image where data is stored
      */
     void write(XI_IMG image);
+
+    void AppendMetadata();
 };
 
 // variables where git repo variables are stored
@@ -67,6 +112,33 @@ extern const char *GIT_TAG;
 extern const char *GIT_REV;
 extern const char *GIT_BRANCH;
 }
+
+
+/**
+ * Appends variable length metadata to a BLOSC n-dimensional array
+ *
+ * @param src BLOSC n-dimensional array where the metadata will be added
+ * @param key string to be used as a key for naming the medata data variable
+ * @param newData data package with `Message Pack <https://msgpack.org/>`_.
+ */
+void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
+
+/**
+ *
+ * @tparam T
+ * @param src
+ * @param key
+ * @param data
+ */
+template<typename T>
+void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T>& metadata);
+
+/**
+ *
+ * @param colorFilterArray
+ * @return
+ */
+std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
 
 /**
  * Queries Git tag

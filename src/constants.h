@@ -67,7 +67,7 @@ const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 1
  *  \name Camera Frame Rate Limit
  * @{
  */
-const int FRAMERATE_MAX = 30;
+const int FRAMERATE_MAX = 80;
 ///@}
 
 /**

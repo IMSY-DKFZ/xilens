@@ -34,6 +34,11 @@ void ImageContainer::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper) {
 }
 
 
+void ImageContainer::InitializeFile(const char *filePath) {
+    auto image = GetCurrentImage();
+    this->m_imageFile = std::make_unique<FileImage>(filePath, image.height, image.width);
+}
+
 /**
  * Destructor of image container
  */

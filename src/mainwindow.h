@@ -371,16 +371,16 @@ private:
    /**
     * Records image to specified sub folder and using specified file prefix to name the file
     *
-    * @param subFolder folder to be created inside the base folder where image will be recorded
-    * @param filePrefix string used as file name prefix
     * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
     */
-    void RecordImage(std::string subFolder = "", std::string filePrefix = "", bool ignoreSkipping = false);
+   void RecordImage(bool ignoreSkipping);
 
     /**
      * Starts IO service in a thread in charge of saving the images to files.
      */
     void ThreadedRecordImage();
+
+    void InitializeImageFileRecorder(std::string subFolder = "", std::string filePrefix = "");
 
     /**
      * Displays the number of recorded images in the GUI
@@ -472,8 +472,8 @@ private:
      * @param subFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string&& filePrefix, long frameNumber, std::string extension,
-                                          std::string&& subFolder = "");
+    QString GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
+                                          std::string &&subFolder);
 
     /**
      * Queries the base folder path where data is to be stored.
@@ -588,7 +588,12 @@ private:
     /**
      * IO service in charge of recording images to files.
      */
-    boost::asio::io_service m_io_service;
+    boost::asio::io_service m_IOService;
+
+    /**
+     * Work object to control safe finish of IOService
+     */
+    std::unique_ptr<boost::asio::io_service::work> m_IOWork;
 
     /**
      * ID service for recording temperature to file

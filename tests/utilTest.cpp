@@ -4,6 +4,7 @@
 *******************************************************/
 
 #include <gtest/gtest.h>
+#include <blosc2.h>
 
 #include "src/util.h"
 #include "src/constants.h"
@@ -71,29 +72,68 @@ TEST(XIIMGtoMatTest, MatDimensionsEqualToXIIMG){
 class FileImageWriteTest : public ::testing::Test {
 protected:
     // This function runs after each test
-    ~FileImageWriteTest() override {
-        remove("test_image.bin");
-    }
+    ~FileImageWriteTest() override = default;
 };
 
+
 TEST_F(FileImageWriteTest, CheckContentsAfterWriting){
-    XI_IMG xi_img;
-    xi_img.width = 64;
-    xi_img.height = 64;
-    xi_img.bp = malloc(xi_img.width * xi_img.height * sizeof(uint16_t));
-    std::fill_n((uint16_t*)xi_img.bp, xi_img.width * xi_img.height, 12345);
+    uint32_t nrImages = 10;
+    XI_IMG xiImage;
+    xiImage.width = 64;
+    xiImage.height = 64;
+    xiImage.exposure_time_us = 40000;
+    xiImage.bp = malloc(xiImage.width * xiImage.height * sizeof(uint16_t));
+    std::fill_n((uint16_t*)xiImage.bp, xiImage.width * xiImage.height, 12345);
+    const char* urlpath = strdup("test_image.b2nd");
+    blosc2_remove_urlpath(urlpath);
 
-    FileImage fileImage("test_image.bin", "w");
-    fileImage.write(xi_img);
+    FileImage fileImage(urlpath, xiImage.height, xiImage.width);
+    for (int i=0; i < nrImages; i++){
+        fileImage.write(xiImage);
+    }
 
-    FILE* file = fopen("test_image.bin", "rb");
-    uint16_t* data_back = (uint16_t*)malloc(xi_img.width * xi_img.height * sizeof(uint16_t));
-    fread(data_back, xi_img.width * xi_img.height, sizeof(uint16_t), file);
-    fclose(file);
+    b2nd_array_t *src;
+    b2nd_open(urlpath, &src);
 
-    for(int i = 0; i < xi_img.width * xi_img.height; i++)
+    int64_t array_size = nrImages * xiImage.width * xiImage.height * sizeof(uint16_t);
+    auto data_back = (uint16_t*) malloc(array_size);
+    int rval = b2nd_to_cbuffer(src, data_back, array_size);
+    if(rval < 0)
+    {
+        free(xiImage.bp);
+        free(data_back);
+        FAIL() << "Failed to load data from b2nd array";
+    }
+
+    for(int i = 0; i < xiImage.width * xiImage.height * nrImages; i++){
         ASSERT_EQ(data_back[i], 12345);
+    }
 
-    free(xi_img.bp);
+    // check metadata exists
+    std::vector<std::string> keys = {"exposure_us", "acq_nframe", "color_filter_array"};
+    const int NAME_BUFFER_SIZE = src->sc->nvlmetalayers * sizeof(char*);
+    char** names = (char**)malloc(NAME_BUFFER_SIZE);
+    int nkeys = blosc2_vlmeta_get_names(src->sc, names);
+    for (const auto& key : keys) {
+        bool found = false;
+        for (int i = 0; i < nkeys; i++) {
+            if (key == std::string(names[i])) {
+                found = true;
+                break;
+            }
+    }
+
+    if (!found) {
+        FAIL() << "Failed: key " << key << " is not present in the vlmetadata";
+    }
+}
+
+    free(xiImage.bp);
     free(data_back);
+    for (int i = 0; i < nkeys; i++) {
+        free(names[i]);
+    }
+    free(names);
+    blosc2_remove_urlpath(urlpath);
+
 }
