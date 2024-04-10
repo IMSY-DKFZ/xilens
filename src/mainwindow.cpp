@@ -858,13 +858,13 @@ void MainWindow::CountImages() {
  */
 void MainWindow::StartRecording() {
     // create thread for running the tasks posted to the IO service
+    this->InitializeImageFileRecorder();
     this->m_IOService.reset();
     this->m_IOWork = std::make_unique<boost::asio::io_service::work>(this->m_IOService);
     for (int i = 0; i < 4; i++) // put 2 threads in thread pool
     {
         m_threadGroup.create_thread([&] { return m_IOService.run(); });
     }
-    this->InitializeImageFileRecorder();
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
@@ -888,7 +888,7 @@ void MainWindow::StopRecording() {
     this->m_IOService.stop();
     this->m_threadGroup.interrupt_all();
     this->m_threadGroup.join_all();
-    this->m_imageContainer.m_imageFile->AppendMetadata();
+    this->m_imageContainer.CloseFile();
     LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
     LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
     LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
