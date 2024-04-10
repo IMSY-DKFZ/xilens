@@ -55,7 +55,7 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
 
 
 /**
- * Closes file when object is destructed and add metadata
+ * Closes file and releases BLOSC resources when object is destructed
  */
 FileImage::~FileImage() {
     // free BLOSC resources
@@ -65,6 +65,10 @@ FileImage::~FileImage() {
 }
 
 
+/**
+ * The following metadata is currently appended: exposure time, number of frame acquired by the camera, color filter
+ * array format and a time stamp.
+ */
 void FileImage::AppendMetadata() {
     // pack and append metadata
     PackAndAppendMetadata(this->src, "exposure_us", this->m_exposureMetadata);
@@ -89,6 +93,9 @@ void FileImage::write(XI_IMG image) {
 }
 
 
+/**
+ * The metadata is packed using the message pack library
+ */
 template<typename T>
 void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T>& metadata) {
     // pack metadata and add it to array
@@ -98,6 +105,10 @@ void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector
 }
 
 
+/**
+ * The color filter arrays a re only defined for color cameras, for spectral and gray scale cameras, a generic string
+ * is returned to indicate it is invalid.
+ */
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray) {
     switch (colorFilterArray)
     {
@@ -115,6 +126,10 @@ std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray) {
 }
 
 
+/**
+ * The new metadata is added to the array when there is no metadata corresponding to the provided key. If metadata
+ * already exists, the new data is unpacked and then merged with the existing one.
+ */
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData){
     // Get the existing data
     uint8_t *content = nullptr;

@@ -45,8 +45,8 @@
 MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapper) :
         QMainWindow(parent),
         ui(new Ui::MainWindow),
-        m_IOService(), m_work(m_IOService),
-        m_temperature_io_service(), m_temperature_work(new boost::asio::io_service::work(m_temperature_io_service)),
+        m_IOService(),
+        m_temperatureIOService(), m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)),
         m_cameraInterface(),
         m_recordedCount(0),
         m_testMode(g_commandLineArguments.test_mode),
@@ -245,8 +245,8 @@ void MainWindow::UpdateVhbSao2Validators() {
  */
 MainWindow::~MainWindow() {
     m_IOService.stop();
-    m_temperature_io_service.stop();
-    m_threadpool.join_all();
+    m_temperatureIOService.stop();
+    m_threadGroup.join_all();
 
     this->StopTemperatureThread();
     this->StopSnapshotsThread();
@@ -352,8 +352,8 @@ void MainWindow::DisplayCameraTemperature() {
  * periodically according to the TEMP_LOG_INTERVAL variable
  */
 void MainWindow::ScheduleTemperatureThread() {
-    m_temperature_work = std::make_unique<boost::asio::io_service::work>(m_temperature_io_service);
-    m_temperatureThreadTimer = std::make_shared<boost::asio::steady_timer>(m_temperature_io_service);
+    m_temperatureIOWork = std::make_unique<boost::asio::io_service::work>(m_temperatureIOService);
+    m_temperatureThreadTimer = std::make_shared<boost::asio::steady_timer>(m_temperatureIOService);
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
     m_temperatureThreadTimer->async_wait(
             boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
@@ -405,8 +405,8 @@ void MainWindow::StartTemperatureThread() {
     file.close();
     m_temperatureThread = boost::thread([&]() {
         ScheduleTemperatureThread();
-        m_temperature_io_service.reset();
-        m_temperature_io_service.run();
+        m_temperatureIOService.reset();
+        m_temperatureIOService.run();
     });
     LOG_SUSICAM(info) << "Started temperature thread";
 }
@@ -426,7 +426,7 @@ void MainWindow::StopTemperatureThread() {
             m_temperatureThreadTimer->cancel();
             m_temperatureThreadTimer = nullptr;
         }
-        m_temperature_work.reset();
+        m_temperatureIOWork.reset();
         m_temperatureThread.join();
         this->ui->temperatureLCDNumber->display(0);
         LOG_SUSICAM(info) << "Stopped temperature thread";
@@ -498,8 +498,8 @@ void MainWindow::UpdateExposure() {
  * This method sets the camera exposure time and restores the GUI element style to its original style.
  */
 void MainWindow::on_exposureLineEdit_returnPressed() {
-    m_label_exp = ui->exposureLineEdit->text();
-    m_cameraInterface.m_camera->SetExposureMs(m_label_exp.toInt());
+    m_labelExp = ui->exposureLineEdit->text();
+    m_cameraInterface.m_camera->SetExposureMs(m_labelExp.toInt());
     UpdateExposure();
     RestoreLineEditStyle(ui->exposureLineEdit);
 }
@@ -513,7 +513,7 @@ void MainWindow::on_exposureLineEdit_returnPressed() {
  * @param arg1 The new text entered in the label_exp QLineEdit.
  */
 void MainWindow::on_exposureLineEdit_textEdited(const QString &arg1) {
-    updateComponentEditedStyle(ui->exposureLineEdit, arg1, m_label_exp);
+    UpdateComponentEditedStyle(ui->exposureLineEdit, arg1, m_labelExp);
 }
 
 
@@ -574,16 +574,10 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress){
 }
 
 
-/**
- * @brief Event handler for the close event of the main window.
- *
- * This method is called when the user attempts to close the main window either by clicking the close button
- * or using the system shortcut. It is responsible for handling any necessary cleanup or actions before
- * the application closes.
- *
- * @param event A pointer to the event object representing the close event.
- */
 void MainWindow::closeEvent(QCloseEvent *event) {
+    if (this->ui->recordButton->isChecked()){
+        on_recordButton_clicked(false);
+    }
     this->StopPollingThread();
     QMainWindow::closeEvent(event);
 }
@@ -695,38 +689,6 @@ bool MainWindow::GetNormalize() const {
 
 
 /**
- * @brief retrieves the state of the Scale Parameters checkbox from the GUI
- */
-bool MainWindow::DoParamterScaling() const {
-    return this->ui->scaleParamtersCheckBox->isChecked();
-}
-
-
-/**
- * \brief returns the upper and lower bounds of VHB values.
- *
- */
-cv::Range MainWindow::GetUpperLowerBoundsVhb() const {
-    uchar lower, upper;
-    lower = this->ui->minVhbLineEdit->text().toInt();
-    upper = this->ui->maxVhbLineEdit->text().toInt();
-    return {lower, upper};
-}
-
-
-/**
- * \brief returns the upper and lower bounds of SaO2 values.
- *
- */
-cv::Range MainWindow::GetUpperLowerBoundsSao2() const {
-    uchar lower, upper;
-    lower = this->ui->minSao2LineEdit->text().toInt();
-    upper = this->ui->maxSao2LineEdit->text().toInt();
-    return cv::Range(lower, upper);
-}
-
-
-/**
  * \brief returns the index of the band specified by the slider in the GUI
  *
  */
@@ -775,6 +737,9 @@ void MainWindow::ThreadedRecordImage() {
 }
 
 
+/**
+ * The extension to the file name is added automatically.
+ */
 void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string filePrefix){
     if (filePrefix.empty()){
         filePrefix = m_recPrefixlineEdit.toUtf8().constData();
@@ -893,10 +858,11 @@ void MainWindow::CountImages() {
  */
 void MainWindow::StartRecording() {
     // create thread for running the tasks posted to the IO service
+    this->m_IOService.reset();
     this->m_IOWork = std::make_unique<boost::asio::io_service::work>(this->m_IOService);
     for (int i = 0; i < 4; i++) // put 2 threads in thread pool
     {
-        m_threadpool.create_thread([&] { return m_IOService.run(); });
+        m_threadGroup.create_thread([&] { return m_IOService.run(); });
     }
     this->InitializeImageFileRecorder();
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
@@ -919,8 +885,9 @@ void MainWindow::StopRecording() {
     this->stopTimer();
     this->m_IOWork.reset();
     this->m_IOWork = nullptr;
-    this->m_threadpool.interrupt_all();
-    this->m_threadpool.join_all();
+    this->m_IOService.stop();
+    this->m_threadGroup.interrupt_all();
+    this->m_threadGroup.join_all();
     this->m_imageContainer.m_imageFile->AppendMetadata();
     LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
     LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
@@ -1105,7 +1072,7 @@ void MainWindow::RecordReferenceImages(QString referenceType) {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
+    UpdateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
 }
 
 
@@ -1123,7 +1090,7 @@ void MainWindow::on_minVhbLineEdit_returnPressed() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText){
-    updateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
+    UpdateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
 }
 
 
@@ -1140,7 +1107,7 @@ void MainWindow::on_maxVhbLineEdit_returnPressed() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
+    UpdateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
 }
 
 
@@ -1158,7 +1125,7 @@ void MainWindow::on_minSao2LineEdit_returnPressed() {
  * Updates the style of the line edit element when edited.
  */
 void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText){
-    updateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
+    UpdateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
 }
 
 
@@ -1180,7 +1147,7 @@ void MainWindow::on_maxSao2LineEdit_returnPressed() {
  * @param newString new text of the QLineEdit object
  * @param originalString initial text of the QLineEdit object
  */
-void MainWindow::updateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString){
+void MainWindow::UpdateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString){
     if (QString::compare(newString, originalString, Qt::CaseSensitive)) {
         lineEdit->setStyleSheet(FIELD_EDITED_STYLE);
     } else {
@@ -1205,7 +1172,7 @@ void MainWindow::RestoreLineEditStyle(QLineEdit* lineEdit) {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
+    UpdateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
 }
 
 
@@ -1215,7 +1182,7 @@ void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText) {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
+    UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
 }
 
 
@@ -1253,7 +1220,7 @@ void MainWindow::on_rawRadioButton_clicked() {
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
+    UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
 }
 
 
@@ -1273,7 +1240,7 @@ void MainWindow::on_subFolderExtrasLineEdit_returnPressed() {
  * @param newText The new text entered in the snapshotPrefixlineEdit.
  */
 void MainWindow::on_filePrefixExtrasLineEdit_textEdited(const QString &newText){
-    updateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
+    UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
 }
 
 
@@ -1297,7 +1264,7 @@ void MainWindow::on_filePrefixExtrasLineEdit_returnPressed(){
  * @param newText new text of the QLineEdit object
  */
 void MainWindow::on_logTextLineEdit_textEdited(const QString &newText) {
-    updateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
+    UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
 

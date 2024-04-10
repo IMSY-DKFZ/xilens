@@ -91,6 +91,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting){
     for (int i=0; i < nrImages; i++){
         fileImage.write(xiImage);
     }
+    fileImage.AppendMetadata();
 
     b2nd_array_t *src;
     b2nd_open(urlpath, &src);

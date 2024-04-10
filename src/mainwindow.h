@@ -44,11 +44,6 @@ public:
     bool GetNormalize() const;
 
     /**
-     * Queries if the functional parameters should be scaled
-     */
-    bool DoParamterScaling() const;
-
-    /**
      * Queries the band number to be displayed
      */
     virtual unsigned GetBand() const;
@@ -57,16 +52,6 @@ public:
      * Queries the normalization factor to be used
      */
     unsigned GetBGRNorm() const;
-
-    /**
-     * Queries value range for blood volume fraction
-     */
-    cv::Range GetUpperLowerBoundsVhb() const;
-
-    /**
-     * Queries value range for oxygenation
-     */
-    cv::Range GetUpperLowerBoundsSao2() const;
 
     /**
      * Enables the UI elements
@@ -132,6 +117,16 @@ public:
     void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
 protected:
+    /**
+     * @brief Event handler for the close event of the main window.
+     *
+     * This method is called when the user attempts to close the main window either by clicking the close button
+     * or using the system shortcut. It is responsible for handling any necessary cleanup or actions before
+     * the application closes. If a recording is running when the close event is triggered, the recordings are first
+     * stopped to ensure no loss of data happens.
+     *
+     * @param event A pointer to the event object representing the close event.
+     */
     void closeEvent(QCloseEvent *event);
 
 private slots:
@@ -303,7 +298,7 @@ private slots:
      * @param newString new value received from element
      * @param originalString original value of hte element before changes occurred
      */
-    void updateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
+    void UpdateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
 
     /**
      * Restores the appearance of a Qt LineEdit component.
@@ -380,6 +375,13 @@ private:
      */
     void ThreadedRecordImage();
 
+    /**
+     * Initializes the file object inside the image container. This object is used to store all images while recording to a
+     * single file.
+     *
+     * @param subFolder folder where data will be stored
+     * @param filePrefix file prefix used for the file name
+     */
     void InitializeImageFileRecorder(std::string subFolder = "", std::string filePrefix = "");
 
     /**
@@ -396,21 +398,6 @@ private:
      * @return true if image should be recorded to file or false if not
      */
     bool ImageShouldBeRecorded(int nSkipFrames, long ImageID);
-
-    /**
-     * Counts how many images have been recorded.
-     */
-    std::atomic<unsigned long> m_recordedCount;
-
-    /**
-     * Counts how many images whould have been recorded
-     */
-    std::atomic< unsigned long> m_imageCounter;
-
-    /**
-     * Counts how many images were skipped during the recording process.
-     */
-    std::atomic<unsigned long> m_skippedCounter;
 
     /**
      * Updates image counter
@@ -481,6 +468,24 @@ private:
     QString GetBaseFolder() const;
 
     /**
+     * Starts image acquisition by initializing image contained and displayer.
+     */
+    void StartImageAcquisition(QString camera_identifier);
+
+    /**
+     * Stops image acquisition by disconnecting image displayer and stopping image polling to the image container.
+     */
+    void StopImageAcquisition();
+
+    /**
+     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human readable format
+     *
+     * @param timestamp
+     * @return
+     */
+    QString FormatTimeStamp(QString timestamp);
+
+    /**
      * stores the folder name where images are to be stores. This is a folder inside of base folder.
      */
     QString m_subFolder;
@@ -508,7 +513,7 @@ private:
     /**
      * Value of exposure time for the camera.
      */
-    QString m_label_exp;
+    QString m_labelExp;
 
     /**
      * File prefix used for snapshot images.
@@ -598,22 +603,17 @@ private:
     /**
      * ID service for recording temperature to file
      */
-    boost::asio::io_service m_temperature_io_service;
-
-    /**
-     * Thread pool used for recording the data.
-     */
-    boost::thread_group m_threadpool;
-
-    /**
-     * Async IO work. Keeps the IO service alive in the thread in charge of image recording.
-     */
-    boost::asio::io_service::work m_work;
+    boost::asio::io_service m_temperatureIOService;
 
     /**
      * Async IO work. Keeps the IO service alive in the thread in charge of temperature recording.
      */
-    std::unique_ptr<boost::asio::io_service::work> m_temperature_work;
+    std::unique_ptr<boost::asio::io_service::work> m_temperatureIOWork;
+
+    /**
+     * Thread pool used for recording the data.
+     */
+    boost::thread_group m_threadGroup;
 
     /**
      * Mutual exclusion mechanism in charge of synchronization.
@@ -641,22 +641,19 @@ private:
     std::shared_ptr<boost::asio::steady_timer> m_temperatureThreadTimer;
 
     /**
-     * Starts image acquisition by initializing image contained and displayer.
+     * Counts how many images have been recorded.
      */
-    void StartImageAcquisition(QString camera_identifier);
+    std::atomic<unsigned long> m_recordedCount;
 
     /**
-     * Stops image acquisition by disconnecting image displayer and stopping image polling to the image container.
+     * Counts how many images whould have been recorded
      */
-    void StopImageAcquisition();
+    std::atomic< unsigned long> m_imageCounter;
 
     /**
-     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human readable format
-     *
-     * @param timestamp
-     * @return
+     * Counts how many images were skipped during the recording process.
      */
-    QString FormatTimeStamp(QString timestamp);
+    std::atomic<unsigned long> m_skippedCounter;
 };
 
 #endif // MAINWINDOW_H

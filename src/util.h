@@ -102,6 +102,10 @@ public:
      */
     void write(XI_IMG image);
 
+    /**
+     * Appends metadata to BLOSC ND array. This method should be called before closing the file.
+     *
+     */
     void AppendMetadata();
 };
 
@@ -124,19 +128,21 @@ extern const char *GIT_BRANCH;
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
 
 /**
+ * Packs and appends the metadata associated with a BLOSC NDarray
  *
- * @tparam T
- * @param src
- * @param key
- * @param data
+ * @tparam T data type of the metadata
+ * @param src pointer to BLOSC array where the metadata will be appended
+ * @param key string that will be used to identify the metadata inside the array
+ * @param metadata content to be stored in the metadata
  */
 template<typename T>
 void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T>& metadata);
 
 /**
+ * Converts the XIMEA color filter array identifier to a string representation
  *
- * @param colorFilterArray
- * @return
+ * @param colorFilterArray XIMEA color filter array representation
+ * @return string representing the color filter array
  */
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
 

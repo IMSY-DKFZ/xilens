@@ -40,10 +40,17 @@ public:
     void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
 
     /**
-     * Initializes the file where the data will be stored
-     * @param filePath
+     * It initializes the file object that will be used to store the data.
+     *
+     * @param filePath file path (without extension) where data will be stored
      */
     void InitializeFile(const char *filePath);
+
+    /**
+     * Manages proper closing of file in case in case it has been initialized.
+     *
+     */
+    void CloseFile();
 
     /**
      * Destructor of image container
