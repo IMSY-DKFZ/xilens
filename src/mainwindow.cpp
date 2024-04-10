@@ -1385,9 +1385,11 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const{
     int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
     double totalPixels = image.total();  // Total number of pixels in the matrix
     double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
-    QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Q_ARG(double, percentageAboveThreshold));
+    QString displayValue = QString::number(percentageAboveThreshold, 'f', 1);
+    QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
 
     int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
     double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
-    QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(double, percentageBelowThreshold));
+    displayValue = QString::number(percentageBelowThreshold, 'f', 1);
+    QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
 }
