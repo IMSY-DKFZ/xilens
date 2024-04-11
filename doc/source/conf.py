@@ -10,9 +10,9 @@ project = 'susicam'
 copyright = '2024, Leonardo Ayala (German Cancer Research Center, Intelligent Medical Systems (IMSY))'
 author = 'Leonardo Ayala (German Cancer Research Center, Intelligent Medical Systems (IMSY))'
 # The short X.Y version.
-version = u'0.1'
+version = u'0.2'
 # The full version, including alpha/beta/rc tags.
-release = u'0.1.0'
+release = u'0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
