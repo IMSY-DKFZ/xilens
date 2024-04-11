@@ -35,7 +35,7 @@ TEST(DisplayerFunctional, DisplayImage) {
  */
 TEST(DisplayerRaw, DisplayImage) {
     MockDisplayerRaw dr;
-    dr.m_cameraType = CAMERA_TYPE_SPECTRAL;
+    dr.m_cameraType = CAMERA_TYPE_GRAY;
 
     auto* image = new XI_IMG;
     image->width = 4 * 512;
