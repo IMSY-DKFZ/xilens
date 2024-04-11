@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=susicam
+GenericName=Surgical Spectral Imaging Camera
+Comment=Application to record spectral data
+Exec=SUSICAM
+Icon=icon.png
+Terminal=True
+Type=Application
+Categories=Qt;Utility;
+Keywords=Qt;susicam;
+StartupNotify=true

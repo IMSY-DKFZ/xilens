@@ -557,8 +557,6 @@ migrated
 **/*.blosc
 **/*.model
 **/*.png
-**/*.jpeg
-**/*.jpg
 **/*.pkl
 **/*.pdf
 **/*.lprof
@@ -569,3 +567,6 @@ Dockerfile
 docker-compose.yml
 docker-compose.override.yml
 run_docker.py
+
+# build files
+cmake-build*

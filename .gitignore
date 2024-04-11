@@ -2,15 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
-version.cpp
 # C extensions
 *.so
+
+# models
+*.pt
+*.ckpt
+*.onnx
 
 # caffe files
 caffe
 
-# used defined
+# build files
 version.cpp
+src/version.cpp
 cmake-build*
 
 # profiling files
@@ -77,8 +82,8 @@ python_tests_xml/
 *.log
 
 # Sphinx documentation
-doc/_build/
-doc/
+doc/build/
+doc/doxygen/
 
 # PyBuilder
 target/
