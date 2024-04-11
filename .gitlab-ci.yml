@@ -16,13 +16,14 @@ before_script:
   - cd package
   - sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
   - ./install
-  - cd /home
+  - cd ..
   - git clone https://github.com/Blosc/c-blosc2.git
   - cd c-blosc2
   - git checkout v2.14.4
   - mkdir build && cd build
   - cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
   - cmake --build . --target install --parallel
+  - cd ..
 
 # This is the job to build the project
 build:
