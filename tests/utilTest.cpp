@@ -111,7 +111,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting){
     }
 
     // check metadata exists
-    std::vector<std::string> keys = {"exposure_us", "acq_nframe", "color_filter_array"};
+    std::vector<std::string> keys = {"exposure_us", "acq_nframe", "color_filter_array", "time_stamp"};
     const int NAME_BUFFER_SIZE = src->sc->nvlmetalayers * sizeof(char*);
     char** names = (char**)malloc(NAME_BUFFER_SIZE);
     int nkeys = blosc2_vlmeta_get_names(src->sc, names);

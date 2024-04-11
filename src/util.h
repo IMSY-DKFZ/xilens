@@ -11,6 +11,7 @@
 #include <iostream>
 #include <b2nd.h>
 #include <msgpack.hpp>
+#include <QString>
 
 #include <xiApi.h>
 #include <opencv2/core/core.hpp>
@@ -69,6 +70,11 @@ public:
      * string determining the type of filter array of an RGB camera
      */
     std::vector<std::string> m_colorFilterArray;
+
+    /**
+     * string determining the time stamp when images where acquired
+     */
+    std::vector<std::string> m_timeStamp;
 
     /**
      * path to file location
@@ -216,6 +222,13 @@ struct CommandLineArguments {
  * @param mat_img output cv::Mat image
  */
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
+
+/**
+ * Generates a timestamp with the format :code:`yyyyMMdd_hh-mm-ss-zzz`
+ *
+ * @return
+ */
+QString GetTimeStamp();
 
 /**
  * Contains the CLI arguments that can be used through a terminal

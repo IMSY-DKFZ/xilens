@@ -74,6 +74,13 @@ public:
     QString LogMessage(QString message, QString logFile, bool logTime);
 
     /**
+     * Queries the path where the logfile is stored
+     *
+     * @return
+     */
+    QString GetLogFilePath();
+
+    /**
      * Logs camera temperature to log file
      */
     void LogCameraTemperature();

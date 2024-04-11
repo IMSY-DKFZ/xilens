@@ -625,6 +625,11 @@ void MainWindow::WriteLogHeader() {
 }
 
 
+QString MainWindow::GetLogFilePath() {
+    return QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + LOG_FILE_NAME);
+}
+
+
 /**
  * @brief Logs a message to a file with optional timestamp.
  *
@@ -639,12 +644,8 @@ void MainWindow::WriteLogHeader() {
  * @note The function does not handle exceptions or errors when writing to the log file. It assumes the file can be written to successfully.
  */
 QString MainWindow::LogMessage(QString message, QString logFile, bool logTime) {
-    QString timestamp;
-    QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-    QString date = (QDate::currentDate()).toString("yyyyMMdd_");
-    timestamp = date + curr_time;
-    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + logFile);
-    QFile file(log_filename);
+    auto timestamp = GetTimeStamp();
+    QFile file(this->GetLogFilePath());
     file.open(QIODevice::Append);
     QTextStream stream(&file);
     if (logTime) {

@@ -40,23 +40,31 @@ TEST_F(MockMainWindowTest, EnableUI) {
 
 TEST_F(MockMainWindowTest, WriteLogHeaderTest)
 {
-    // Code to clear or delete the log file before starting the test
-    QFile::remove(LOG_FILE_NAME);
+    static QRegularExpression timestampRegex(R"(^\d{8}_\d{2}-\d{2}-\d{2}-\d{3})");
+    auto logFilePath =  mockMainWindow->GetLogFilePath();
+    QFile::remove(logFilePath);
 
-    // Call the method under test
     mockMainWindow->WriteLogHeader();
 
-    // Now, read the content of the log file
-    QFile file(LOG_FILE_NAME);
+    QFile file(logFilePath);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&file);
-        EXPECT_EQ(" git hash: " + QString::fromLatin1(libfiveGitRevision()), in.readLine());
-        EXPECT_EQ(" git branch: " + QString::fromLatin1(libfiveGitBranch()), in.readLine());
-        EXPECT_EQ(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion()), in.readLine());
+
+        auto line = in.readLine();
+        EXPECT_TRUE(timestampRegex.match(line).hasMatch());
+        EXPECT_TRUE(line.contains(" git hash: " + QString::fromLatin1(libfiveGitRevision())));
+
+        line = in.readLine();
+        EXPECT_TRUE(timestampRegex.match(line).hasMatch());
+        EXPECT_TRUE(line.contains(" git branch: " + QString::fromLatin1(libfiveGitBranch())));
+
+        line = in.readLine();
+        EXPECT_TRUE(timestampRegex.match(line).hasMatch());
+        EXPECT_TRUE(line.contains(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion())));
+
         file.close();
-        QFile::remove(LOG_FILE_NAME);
+        QFile::remove(logFilePath);
     } else {
-        // Handle error: Couldn't open the file, test should fail
         ASSERT_TRUE(false);
     }
 }

@@ -12,6 +12,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 #include <blosc2.h>
+#include <QDateTime>
 
 #include "util.h"
 #include "constants.h"
@@ -74,6 +75,7 @@ void FileImage::AppendMetadata() {
     PackAndAppendMetadata(this->src, "exposure_us", this->m_exposureMetadata);
     PackAndAppendMetadata(this->src, "acq_nframe", this->m_acqNframeMetadata);
     PackAndAppendMetadata(this->src, "color_filter_array", this->m_colorFilterArray);
+    PackAndAppendMetadata(this->src, "time_stamp", this->m_timeStamp);
     LOG_SUSICAM(info) << "Metadata was written to file";
 }
 
@@ -90,6 +92,7 @@ void FileImage::write(XI_IMG image) {
     this->m_exposureMetadata.emplace_back(image.exposure_time_us);
     this->m_acqNframeMetadata.emplace_back(image.acq_nframe);
     this->m_colorFilterArray.emplace_back(colorFilterToString(image.color_filter_array));
+    this->m_timeStamp.emplace_back(GetTimeStamp().toStdString());
 }
 
 
@@ -291,6 +294,15 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color) {
  */
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img) {
     mat_img = cv::Mat(xi_img.height, xi_img.width, CV_16UC1, xi_img.bp);
+}
+
+
+QString GetTimeStamp() {
+    QString timestamp;
+    QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
+    QString date = (QDate::currentDate()).toString("yyyyMMdd_");
+    timestamp = date + curr_time;
+    return timestamp;
 }
 
 /**
