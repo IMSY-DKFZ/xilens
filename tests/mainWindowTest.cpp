@@ -41,7 +41,7 @@ TEST_F(MockMainWindowTest, EnableUI) {
 TEST_F(MockMainWindowTest, WriteLogHeaderTest)
 {
     static QRegularExpression timestampRegex(R"(^\d{8}_\d{2}-\d{2}-\d{2}-\d{3})");
-    auto logFilePath =  mockMainWindow->GetLogFilePath();
+    auto logFilePath = mockMainWindow->GetLogFilePath(LOG_FILE_NAME);
     QFile::remove(logFilePath);
 
     mockMainWindow->WriteLogHeader();

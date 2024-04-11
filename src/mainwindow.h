@@ -78,7 +78,7 @@ public:
      *
      * @return
      */
-    QString GetLogFilePath();
+    QString GetLogFilePath(QString logFile);
 
     /**
      * Logs camera temperature to log file

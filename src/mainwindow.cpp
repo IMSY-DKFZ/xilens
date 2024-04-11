@@ -625,8 +625,8 @@ void MainWindow::WriteLogHeader() {
 }
 
 
-QString MainWindow::GetLogFilePath() {
-    return QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + LOG_FILE_NAME);
+QString MainWindow::GetLogFilePath(QString logFile) {
+    return QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + logFile);
 }
 
 
@@ -645,7 +645,7 @@ QString MainWindow::GetLogFilePath() {
  */
 QString MainWindow::LogMessage(QString message, QString logFile, bool logTime) {
     auto timestamp = GetTimeStamp();
-    QFile file(this->GetLogFilePath());
+    QFile file(this->GetLogFilePath(logFile));
     file.open(QIODevice::Append);
     QTextStream stream(&file);
     if (logTime) {
