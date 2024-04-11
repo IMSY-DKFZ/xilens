@@ -53,7 +53,7 @@ COPY . .
 WORKDIR /home/susicam/cmake-build
 RUN cmake --version
 RUN cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 -D ENABLE_COVERAGE=ON ..
-RUN make all -j
+RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
 
 # run tests
 ENV QT_QPA_PLATFORM offscreen
