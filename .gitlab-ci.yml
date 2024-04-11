@@ -23,7 +23,7 @@ before_script:
   - mkdir build && cd build
   - cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
   - cmake --build . --target install --parallel
-  - cd ..
+  - cd ../..
 
 # This is the job to build the project
 build:

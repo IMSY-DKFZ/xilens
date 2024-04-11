@@ -32,3 +32,8 @@ TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_ValidImage) {
     cv::Mat image = cv::Mat::ones(10, 10, CV_8UC1)*128; // Valid grayscale image
     ASSERT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image));
 }
+
+TEST_F(MockMainWindowTest, EnableUI) {
+    ASSERT_NO_THROW(mockMainWindow->EnableUi(true));
+    ASSERT_NO_THROW(mockMainWindow->EnableUi(false));
+}
