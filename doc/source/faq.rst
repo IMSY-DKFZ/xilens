@@ -4,6 +4,18 @@ FAQ
 This section describes some common errors that might appear when building SUSICAM. Solutions to such errors are also
 provided.
 
+Camera support
+--------------
+Camera support can be obtained from XIMEA through their `ticketing system <https://desk.ximea.com>`_. When you create a
+ticket, it is always a good Idea to attach the report from the `XiCop diagnostics tool <https://www.ximea.com/support/wiki/allprod/Saving_a_diagnostic_log_using_xiCop>`_.
+In Ubuntu you can do this by running:
+
+.. code:: bash
+
+    /opt/XIMEA/bin/xiCOP -save_diag
+
+The report is then stored in the file :code:`xicop_report.xml` in the current working directory.
+
 libtiff conflicts
 -----------------
 .. error::

@@ -14,10 +14,6 @@
  * Test that creating the functional displayer and displaying a fake image does not fail
  */
 TEST(DisplayerFunctional, DisplayImage) {
-    int argc = 0;
-    char **argv = nullptr;
-    auto app = QApplication(argc, argv);
-
     MockDisplayerFunctional df;
     QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
     df.SetCameraProperties(testCameraModel);
@@ -38,12 +34,8 @@ TEST(DisplayerFunctional, DisplayImage) {
  * Test that creating the functional displayer and displaying a fake image does not fail
  */
 TEST(DisplayerRaw, DisplayImage) {
-    int argc = 0;
-    char **argv = nullptr;
-    auto app = QApplication(argc, argv);
-
     MockDisplayerRaw dr;
-    dr.m_cameraType = CAMERA_TYPE_SPECTRAL;
+    dr.m_cameraType = CAMERA_TYPE_GRAY;
 
     auto* image = new XI_IMG;
     image->width = 4 * 512;

@@ -1,4 +1,4 @@
-image: nvidia/cuda:11.8.0-base-ubuntu22.04
+image: nvidia/cuda:12.2.0-devel-ubuntu22.04
 
 stages:
   - build
@@ -9,25 +9,29 @@ before_script:
   - export DEBIAN_FRONTEND=noninteractive
   - export TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
-  - apt-get -y install build-essential uuid-dev libgl1-mesa-dev qt6-base-dev libqt6svg6-dev wget sudo udev libcanberra-gtk-module libcanberra-gtk3-module libopencv-dev libgtest-dev gcovr --no-install-recommends libboost-all-dev curl cmake xvfb
+  - apt-get install -y build-essential sudo udev wget libcanberra-gtk-module libcanberra-gtk3-module cmake xvfb uuid-dev libgl1-mesa-dev git
+  - apt install -y libmsgpack-dev qt6-base-dev libqt6svg6-dev libgtest-dev gcovr libopencv-dev --no-install-recommends libboost-all-dev
   - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
   - tar xzf XIMEA_Linux_SP.tgz
   - cd package
   - sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
   - ./install
   - cd ..
-  - apt-get install -y python3-pip
-  - python3 -m pip install --upgrade pip
-  - pip3 install setuptools-scm
-  - pip3 install scikit-build
-  - pip3 install cmake --upgrade
+  - git clone https://github.com/Blosc/c-blosc2.git
+  - cd c-blosc2
+  - git checkout v2.14.4
+  - mkdir build && cd build
+  - cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
+  - cmake --build . --target install --parallel
+  - cd ../..
+
 # This is the job to build the project
 build:
   stage: build
   script:
     - mkdir cmake-build && cd cmake-build
     - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 -D ENABLE_COVERAGE=ON ..
-    - make all -j
+    - xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
   artifacts:
     paths:
       - cmake-build/

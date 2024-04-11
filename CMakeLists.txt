@@ -60,6 +60,12 @@ ELSE ()
     add_definitions(-DBOOST_LOG_DYN_LINK)
 ENDIF ()
 
+# BLOSC2
+find_package(Blosc2 2.14.0 CONFIG REQUIRED)
+
+# Message pack for metadata serialization
+find_package(msgpack REQUIRED)
+
 # qt
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
 
@@ -121,11 +127,12 @@ target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
 target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
 target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
+target_link_libraries(SUSICAM_LIB Blosc2::blosc2_shared)
 
 ###################
 ##### susiCam #####
 ###################
-set(SUSICAM_BIN_SRC src/mainSusiCam.cpp src/CLI11.h)
+set(SUSICAM_BIN_SRC src/CLI.cpp src/CLI11.h)
 qt6_add_resources(SUSICAM_BIN_SRC resources/resources.qrc)
 qt6_add_resources(SUSICAM_BIN_SRC resources/theme_resources.qrc)
 add_executable(SUSICAM ${SUSICAM_BIN_SRC})
@@ -142,17 +149,16 @@ enable_testing()
 
 add_executable(
         SUSICAM_TESTS
+        tests/main.cpp
         tests/mocks.h
         tests/utilTest.cpp
         tests/cameraInterfaceTest.cpp
         tests/displayersTest.cpp
         tests/imageContainerTest.cpp
+        tests/bloscTest.cpp
+        tests/mainWindowTest.cpp
 )
-target_link_libraries(
-        SUSICAM_TESTS
-        GTest::gtest_main
-        SUSICAM_LIB
-)
+target_link_libraries(SUSICAM_TESTS GTest::gtest_main SUSICAM_LIB Blosc2::blosc2_shared)
 
 include(GoogleTest)
 gtest_discover_tests(SUSICAM_TESTS)

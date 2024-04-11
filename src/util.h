@@ -9,6 +9,9 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <b2nd.h>
+#include <msgpack.hpp>
+#include <QString>
 
 #include <xiApi.h>
 #include <opencv2/core/core.hpp>
@@ -26,6 +29,7 @@ enum {
 };
 #endif
 
+
 /**
  * Handles the result from the XiAPI, shows an error message and throws a runtime error if not XI_OK
  * @throw runtime
@@ -38,15 +42,60 @@ enum {
     }
 
 
+/**
+ * Handles the result after BLOSC2 operations when return code is != 0
+ * @throws runtime
+ */
+#define HandleBLOSCResult(res, place) \
+    if (res != 0) { \
+        std::stringstream errormsg; \
+        errormsg << "Error after " << place << " " << res << "\n"; \
+        throw std::runtime_error(errormsg.str()); \
+    }
+
+
 class FileImage {
-    FILE *file;
 public:
     /**
-     * Opens a file and throws runtime error when opening fails
-     * @param filename path to file to open
-     * @param mode mode in which the file should be open, e.g. "r"
+     * exposure time in microseconds
      */
-    FileImage(const char *filename, const char *mode);
+    std::vector<int> m_exposureMetadata;
+
+    /**
+     * number of frame acquired by the camera
+     */
+    std::vector<int> m_acqNframeMetadata;
+
+    /**
+     * string determining the type of filter array of an RGB camera
+     */
+    std::vector<std::string> m_colorFilterArray;
+
+    /**
+     * string determining the time stamp when images where acquired
+     */
+    std::vector<std::string> m_timeStamp;
+
+    /**
+     * path to file location
+     */
+    char *filePath;
+
+    /**
+     * Storage context
+     */
+    b2nd_context_t* ctx;
+
+    /**
+     * Array storage created temporarily for BLOSC
+     */
+    b2nd_array_t *src;  // New member to store array
+
+    /**
+     * Opens a file and throws runtime error when opening fails
+     * @param filePath path to file to open
+     */
+    FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
     /**
      * Closes file when object is destructed
@@ -58,6 +107,12 @@ public:
      * @param image Ximea image where data is stored
      */
     void write(XI_IMG image);
+
+    /**
+     * Appends metadata to BLOSC ND array. This method should be called before closing the file.
+     *
+     */
+    void AppendMetadata();
 };
 
 // variables where git repo variables are stored
@@ -67,6 +122,35 @@ extern const char *GIT_TAG;
 extern const char *GIT_REV;
 extern const char *GIT_BRANCH;
 }
+
+
+/**
+ * Appends variable length metadata to a BLOSC n-dimensional array
+ *
+ * @param src BLOSC n-dimensional array where the metadata will be added
+ * @param key string to be used as a key for naming the medata data variable
+ * @param newData data package with `Message Pack <https://msgpack.org/>`_.
+ */
+void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
+
+/**
+ * Packs and appends the metadata associated with a BLOSC NDarray
+ *
+ * @tparam T data type of the metadata
+ * @param src pointer to BLOSC array where the metadata will be appended
+ * @param key string that will be used to identify the metadata inside the array
+ * @param metadata content to be stored in the metadata
+ */
+template<typename T>
+void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T>& metadata);
+
+/**
+ * Converts the XIMEA color filter array identifier to a string representation
+ *
+ * @param colorFilterArray XIMEA color filter array representation
+ * @return string representing the color filter array
+ */
+std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
 
 /**
  * Queries Git tag
@@ -138,6 +222,13 @@ struct CommandLineArguments {
  * @param mat_img output cv::Mat image
  */
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
+
+/**
+ * Generates a timestamp with the format :code:`yyyyMMdd_hh-mm-ss-zzz`
+ *
+ * @return
+ */
+QString GetTimeStamp();
 
 /**
  * Contains the CLI arguments that can be used through a terminal

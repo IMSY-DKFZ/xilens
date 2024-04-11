@@ -10,12 +10,18 @@
 #include <QObject>
 
 #include "xiAPIWrapper.h"
+#include "util.h"
 
 
 class ImageContainer : public QObject {
 Q_OBJECT
 
 public:
+    /**
+     * Pointer to image file object in charge of writing data to file.
+     */
+    std::unique_ptr<FileImage> m_imageFile;
+
     /**
      * Wrapper to xiAPI, useful for mocking the aPI during testing
      */
@@ -32,6 +38,19 @@ public:
      * @param apiWrapper
      */
     void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
+
+    /**
+     * It initializes the file object that will be used to store the data.
+     *
+     * @param filePath file path (without extension) where data will be stored
+     */
+    void InitializeFile(const char *filePath);
+
+    /**
+     * Manages proper closing of file in case in case it has been initialized.
+     *
+     */
+    void CloseFile();
 
     /**
      * Destructor of image container
@@ -69,6 +88,11 @@ public:
      */
     void StartPolling();
 
+    /**
+     * Indicates if images should be polled or not
+     */
+    bool m_PollImage;
+
 signals:
 
     /**
@@ -77,11 +101,6 @@ signals:
     void NewImage();
 
 private:
-
-    /**
-     * Indicates if images should be polled or not
-     */
-    bool m_PollImage;
 
     /**
      * Current container image

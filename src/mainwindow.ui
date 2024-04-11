@@ -908,7 +908,7 @@
         <item>
          <widget class="QLCDNumber" name="overexposurePercentageLCDNumber">
           <property name="digitCount">
-           <number>4</number>
+           <number>5</number>
           </property>
           <property name="segmentStyle">
            <enum>QLCDNumber::Flat</enum>
@@ -932,7 +932,7 @@
         <item>
          <widget class="QLCDNumber" name="underexposurePercentageLCDNumber">
           <property name="digitCount">
-           <number>4</number>
+           <number>5</number>
           </property>
           <property name="segmentStyle">
            <enum>QLCDNumber::Flat</enum>
