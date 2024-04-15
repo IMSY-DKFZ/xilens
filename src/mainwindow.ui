@@ -230,7 +230,7 @@
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>new dark correction</string>
+                    <string>Dark correction</string>
                    </property>
                   </widget>
                  </item>
@@ -240,7 +240,7 @@
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>new white balance</string>
+                    <string>White balance</string>
                    </property>
                   </widget>
                  </item>
