@@ -32,6 +32,8 @@ Installing dependencies, building SUSICAM and how to use SUSICAM is all introduc
 
     faq.rst
 
+    developer_guidelines.rst
+
 Development logic
 =================
 The SUSICAM application relies at its core on many `Qt <https://www.qt.io/product/qt6>`_ components for the GUI, while
