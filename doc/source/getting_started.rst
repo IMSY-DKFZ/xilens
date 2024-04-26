@@ -46,9 +46,12 @@ distribution is different, the specific paths might differ.
 
    mkdir build
    cd build
-   cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 ..
+   cmake -DCMAKE_INSTALL_PREFIX=/usr  ..
    make all -j
-   ctest # to check that all tests pass 
+   ctest # to check that all tests pass
+   sudo make install # installs the desktop app on the system and can be accessed from the app launcher
+
+The application can be uninstalled from the system by doing :code:`sudo make uninstall` form the build directory
 
 Increase USB buffer limit
 =========================
