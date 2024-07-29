@@ -1,29 +1,28 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 #ifndef DISPLAYRAW_H
 #define DISPLAYRAW_H
 
-#include <string>
+#include <xiApi.h>
 
 #include <QObject>
-#include <xiApi.h>
-#include <opencv2/core/core.hpp>
 #include <boost/thread.hpp>
+#include <opencv2/core/core.hpp>
+#include <string>
 
-#include "display.h"
 #include "constants.h"
+#include "display.h"
 #include "mainwindow.h"
-
 
 class MainWindow;
 
-class DisplayerRaw : public Displayer {
-Q_OBJECT
+class DisplayerRaw : public Displayer
+{
+    Q_OBJECT
 
-public:
-
+  public:
     /**
      * camera type
      */
@@ -41,10 +40,11 @@ public:
      *
      * @param mainWindow reference to main window application
      */
-    explicit DisplayerRaw() : Displayer() {};
+    explicit DisplayerRaw() : Displayer(){};
 
     /**
-     * Draws histogram based of displayed image based on an region of interest (ROI)
+     * Draws histogram based of displayed image based on an region of interest
+     * (ROI)
      *
      * @param roiImg region of interest where histogram is computed
      */
@@ -63,19 +63,20 @@ public:
     void SetCameraProperties(QString cameraModel) override;
 
     /**
-     * Down-samples image in case it is bigger than maximum dimensions defined by constants::MAX_WIDTH_DISPLAY_WINDOW
-     * and constants::MAX_HEIGHT_DISPLAY_WINDOW
+     * Down-samples image in case it is bigger than maximum dimensions defined by
+     * constants::MAX_WIDTH_DISPLAY_WINDOW and
+     * constants::MAX_HEIGHT_DISPLAY_WINDOW
      *
      * @param image image to be downsampled
      */
     static void DownsampleImageIfNecessary(cv::Mat &image);
 
-
-protected:
+  protected:
     /**
-     * reference to main window, necessary to detect if normalization is turned on / which band to display
+     * reference to main window, necessary to detect if normalization is turned on
+     * / which band to display
      */
-    MainWindow* m_mainWindow;
+    MainWindow *m_mainWindow;
 
     /**
      * Creates OpenCV windows where images will be displayed
@@ -92,16 +93,15 @@ protected:
     void DestroyWindows() override;
 
     /**
-     * Prepares images before displaying them by downsampling them if necessary and converting them to the correct bit
-     * depth.
+     * Prepares images before displaying them by downsampling them if necessary
+     * and converting them to the correct bit depth.
      *
      * @param image image to be processed
      * @return processed image
      */
     virtual cv::Mat PrepareImageToDisplay(cv::Mat &image);
 
-
-public slots:
+  public slots:
 
     /**
      * Qt slot called whenever a new image arrives from the camera
@@ -110,9 +110,7 @@ public slots:
      */
     void Display(XI_IMG &image) override;
 
-
-private:
-
+  private:
     /**
      * Displays an image to an OpenCV window defined by the window name
      *

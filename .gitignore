@@ -17,6 +17,7 @@ caffe
 version.cpp
 src/version.cpp
 cmake-build*
+cmake_build/
 
 # profiling files
 *.lprof

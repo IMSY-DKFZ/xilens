@@ -1,39 +1,45 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 
 #include <gtest/gtest.h>
+
 #include <opencv2/core/core.hpp>
+
 #include "mocks.h"
 
-
-class MockMainWindowTest : public ::testing::Test {
-protected:
+class MockMainWindowTest : public ::testing::Test
+{
+  protected:
     std::unique_ptr<MockMainWindow> mockMainWindow;
 
-    void SetUp() override {
+    void SetUp() override
+    {
         mockMainWindow = std::make_unique<MockMainWindow>();
     }
 };
 
-
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_EmptyImage) {
+TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_EmptyImage)
+{
     cv::Mat image; // Empty image
     ASSERT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image), std::invalid_argument);
 }
 
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_WrongImageType) {
-    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC3)*128; // RGB image
+TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_WrongImageType)
+{
+    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC3) * 128; // RGB image
     ASSERT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image), std::invalid_argument);
 }
 
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_ValidImage) {
-    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC1)*128; // Valid grayscale image
+TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_ValidImage)
+{
+    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC1) * 128; // Valid grayscale image
     ASSERT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image));
 }
 
-TEST_F(MockMainWindowTest, EnableUI) {
+TEST_F(MockMainWindowTest, EnableUI)
+{
     ASSERT_NO_THROW(mockMainWindow->EnableUi(true));
     ASSERT_NO_THROW(mockMainWindow->EnableUi(false));
 }
@@ -47,7 +53,8 @@ TEST_F(MockMainWindowTest, WriteLogHeaderTest)
     mockMainWindow->WriteLogHeader();
 
     QFile file(logFilePath);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         QTextStream in(&file);
 
         auto line = in.readLine();
@@ -64,7 +71,9 @@ TEST_F(MockMainWindowTest, WriteLogHeaderTest)
 
         file.close();
         QFile::remove(logFilePath);
-    } else {
+    }
+    else
+    {
         ASSERT_TRUE(false);
     }
 }

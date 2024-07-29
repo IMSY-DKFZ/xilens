@@ -16,13 +16,13 @@ build as in the following commands.
 
    sudo apt install libmsgpack-dev qt6-base-dev libqt6svg6-dev libgtest-dev gcovr libopencv-dev --no-install-recommends libboost-all-dev
 
-You will also have to install the xiAPI package provided my XIMEA
+You will also have to install the xiAPI package provided by XIMEA
 
 .. code:: bash
 
    wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
    tar xzf XIMEA_Linux_SP.tgz
-   cd package 
+   cd package
    sudo ./install
 
 We use `BLOSC2 <https://www.blosc.org/c-blosc2/c-blosc2.html>`_ to store all images to a single file while using
@@ -123,4 +123,3 @@ Docker image
 
        docker compose --verbose build --progress plain
        docker run -it --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --gpus all --device /dev/bus/usb/ -e QT_X11_NO_MITSHM=1 -e QT_GRAPHICSSYSTEM="native" susicam
-
