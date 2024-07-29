@@ -61,7 +61,7 @@ ELSE ()
 ENDIF ()
 
 # BLOSC2
-find_package(Blosc2 2.14.0 CONFIG REQUIRED)
+find_package(Blosc2 2.15.0 CONFIG REQUIRED)
 
 # Message pack for metadata serialization
 find_package(msgpack REQUIRED)
@@ -77,9 +77,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Boost REQUIRED python system thread timer chrono log filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 # ximea (camera)
-find_library(Ximea_Lib m3api DOC "Ximeas Xispec library." HINTS "/usr/lib")
-find_path(Ximea_Include_Dir xiApi.h DOC "XiApi include directory" HINTS "/opt/XIMEA/include")
-include_directories(${Ximea_Include_Dir})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+find_package(Ximea REQUIRED)
+include_directories(${Ximea_INCLUDE_DIRS})
 
 ######################
 ##### susiCamLib #####
@@ -126,8 +126,8 @@ add_library(SUSICAM_LIB ${LIBTYPE}
 target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
 target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
-target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
-target_link_libraries(SUSICAM_LIB Blosc2::blosc2_static)
+target_link_libraries(SUSICAM_LIB ${Ximea_LIBRARIES})
+target_link_libraries(SUSICAM_LIB Blosc2::blosc2_shared)
 
 ###################
 ##### susiCam #####
@@ -156,8 +156,6 @@ configure_file(
 
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
-
-
 
 #####################
 ### Google Tests ####

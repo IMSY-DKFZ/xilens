@@ -33,7 +33,7 @@ Keep in mind that to install the package in /usr you will need to run the instal
 
     RUN git clone https://github.com/Blosc/c-blosc2.git
     cd c-blosc2
-    git checkout v2.14.0
+    git checkout v2.15.0
     mkdir build && cd build
     cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     cmake --build . --target install --parallel
