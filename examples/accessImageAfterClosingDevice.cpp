@@ -1,14 +1,20 @@
-#include <algorithm>
 #include <m3api/xiApi.h>
+
+#include <algorithm>
 #include <opencv2/core.hpp>
 
 #include "stdafx.h"
 
-#define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)\n",place,res);goto finish;}
+#define HandleResult(res, place)                                                                                       \
+    if (res != XI_OK)                                                                                                  \
+    {                                                                                                                  \
+        printf("Error after %s (%d)\n", place, res);                                                                   \
+        goto finish;                                                                                                   \
+    }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    void* xiH = NULL;
+    void *xiH = NULL;
     XI_RETURN stat;
     XI_IMG image;
     memset(&image, 0, sizeof(image));
@@ -40,7 +46,8 @@ int main(int argc, char* argv[])
     printf("First value: %d\n", imageMat.at<uint16_t>(0));
 
 finish:
-    if (xiH) xiCloseDevice(xiH);
+    if (xiH)
+        xiCloseDevice(xiH);
     printf("Camera closed...\n");
     return 0;
 }

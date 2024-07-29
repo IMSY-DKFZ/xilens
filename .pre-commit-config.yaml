@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0 # Use the ref you want to point at
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: check-added-large-files
+      - id: check-merge-conflict
+  - repo: https://github.com/cpp-linter/cpp-linter-hooks
+    rev: v0.5.0  # Use the ref you want to point at
+    hooks:
+      - id: clang-format
+        args: [--style=Microsoft, --version=14] # Other coding style: LLVM, GNU, Chromium, Microsoft, Mozilla, WebKit.
+        files: ^(src|examples|tests)/.*\.(cpp|h)
