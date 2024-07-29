@@ -16,7 +16,7 @@ build as in the following commands.
 
    sudo apt install libmsgpack-dev qt6-base-dev libqt6svg6-dev libgtest-dev gcovr libopencv-dev --no-install-recommends libboost-all-dev
 
-You will also have to install the xiAPI package provided my XIMEA
+You will also have to install the xiAPI package provided by XIMEA
 
 .. code:: bash
 

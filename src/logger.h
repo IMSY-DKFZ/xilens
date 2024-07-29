@@ -17,29 +17,27 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/utility/setup/console.hpp>
 
-enum my_severity_level {
-  trace = boost::log::trivial::trace,
-  debug = boost::log::trivial::debug,
-  info = boost::log::trivial::info,
-  warning = boost::log::trivial::warning,
-  error = boost::log::trivial::error,
-  fatal = boost::log::trivial::fatal
+enum my_severity_level
+{
+    trace = boost::log::trivial::trace,
+    debug = boost::log::trivial::debug,
+    info = boost::log::trivial::info,
+    warning = boost::log::trivial::warning,
+    error = boost::log::trivial::error,
+    fatal = boost::log::trivial::fatal
 };
 
 namespace logging = boost::log;
 
-typedef logging::sources::severity_channel_logger_mt<
-    logging::trivial::severity_level>
-    SUSICAM_LOGGER;
+typedef logging::sources::severity_channel_logger_mt<logging::trivial::severity_level> SUSICAM_LOGGER;
 
 BOOST_LOG_GLOBAL_LOGGER(my_logger, SUSICAM_LOGGER)
 
 /**
  * Defines custom logger that includes filenames, functions and line numbers
  */
-#define LOG_SUSICAM(lvl)                                                    \
-  BOOST_LOG_CHANNEL_SEV(my_logger::get(), "SUSICAM", logging::trivial::lvl) \
-      << boost::filesystem::path(__FILE__).filename().string() << "@"       \
-      << (__LINE__) << ":" << (__FUNCTION__) << "\t"
+#define LOG_SUSICAM(lvl)                                                                                               \
+    BOOST_LOG_CHANNEL_SEV(my_logger::get(), "SUSICAM", logging::trivial::lvl)                                          \
+        << boost::filesystem::path(__FILE__).filename().string() << "@" << (__LINE__) << ":" << (__FUNCTION__) << "\t"
 
-#endif  // SUSICAM_LOGGER_H
+#endif // SUSICAM_LOGGER_H

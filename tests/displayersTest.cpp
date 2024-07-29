@@ -15,36 +15,38 @@
  * Test that creating the functional displayer and displaying a fake image does
  * not fail
  */
-TEST(DisplayerFunctional, DisplayImage) {
-  MockDisplayerFunctional df;
-  QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
-  df.SetCameraProperties(testCameraModel);
-  df.m_cameraType = CAMERA_TYPE_SPECTRAL;
+TEST(DisplayerFunctional, DisplayImage)
+{
+    MockDisplayerFunctional df;
+    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
+    df.SetCameraProperties(testCameraModel);
+    df.m_cameraType = CAMERA_TYPE_SPECTRAL;
 
-  auto* image = new XI_IMG;
-  image->width = 4 * 512;
-  image->height = 4 * 272;
-  image->bp = new unsigned char[image->width * image->height * 2]();
+    auto *image = new XI_IMG;
+    image->width = 4 * 512;
+    image->height = 4 * 272;
+    image->bp = new unsigned char[image->width * image->height * 2]();
 
-  EXPECT_NO_THROW(df.Display(*image));
-  delete[] static_cast<unsigned char*>(image->bp);
-  delete image;
+    EXPECT_NO_THROW(df.Display(*image));
+    delete[] static_cast<unsigned char *>(image->bp);
+    delete image;
 }
 
 /**
  * Test that creating the functional displayer and displaying a fake image does
  * not fail
  */
-TEST(DisplayerRaw, DisplayImage) {
-  MockDisplayerRaw dr;
-  dr.m_cameraType = CAMERA_TYPE_GRAY;
+TEST(DisplayerRaw, DisplayImage)
+{
+    MockDisplayerRaw dr;
+    dr.m_cameraType = CAMERA_TYPE_GRAY;
 
-  auto* image = new XI_IMG;
-  image->width = 4 * 512;
-  image->height = 4 * 272;
-  image->bp = new unsigned char[image->width * image->height * 2]();
+    auto *image = new XI_IMG;
+    image->width = 4 * 512;
+    image->height = 4 * 272;
+    image->bp = new unsigned char[image->width * image->height * 2]();
 
-  EXPECT_NO_THROW(dr.Display(*image));
-  delete[] static_cast<unsigned char*>(image->bp);
-  delete image;
+    EXPECT_NO_THROW(dr.Display(*image));
+    delete[] static_cast<unsigned char *>(image->bp);
+    delete image;
 }
