@@ -1,51 +1,47 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <QObject>
-#include <QString>
 #include <xiApi.h>
 
+#include <QObject>
+#include <QString>
 
 class Displayer : public QObject {
-Q_OBJECT
+  Q_OBJECT
 
-public:
+ public:
+  explicit Displayer();
 
-    explicit Displayer();
+  ~Displayer();
 
-    ~Displayer();
+  QString m_cameraType;
 
-    QString m_cameraType;
+  virtual void SetCameraProperties(QString cameraModel) = 0;
 
-    virtual void SetCameraProperties(QString cameraModel) = 0;
+  /**
+   *  Blocks the display of images
+   */
+  void StopDisplayer();
 
-    /**
-     *  Blocks the display of images
-     */
-    void StopDisplayer();
+  /**
+   * Allows to start or continue displaying images
+   */
+  void StartDisplayer();
 
-    /**
-     * Allows to start or continue displaying images
-     */
-    void StartDisplayer();
+ protected:
+  virtual void CreateWindows() = 0;
 
+  virtual void DestroyWindows() = 0;
 
-protected:
+  bool m_stop = false;
 
-    virtual void CreateWindows() = 0;
+ public slots:
 
-    virtual void DestroyWindows() = 0;
-
-    bool m_stop = false;
-
-
-public slots:
-
-    virtual void Display(XI_IMG &image) = 0;
+  virtual void Display(XI_IMG &image) = 0;
 };
 
-#endif // DISPLAY_H
+#endif  // DISPLAY_H
