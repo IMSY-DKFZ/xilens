@@ -24,34 +24,16 @@
 #include "mainwindow.h"
 #include "util.h"
 
-/**
- * Displayer that shows raw images in higher resolution compared to
- * DisplayerFunctional. The images are displayed without any pre-processing
- * besides downsampling and bit conversion.
- *
- * @param mainWindow reference to main window application
- */
 DisplayerRaw::DisplayerRaw(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow)
 {
     CreateWindows();
 }
 
-/**
- * @brief Destructor for the DisplayerRaw class.
- *
- * This function is responsible for destroying any windows and resources used by
- * the DisplayerRaw object.
- */
 DisplayerRaw::~DisplayerRaw()
 {
     DestroyWindows();
 }
 
-/**
- * @brief Draws histogram of an input image region of interest.
- *
- * @param roiImg The input image region of interest.
- */
 void DrawHistogram(cv::Mat roiImg)
 {
     std::vector<cv::Mat> bands;
@@ -75,15 +57,6 @@ void DrawHistogram(cv::Mat roiImg)
     cv::waitKey();
 }
 
-/**
- * @brief Handles mouse events for ROI selection and display.
- *
- * @param event The mouse event.
- * @param x The x-coordinate of the mouse event.
- * @param y The y-coordinate of the mouse event.
- * @param flags Additional flags that provide information about the mouse event.
- * @param param A pointer to the input image.
- */
 void mouseHandler(int event, int x, int y, int flags, void *param)
 {
     static cv::Point point1, point2; /* vertical points of the bounding box */
@@ -162,12 +135,6 @@ void mouseHandler(int event, int x, int y, int flags, void *param)
     }
 }
 
-/**
- * @brief Check if the image exceeds the maximum dimensions of the display
- * window and downsample it if necessary.
- *
- * @param image The input image to be displayed.
- */
 void DisplayerRaw::DownsampleImageIfNecessary(cv::Mat &image)
 {
     // Check if the image exceeds the maximum dimensions
@@ -179,12 +146,6 @@ void DisplayerRaw::DownsampleImageIfNecessary(cv::Mat &image)
     }
 }
 
-/**
- * @brief Prepares an image for display. The image is converted to CV_8UC1
- *
- * @param image The input image to be prepared for display.
- * @return The prepared image.
- */
 cv::Mat DisplayerRaw::PrepareImageToDisplay(cv::Mat &image)
 {
     image = image.clone();
@@ -193,14 +154,6 @@ cv::Mat DisplayerRaw::PrepareImageToDisplay(cv::Mat &image)
     return image;
 }
 
-/**
- * @brief This function retrieves the desktop resolution of the primary screen.
- *
- * @param width A reference to an integer variable that will store the width of
- * the desktop resolution.
- * @param height A reference to an integer variable that will store the height
- * of the desktop resolution.
- */
 void GetDesktopResolution(int &width, int &height)
 {
     // get the screen
@@ -212,15 +165,6 @@ void GetDesktopResolution(int &width, int &height)
     width = screenGeometry.width();
 }
 
-/**
- * displays image to corresponding window. The image is pre-processed by
- * PrepareImageToDisplay before being displayed. The image might also be
- * downsampled if its dimensions exceed the maximum allowed dimensions defined
- * in by MAX_WIDTH_DISPLAY_WINDOW and MAX_HEIGHT_DISPLAY_WINDOW.
- *
- * @param image image to be displayed
- * @param windowName window name to display image
- */
 void DisplayerRaw::DisplayImage(cv::Mat &image, const std::string windowName)
 {
     m_rawImage = image.clone();
@@ -229,11 +173,6 @@ void DisplayerRaw::DisplayImage(cv::Mat &image, const std::string windowName)
     cv::imshow(windowName.c_str(), m_ImageToDisplay);
 }
 
-/**
- * Qt slot called whenever a new image from the camera arrives
- *
- * @param image image to be displayed
- */
 void DisplayerRaw::Display(XI_IMG &image)
 {
     if (m_stop)
@@ -258,20 +197,12 @@ void DisplayerRaw::Display(XI_IMG &image)
     }
 }
 
-/**
- * Sets camera type
- *
- * @param cameraModel camera type to be set
- */
 void DisplayerRaw::SetCameraProperties(QString cameraModel)
 {
     QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
     this->m_cameraType = std::move(cameraType);
 }
 
-/**
- * Creates windows to be used for displaying raw images
- */
 void DisplayerRaw::CreateWindows()
 {
     // create windows to display result
@@ -280,9 +211,6 @@ void DisplayerRaw::CreateWindows()
     cv::setMouseCallback(DISPLAY_WINDOW_NAME, mouseHandler, &m_rawImage);
 }
 
-/**
- * Destroy all OpenCV windows
- */
 void DisplayerRaw::DestroyWindows()
 {
     cv::destroyAllWindows();

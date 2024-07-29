@@ -34,14 +34,6 @@
 #include "util.h"
 #include "xiAPIWrapper.h"
 
-/**
- * @class MainWindow
- * @brief The MainWindow class represents the main window of the application.
- *
- * This class inherits from QMainWindow and is responsible for initializing the
- * user interface. It also manages the IO service, work, and other variables
- * related to image recording and testing.
- */
 MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapper)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_IOService(), m_temperatureIOService(),
       m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)), m_cameraInterface(),
@@ -89,19 +81,6 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     EnableUi(false);
 }
 
-/**
- * @brief Starts image acquisition for a specific camera.
- *
- * This function initiates the image acquisition process for a specified camera.
- * this is done on a pool of threads. The pool of threads need to be joined when
- * not needed in order to avoid dangling threads. This method also connects the
- * incoming images from the camera to the Displayer that handles the displaying
- * process on screen. Another connection is established between incoming images
- * and UpdateMinMaxPixelValues.
- *
- * @param camera_identifier The identifier of the camera to start the image
- * acquisition for.
- */
 void MainWindow::StartImageAcquisition(QString camera_identifier)
 {
     try
@@ -111,9 +90,6 @@ void MainWindow::StartImageAcquisition(QString camera_identifier)
         this->StartPollingThread();
         this->StartTemperatureThread();
 
-        /***************************************/
-        // setup connections to displaying etc.
-        /***************************************/
         // when a new image arrives, display it
         QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
     }
@@ -124,17 +100,6 @@ void MainWindow::StartImageAcquisition(QString camera_identifier)
     }
 }
 
-/**
- * @brief Stops the image acquisition.
- *
- * This function is used to stop the acquisition of images in the MainWindow
- * class. It stops any ongoing image acquisition and performs the necessary
- * clean-up actions. After calling this function, the image acquisition process
- * will be completely stopped and no further images will be acquired. The pool
- * of threads in charge of collecting the images from the camera is stopped as
- * well as the thread in charge of recording the camera temperature. The
- * corresponding signals and slots are also disconnected from NewImage
- */
 void MainWindow::StopImageAcquisition()
 {
     this->m_display->StopDisplayer();
@@ -146,18 +111,6 @@ void MainWindow::StopImageAcquisition()
     LOG_SUSICAM(info) << "Stopped Image Acquisition";
 }
 
-/**
- * @brief Disable or enable widgets in a given layout.
- *
- * This function can be used to disable or enable all widgets within a layout
- * by setting their disabled state. This is done iteratively, so that widgets in
- * nested layouts are also disabled or re-enabled
- *
- * @param layout The layout object containing the widgets.
- *
- * @param enable A boolean value indicating whether to enable or disable the
- * widgets. true to enable, false to disable.
- */
 void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
 {
     for (int i = 0; i < layout->count(); ++i)
@@ -175,16 +128,6 @@ void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
     }
 }
 
-/**
- * @brief Enables or disables the user interface of the main window.
- *
- * This function sets the enabled state of all the user interface components
- * in the main window, such as buttons, menus, and text fields. When called with
- * the parameter 'enable' set to true, all the components will be enabled, and
- * when called with 'enable' set to false, all the components will be disabled.
- *
- * @param enable True to enable the user interface components, false to disable.
- */
 void MainWindow::EnableUi(bool enable)
 {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
@@ -204,14 +147,6 @@ void MainWindow::EnableUi(bool enable)
     }
 }
 
-/**
- * @class MainWindow
- *
- * @brief Virtual method in charge of displaying the images.
- *
- * Displays an image at most every 35 milliseconds. The images are queried from
- * the container.
- */
 void MainWindow::Display()
 {
     static boost::posix_time::ptime last = boost::posix_time::microsec_clock::local_time();
@@ -229,13 +164,6 @@ void MainWindow::Display()
     }
 }
 
-/**
- * \brief Update the validators for Vhb and Sao2 fields in the MainWindow class.
- *
- * This function updates the validators for the Vhb and Sao2 fields in the
- * MainWindow class. The validators ensure that the user input for these fields
- * is in a valid format.
- */
 void MainWindow::UpdateVhbSao2Validators()
 {
     ui->minVhbLineEdit->setValidator(new QIntValidator(MIN_VHB, ui->maxVhbLineEdit->text().toInt(), this));
@@ -244,12 +172,6 @@ void MainWindow::UpdateVhbSao2Validators()
     ui->maxSao2LineEdit->setValidator(new QIntValidator(ui->minSao2LineEdit->text().toInt(), MAX_SAO2, this));
 }
 
-/**
- * @brief Destructor for MainWindow class.
- *
- * Cleans up resources used by the MainWindow object.
- * This destructor is automatically called when the object is destroyed.
- */
 MainWindow::~MainWindow()
 {
     m_IOService.stop();
@@ -265,15 +187,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/**
- * @class MainWindow
- * @brief Collects and stores the specified number of images in the base folder
- * specified through the GUI
- *
- * The snapshot button is re-styled when clicked, and the progress bar is
- * updated in the GUI during the process of recording the images. The button
- * style is restored after the data recording has completed.
- */
 void MainWindow::RecordSnapshots()
 {
     static QString recordButtonOriginalColour = ui->recordButton->styleSheet();
@@ -313,28 +226,11 @@ void MainWindow::RecordSnapshots()
     QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
-/**
- * @brief Slot for the snapshotButton clicked signal.
- *
- * This function is called when the snapshotButton is clicked by the user.
- * It handles the logic for capturing a snapshot of the current state of the
- * window. It launches a thread that takes care of the data recording.
- *
- * @return void
- */
 void MainWindow::on_snapshotButton_clicked()
 {
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
-/**
- * @brief Records the temperature of the camera.
- *
- * This function records the temperature of the camera and logs it to a file in
- * the base folder specified in the GUI. It uses the camera API to get the
- * temperature value and prints it to the console output. This function should
- * be called periodically to monitor the camera's temperature.
- */
 void MainWindow::LogCameraTemperature()
 {
     QString message;
@@ -352,23 +248,12 @@ void MainWindow::LogCameraTemperature()
     }
 }
 
-/**
- * Displays the camera temperature in an LCD display on the GUI
- */
 void MainWindow::DisplayCameraTemperature()
 {
     double temp = m_cameraInterface.m_camera->family->get()->m_cameraTemperature.value(SENSOR_BOARD_TEMP);
     QMetaObject::invokeMethod(ui->temperatureLCDNumber, "display", Qt::QueuedConnection, Q_ARG(double, temp));
 }
 
-/**
- * @brief Starts a thread to schedule temperature.
- *
- * This function starts a thread which executes the temperature scheduling
- * logic. The temperature scheduling logic periodically checks the current
- * temperature. The temperature is only logged periodically according to the
- * TEMP_LOG_INTERVAL variable
- */
 void MainWindow::ScheduleTemperatureThread()
 {
     m_temperatureIOWork = std::make_unique<boost::asio::io_service::work>(m_temperatureIOService);
@@ -378,16 +263,6 @@ void MainWindow::ScheduleTemperatureThread()
         boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
 }
 
-/**
- * \brief Handle the timer expiration event
- *
- * This function is called when the timer expires. It is responsible for
- * handling the timer expiration event.
- *
- * \param timer Pointer to the boost::asio::steady_timer object representing the
- * timer. \param error The error code associated with the timer expiration
- * event, if any.
- */
 void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
 {
     if (error == boost::asio::error::operation_aborted)
@@ -405,15 +280,6 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
         boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
 }
 
-/**
- * @brief this method starts a new thread for temperature monitoring.
- *
- * This method creates a new thread to monitor the temperature by periodically
- * calling the `ReadTemperature()` method. The temperature is read and stored in
- * a member variable for further processing.
- *
- * \see StopTemperatureThread()
- */
 void MainWindow::StartTemperatureThread()
 {
     if (m_temperatureThread.joinable())
@@ -436,15 +302,6 @@ void MainWindow::StartTemperatureThread()
     LOG_SUSICAM(info) << "Started temperature thread";
 }
 
-/**
- * \brief Stops the temperature thread.
- *
- * This function stops the thread responsible for temperature readings. It
- * sends a stop signal to the thread and waits for it to finish before
- * returning.
- *
- * \see StartTemperatureThread()
- */
 void MainWindow::StopTemperatureThread()
 {
     if (m_temperatureThread.joinable())
@@ -461,16 +318,6 @@ void MainWindow::StopTemperatureThread()
     }
 }
 
-/**
- * @brief Stop the snapshots thread.
- *
- * This function is used to stop the thread responsible for capturing snapshots.
- * It sends a signal to the thread to terminate its execution and waits for it
- * to finish.
- *
- * @note This function should be called when the application is being closed or
- * when the snapshots thread is no longer needed.
- */
 void MainWindow::StopSnapshotsThread()
 {
     if (m_snapshotsThread.joinable())
@@ -479,10 +326,6 @@ void MainWindow::StopSnapshotsThread()
     }
 }
 
-/**
- * This function joins the thread responsible for recording the white and dark
- * reference images
- */
 void MainWindow::StopReferenceRecordingThread()
 {
     if (m_referenceRecordingThread.joinable())
@@ -491,27 +334,12 @@ void MainWindow::StopReferenceRecordingThread()
     }
 }
 
-/**
- * @brief Handles the value changed event of the exposure slider.
- *
- * This function is called when the value of the exposure slider is changed.
- * It updates the exposure value the camera being used.
- *
- * @param value The new value of the exposure slider.
- */
 void MainWindow::on_exposureSlider_valueChanged(int value)
 {
     m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
 }
 
-/**
- * @brief Update the exposure value of the camera.
- *
- * This function updates the exposure value of the camera, and updates the
- * labels in the GUI as well as the estimated framerate.
- *
- */
 void MainWindow::UpdateExposure()
 {
     int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
@@ -527,11 +355,6 @@ void MainWindow::UpdateExposure()
     ui->exposureSlider->setValue(exp_ms);
 }
 
-/**
- * @brief slot triggered when the return key is pressed in the "label_exp"
- * QLabel. This method sets the camera exposure time and restores the GUI
- * element style to its original style.
- */
 void MainWindow::on_exposureLineEdit_returnPressed()
 {
     m_labelExp = ui->exposureLineEdit->text();
@@ -540,31 +363,11 @@ void MainWindow::on_exposureLineEdit_returnPressed()
     RestoreLineEditStyle(ui->exposureLineEdit);
 }
 
-/**
- * @brief Slot triggered when the text in the label_exp QLineEdit is edited.
- *
- * This method updates the style of the GUI component to indicate that the value
- * has changed
- *
- * @param arg1 The new text entered in the label_exp QLineEdit.
- */
 void MainWindow::on_exposureLineEdit_textEdited(const QString &arg1)
 {
     UpdateComponentEditedStyle(ui->exposureLineEdit, arg1, m_labelExp);
 }
 
-/**
- * @brief Handles the "recordButton" clicked event.
- *
- * This method calls StartRecording() to initiate the recording of the images.
- * This slot function sets the style of the record button to indicate if the
- * recordings are running or if they are not. A message is also logged into the
- * log file located at the base folder to indicate that recordings started or
- * ended.
- *
- * @param clicked The clicked state of the "recordButton".
- * \see StartRecording()
- */
 void MainWindow::on_recordButton_clicked(bool clicked)
 {
     static QString original_colour;
@@ -594,12 +397,6 @@ void MainWindow::on_recordButton_clicked(bool clicked)
     }
 }
 
-/**
- * Enables and disables elements of the GUI that should not me modified while
- * recordings are in progress
- *
- * @param recordingInProgress
- */
 void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
 {
     if (recordingInProgress)
@@ -632,15 +429,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     QMainWindow::closeEvent(event);
 }
 
-/**
- * @brief Slot function triggered when the "Choose Folder" button is clicked in
- * the MainWindow.
- *
- * This function is responsible for handling the event when the user clicks the
- * "Choose Folder" button in the MainWindow. It opens a file dialog to allow the
- * user to select a folder and performs necessary operations based on the
- * selected folder.
- */
 void MainWindow::on_baseFolderButton_clicked()
 {
     bool isValid = false;
@@ -665,13 +453,6 @@ void MainWindow::on_baseFolderButton_clicked()
     this->StartTemperatureThread();
 }
 
-/**
- * @brief Writes the log header to the log file.
- *
- * This function writes the header in the log file, which includes information
- * such as the date and time when the log was created, and any other relevant
- * information to describe the log file format.
- */
 void MainWindow::WriteLogHeader()
 {
     this->LogMessage(" git hash: " + QString::fromLatin1(libfiveGitRevision()), LOG_FILE_NAME, true);
@@ -684,23 +465,6 @@ QString MainWindow::GetLogFilePath(QString logFile)
     return QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + logFile);
 }
 
-/**
- * @brief Logs a message to a file with optional timestamp.
- *
- * This function appends the given message to a log file. The logFile parameter
- * specifies the path of the log file. If logTime is set to true, the current
- * timestamp will be added to the log entry. Otherwise, only the message will be
- * logged.
- *
- * @param message The message to be logged.
- * @param logFile The path of the log file.
- * @param logTime Specifies whether to log the timestamp along with the message.
- *
- * @note If the log file does not exist, it will be created. If it already
- * exists, the message will be appended to it.
- * @note The function does not handle exceptions or errors when writing to the
- * log file. It assumes the file can be written to successfully.
- */
 QString MainWindow::LogMessage(QString message, QString logFile, bool logTime)
 {
     auto timestamp = GetTimeStamp();
@@ -716,63 +480,33 @@ QString MainWindow::LogMessage(QString message, QString logFile, bool logTime)
     return timestamp;
 }
 
-/**
- * @brief Slot function called when the return key is pressed in the
- * topFolderName QLineEdit. It handles the logic when the user inputs a new
- * folder name and presses the return key. Member variable is updated and the
- * original style of the GUI element restored.
- */
 void MainWindow::on_subFolderLineEdit_returnPressed()
 {
     m_subFolder = ui->subFolderLineEdit->text();
     RestoreLineEditStyle(ui->subFolderLineEdit);
 }
 
-/**
- * \brief Slot function called when the user presses enter in the
- * recPrefixlineEdit field.
- *
- * This function is a slot connected to the returnPressed() signal of the
- * recPrefixlineEdit widget in the MainWindow class. It is called when the user
- * presses the enter key while the recPrefixlineEdit field has focus.
- */
 void MainWindow::on_filePrefixLineEdit_returnPressed()
 {
     m_recPrefixlineEdit = ui->filePrefixLineEdit->text();
     RestoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
-/**
- * @brief Retrieves the normalization checkbox state from the GUI.
- */
 bool MainWindow::GetNormalize() const
 {
     return this->ui->normalizeCheckbox->isChecked();
 }
 
-/**
- * \brief returns the index of the band specified by the slider in the GUI
- *
- */
 unsigned MainWindow::GetBand() const
 {
     return this->ui->bandSlider->value();
 }
 
-/**
- * \brief retrieves the state of the RGB normalization checkbox in the GUI
- *
- */
 unsigned MainWindow::GetBGRNorm() const
 {
     return this->ui->rgbNormSlider->value();
 }
 
-/**
- * \brief Sets the value of the member variable storing the value of the base
- * folder specified in the GUI
- *
- */
 bool MainWindow::SetBaseFolder(QString baseFolderPath)
 {
     if (QDir(baseFolderPath).exists())
@@ -786,27 +520,16 @@ bool MainWindow::SetBaseFolder(QString baseFolderPath)
     }
 }
 
-/**
- * \brief returns the value of the member variable that stores the path to the
- * base folder where images are recorded
- *
- */
 QString MainWindow::GetBaseFolder() const
 {
     return m_baseFolderLoc;
 }
 
-/**
- * \brief Executes image recording in a separate thread.
- */
 void MainWindow::ThreadedRecordImage()
 {
     this->m_IOService.post([this] { RecordImage(false); });
 }
 
-/**
- * The extension to the file name is added automatically.
- */
 void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string filePrefix)
 {
     if (filePrefix.empty())
@@ -821,17 +544,6 @@ void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string 
     this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
 }
 
-/**
- * @brief Records an image
- *
- * This function is responsible for recording an image in the MainWindow class.
- * It performs the necessary operations to save the current image displayed in
- * the application to a file or any other desired location. The LCD displaying
- * the number of recorded images is also updated.
- *
- * @param ignoreSkipping ignores the number of frames to skip and stores the
- * image anyways
- */
 void MainWindow::RecordImage(bool ignoreSkipping)
 {
     boost::this_thread::interruption_point();
@@ -859,34 +571,17 @@ void MainWindow::RecordImage(bool ignoreSkipping)
     lastImageID = image.acq_nframe;
 }
 
-/**
- * Indicates if an image should be recorded to file or not
- *
- * @param nSkipFrames number of frames to skip
- * @param ImageID unique image ID
- * @return
- */
 bool MainWindow::ImageShouldBeRecorded(int nSkipFrames, long ImageID)
 {
     return (nSkipFrames == 0) || (ImageID % nSkipFrames == 0);
 }
 
-/**
- * Displays in the GUI the number of recorded images
- */
 void MainWindow::DisplayRecordCount()
 {
     QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
                               Q_ARG(int, m_recordedCount));
 }
 
-/**
- * @brief Updates the timer in the main window.
- *
- * This function is responsible for updating the timer displayed in the main
- * window. It should be called periodically to ensure the timer is always
- * up-to-date.
- */
 void MainWindow::updateTimer()
 {
     m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
@@ -910,32 +605,16 @@ void MainWindow::updateTimer()
     ui->timerLCDNumber->display(m_elapsedTimeText);
 }
 
-/**
- * \brief Stops the timer in the MainWindow class.
- */
 void MainWindow::stopTimer()
 {
     ui->timerLCDNumber->display(0);
 }
 
-/**
- * @brief Adds 1 to the member variable that stores the number of images
- * counter.
- */
 void MainWindow::CountImages()
 {
     m_imageCounter++;
 }
 
-/**
- * @brief Starts the recording process.
- *
- * This function is responsible for starting the recording process in the
- * MainWindow class. It makes the appropriate connections between slots:
- * ThreadedRecordImage, CountImages & updateTimer with the NewImage signal.
- *
- * @note Make sure to call StopRecording() to stop the recording process.
- */
 void MainWindow::StartRecording()
 {
     // create thread for running the tasks posted to the IO service
@@ -950,13 +629,6 @@ void MainWindow::StartRecording()
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
 }
-
-/**
- * @brief Stops the current recording process.
- *
- * This method disconnects the connections made by StartRecording and stops the
- * timer as well as logs to console the estimated number of recorded images.
- */
 
 void MainWindow::StopRecording()
 {
@@ -975,12 +647,6 @@ void MainWindow::StopRecording()
     LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
 }
 
-/**
- * Generates the base folder where all recordings are stored. The base folder is
- * defined in the GUI and stored in a member variable
- *
- * @return base folder path
- */
 QString MainWindow::GetWritingFolder()
 {
     QString writeFolder = GetBaseFolder();
@@ -988,11 +654,6 @@ QString MainWindow::GetWritingFolder()
     return QDir::cleanPath(writeFolder);
 }
 
-/**
- * Checks if folder path exists, if not then it is created
- *
- * @param folder: path to folder to be created
- */
 void MainWindow::CreateFolderIfNecessary(QString folder)
 {
     QDir folderDir(folder);
@@ -1006,18 +667,6 @@ void MainWindow::CreateFolderIfNecessary(QString folder)
     }
 }
 
-/**
- * Generates a filePrefix where an image will be stored. The filePrefix is
- * composed of prefix + date + time + image number + extension. The date and
- * time are queried each time this function is called.
- *
- * @param filePrefix the prefix used for the filePrefix, date, time and
- * extension are added to this
- * @param extension file extension to use for the filePrefix
- * @param subFolder sub folder inside the base folder where the file should
- * reside
- * @return full file path, includes the base folder where the file should reside
- */
 QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
                                                   std::string &&subFolder)
 {
@@ -1042,10 +691,6 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, cons
     return QDir::cleanPath(writingFolder + fileName);
 }
 
-/**
- * Starts the thread of the image container and starts polling the images on the
- * image container
- */
 void MainWindow::StartPollingThread()
 {
     m_imageContainer.StartPolling();
@@ -1053,10 +698,6 @@ void MainWindow::StartPollingThread()
         boost::thread(&ImageContainer::PollImage, &m_imageContainer, &m_cameraInterface.m_cameraHandle, 5);
 }
 
-/**
- * Stops the thread in charge of the image container and stops polling the
- * images on the image container
- */
 void MainWindow::StopPollingThread()
 {
     m_imageContainer.StopPolling();
@@ -1064,13 +705,6 @@ void MainWindow::StopPollingThread()
     m_imageContainerThread.join();
 }
 
-/**
- * Sets the camera exposure time to automatic. The process of setting the
- * exposure time is managed internally by the camera.
- *
- * @param setAutoexposure whether the exposure should be set to automatic
- * management by the camera
- */
 void MainWindow::on_autoexposureCheckbox_clicked(bool setAutoexposure)
 {
     this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
@@ -1079,11 +713,6 @@ void MainWindow::on_autoexposureCheckbox_clicked(bool setAutoexposure)
     UpdateExposure();
 }
 
-/**
- * Launches thread to record white reference images.
- *
- * @see MainWindow::RecordReferenceImages
- */
 void MainWindow::on_whiteBalanceButton_clicked()
 {
     if (m_referenceRecordingThread.joinable())
@@ -1093,11 +722,6 @@ void MainWindow::on_whiteBalanceButton_clicked()
     m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "white");
 }
 
-/**
- * Launches thread to record dark reference images.
- *
- * @see MainWindow::RecordReferenceImages
- */
 void MainWindow::on_darkCorrectionButton_clicked()
 {
     if (m_referenceRecordingThread.joinable())
@@ -1107,14 +731,6 @@ void MainWindow::on_darkCorrectionButton_clicked()
     m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "dark");
 }
 
-/**
- * Record reference images (white or dark). The number of images to be recorded
- * is defined by constants:NR_REFERENCE_IMAGES_TO_RECORD. After recording each
- * image an amount of time equal to twice the integration time is waited before
- * recording the next image.
- *
- * @param referenceType
- */
 void MainWindow::RecordReferenceImages(QString referenceType)
 {
     QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -1175,9 +791,6 @@ void MainWindow::RecordReferenceImages(QString referenceType)
     }
 }
 
-/**
- * Updates the style of the line edit element when edited.
- */
 void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
@@ -1202,10 +815,6 @@ void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
 }
 
-/**
- * triggers the update of the blood volume fraction and oxygenation validators
- * when maximum range of vhb is modified.
- */
 void MainWindow::on_maxVhbLineEdit_returnPressed()
 {
     this->UpdateVhbSao2Validators();
@@ -1213,18 +822,11 @@ void MainWindow::on_maxVhbLineEdit_returnPressed()
     RestoreLineEditStyle(ui->maxVhbLineEdit);
 }
 
-/**
- * Updates the style of the line edit element when edited.
- */
 void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
 }
 
-/**
- * triggers the update of the blood volume fraction and oxygenation validators
- * when minimum range of oxygen is modified
- */
 void MainWindow::on_minSao2LineEdit_returnPressed()
 {
     this->UpdateVhbSao2Validators();
@@ -1240,10 +842,6 @@ void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
 }
 
-/**
- * triggers the update of the blood volume fraction and oxygenation validators
- * when maximum range of oxygen is modified.
- */
 void MainWindow::on_maxSao2LineEdit_returnPressed()
 {
     this->UpdateVhbSao2Validators();
@@ -1251,15 +849,6 @@ void MainWindow::on_maxSao2LineEdit_returnPressed()
     RestoreLineEditStyle(ui->maxSao2LineEdit);
 }
 
-/**
- * Updates the look of a QLineEdit object based on if its content has changed.
- * If the content has changed, the appearance is changed to reflect a change.
- * Once return key is pressed, the appearance is reseted.
- *
- * @param lineEdit object for which the look should be changed
- * @param newString new text of the QLineEdit object
- * @param originalString initial text of the QLineEdit object
- */
 void MainWindow::UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString,
                                             const QString &originalString)
 {
@@ -1273,40 +862,21 @@ void MainWindow::UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &
     }
 }
 
-/**
- * restores the original appearance of a QLineEdit object
- *
- * @param lineEdit element to change style
- */
 void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
 {
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-/**
- * Updates the appearance of the top folder name field in the GUI when edited
- *
- * @param newText new text of the QLineEdit object
- */
 void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
 }
 
-/**
- * Updates the appearance of the file prefix field in the GUI when edited
- *
- * @param newText new text of the QLineEdit object
- */
 void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
 }
 
-/**
- * Activates the display related to functional properties. When active, the raw
- * image, RGB estimate and the functional parameter estimations are displayed.
- */
 void MainWindow::on_functionalRadioButton_clicked()
 {
     delete m_display;
@@ -1316,12 +886,6 @@ void MainWindow::on_functionalRadioButton_clicked()
     m_display->SetCameraProperties(cameraModel);
 }
 
-/**
- * Activates the display related to functional properties. When active, the raw
- * image is displayed on higher resolution compared to the functional displayed
- *
- * @see MainWindow::on_functionalRadioButton_clicked
- */
 void MainWindow::on_rawRadioButton_clicked()
 {
     delete m_display;
@@ -1331,70 +895,33 @@ void MainWindow::on_rawRadioButton_clicked()
     m_display->SetCameraProperties(cameraModel);
 }
 
-/**
- * Updates the appearance of the "extras" folder name field in the GUI when
- * edited
- *
- * @param newText new text of the QLineEdit object
- */
 void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
 }
 
-/**
- * stores name of folder where "extras" recordings should be stored in a member
- * variable and restores QLineEdit appearance.
- */
 void MainWindow::on_subFolderExtrasLineEdit_returnPressed()
 {
     m_extrasSubFolder = ui->subFolderExtrasLineEdit->text();
     RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
 }
 
-/**
- * @brief Slot function called when the text in the snapshotPrefixlineEdit is
- * edited.
- *
- * @param newText The new text entered in the snapshotPrefixlineEdit.
- */
 void MainWindow::on_filePrefixExtrasLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
 }
 
-/**
- * @brief Slot function triggered when the return key is pressed in the
- * snapshotPrefixlineEdit QLineEdit widget. This method re-styles the appearance
- * of the lineEdit object.
- *
- * This function is a slot that is connected to the returnPressed() signal of
- * the snapshotPrefixlineEdit widget in the MainWindow class. When the user
- * presses the return key in the snapshotPrefixlineEdit widget, this function is
- * called.
- */
 void MainWindow::on_filePrefixExtrasLineEdit_returnPressed()
 {
     m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
     RestoreLineEditStyle(ui->filePrefixExtrasLineEdit);
 }
 
-/**
- * Updates the appearance of the trigger text field in the GUI when edited
- *
- * @param newText new text of the QLineEdit object
- */
 void MainWindow::on_logTextLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
-/**
- * Formats timestamp from  yyyyMMdd_HH-mm-ss-zzz to a human readable format
- *
- * @param timestamp timestamp to re-format
- * @return reformatted timestamp
- */
 QString MainWindow::FormatTimeStamp(QString timestamp)
 {
     QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
@@ -1402,11 +929,6 @@ QString MainWindow::FormatTimeStamp(QString timestamp)
     return formattedDate;
 }
 
-/**
- * Logs the written message from the GUI to the file named in constants.h:
- * LOG_FILE_NAME. It also resets the content of of the trigger text line edit
- * and displays all messages on GUI
- */
 void MainWindow::on_logTextLineEdit_returnPressed()
 {
     QString timestamp;
@@ -1442,13 +964,6 @@ void MainWindow::on_skipFramesSpinBox_valueChanged()
     ui->hzLabel->setText(QString::number((double)(1000.0 / (exp_ms * (nSkipFrames + 1))), 'g', 2));
 }
 
-/**
- * Initializes the camera selected from a dropdown menu and stores its camera
- * type as well as the camera model. If initialization succeeds, the GUI
- * components are activated and can from there on be used.
- *
- * @param index index from a dropdown menu of the camera to be initialized
- */
 void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
 {
     boost::lock_guard<boost::mutex> guard(mtx_);
@@ -1513,13 +1028,6 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
     }
 }
 
-/**
- * Updates the saturation percentage LCD displays with the given image.
- *
- * @param image The input image to compute saturation percentages.
- * @throw std::invalid_argument If the input matrix is empty or not of type
- * CV_8UC1.
- */
 void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
 {
     if (image.empty() || image.type() != CV_8UC1)

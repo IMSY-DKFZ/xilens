@@ -19,10 +19,6 @@
 #include "constants.h"
 #include "logger.h"
 
-/**
- * Opens a file and throws runtime error when opening fails
- * @param filePath path to file to open
- */
 FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth)
 {
     this->filePath = strdup(filePath);
@@ -59,9 +55,6 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
     HandleBLOSCResult(result, "b2nd_empty || b2nd_open");
 }
 
-/**
- * Closes file and releases BLOSC resources when object is destructed
- */
 FileImage::~FileImage()
 {
     // free BLOSC resources
@@ -70,10 +63,6 @@ FileImage::~FileImage()
     blosc2_destroy();
 }
 
-/**
- * The following metadata is currently appended: exposure time, number of frame
- * acquired by the camera, color filter array format and a time stamp.
- */
 void FileImage::AppendMetadata()
 {
     // pack and append metadata
@@ -84,11 +73,6 @@ void FileImage::AppendMetadata()
     LOG_SUSICAM(info) << "Metadata was written to file";
 }
 
-/**
- * Writes the content of an image into a file in UINT16 format and associated
- * metadata
- * @param image Ximea image where data is stored
- */
 void FileImage::write(XI_IMG image)
 {
     const int64_t buffer_size = image.width * image.height * sizeof(uint16_t);
@@ -101,9 +85,6 @@ void FileImage::write(XI_IMG image)
     this->m_timeStamp.emplace_back(GetTimeStamp().toStdString());
 }
 
-/**
- * The metadata is packed using the message pack library
- */
 template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T> &metadata)
 {
     // pack metadata and add it to array
@@ -112,10 +93,6 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
     AppendBLOSCVLMetadata(src, key, sbuf);
 }
 
-/**
- * The color filter arrays a re only defined for color cameras, for spectral and
- * gray scale cameras, a generic string is returned to indicate it is invalid.
- */
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
 {
     switch (colorFilterArray)
@@ -143,11 +120,6 @@ std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
     }
 }
 
-/**
- * The new metadata is added to the array when there is no metadata
- * corresponding to the provided key. If metadata already exists, the new data
- * is unpacked and then merged with the existing one.
- */
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData)
 {
     // Get the existing data
@@ -224,38 +196,21 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
     }
 }
 
-/**
- * Queries Git tag
- * @return git tag
- */
 const char *libfiveGitVersion(void)
 {
     return GIT_TAG;
 }
 
-/**
- * Queries Git revision number
- * @return git revision
- */
 const char *libfiveGitRevision(void)
 {
     return GIT_REV;
 }
 
-/**
- * Queries Git branch name
- * @return git branch name
- */
 const char *libfiveGitBranch(void)
 {
     return GIT_BRANCH;
 }
 
-/**
- * Rescales values to a range defined by high
- * @param mat matrix values to rescale
- * @param high maximum value that defines the range
- */
 void rescale(cv::Mat &mat, float high)
 {
     double min, max;
@@ -263,41 +218,21 @@ void rescale(cv::Mat &mat, float high)
     mat = (mat - ((float)min)) * high / ((float)max - min);
 }
 
-/**
- * Restricts the values in a matrix to the range defined by bounds
- * @param mat matrix of values to restrict
- * @param bounds range of values
- */
 void clamp(cv::Mat &mat, cv::Range bounds)
 {
     cv::min(cv::max(mat, bounds.start), bounds.end, mat);
 }
 
-/**
- * waits a certain amount of milliseconds on a boost thread
- * @param milliseconds amount of time to wait
- */
 void wait(int milliseconds)
 {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(milliseconds));
 }
 
-/**
- * Initializes the logging by setting a severity
- * @param severity level of logging to set
- */
 void initLogging(enum boost::log::trivial::severity_level severity)
 {
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= severity);
 }
 
-/**
- * Created a look up table (LUT) that can be used to define the colors of pixels
- * in an image that are over-saturated or under-exposed.
- * @param saturation_color color of pixels that are over-saturated
- * @param dark_color color of pixels that are under-exposed
- * @return matrix with LUT
- */
 cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color)
 {
     cv::Mat Lut(1, 256, CV_8UC3);
@@ -316,12 +251,6 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color)
     return Lut;
 }
 
-/**
- * @brief Helper function which wraps a ximea image in a cv::Mat
- *
- * @param xi_img input ximea image
- * @param mat_img output cv::Mat image
- */
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img)
 {
     mat_img = cv::Mat(xi_img.height, xi_img.width, CV_16UC1, xi_img.bp);
@@ -336,7 +265,4 @@ QString GetTimeStamp()
     return timestamp;
 }
 
-/**
- * Contains the CLI arguments that can be used through a terminal
- */
 struct CommandLineArguments g_commandLineArguments;

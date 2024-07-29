@@ -22,26 +22,6 @@ int Camera::InitializeCamera()
     return 0;
 }
 
-/**
- * Initializes camera parameters that are common across all supported cameras:
- *
- * - `XI_PRM_IMAGE_DATA_FORMAT`
- * - `XI_PRM_RECENT_FRAME`
- * - `XI_PRM_AUTO_BANDWIDTH_CALCULATION`
- * - `XI_PRM_GAIN`
- * - `XI_PRM_GAIN`
- * - `XI_PRM_FRAMERATE XI_PRM_INFO_MAX`
- * - `XI_PRM_FRAMERATE`
- * - `XI_PRM_DOWNSAMPLING`
- * - `XI_PRM_COUNTER_SELECTOR`
- * - `XI_PRM_BUFFER_POLICY`
- * - `XI_PRM_LUT_EN`
- * - `XI_PRM_OUTPUT_DATA_PACKING`
- * - `XI_PRM_ACQ_BUFFER_SIZE`
- * - `XI_PRM_EXP_PRIORITY`
- *
- * @return status code as an integer
- */
 int Camera::InitializeCameraCommonParameters()
 {
     int current_max_framerate;
@@ -97,16 +77,6 @@ int Camera::InitializeCameraCommonParameters()
     return stat;
 }
 
-/**
- * Initializes the common parameters across all supported cameras and specific
- * values only supported by the Spectral cameras:
- *
- * - `XI_PRM_ACQ_TIMING_MODE`
- * - `XI_PRM_DOWNSAMPLING_TYPE`
- *
- * @return status code as an integer
- * @see SpectralCamera::InitializeCameraCommonParameters
- */
 int SpectralCamera::InitializeCamera()
 {
     int stat = XI_OK;
@@ -123,16 +93,6 @@ int SpectralCamera::InitializeCamera()
     return stat;
 }
 
-/**
- * Initializes the common parameters across all supported cameras and specific
- * values only supported by the gray scale cameras:
- *
- * - `XI_PRM_ACQ_TIMING_MODE`
- * - `XI_PRM_DOWNSAMPLING_TYPE`
- *
- * @return status code as an integer
- * @see GrayCameraCamera::InitializeCameraCommonParameters
- */
 int GrayCamera::InitializeCamera()
 {
     int stat = XI_OK;
@@ -151,16 +111,6 @@ int GrayCamera::InitializeCamera()
     return stat;
 }
 
-/**
- * Initializes the common parameters across all supported cameras and specific
- * values only supported by the gray scale cameras:
- *
- * - `XI_PRM_ACQ_TIMING_MODE`
- * - `XI_PRM_DOWNSAMPLING_TYPE`
- *
- * @return status code as an integer
- * @see SpectralCamera::InitializeCameraCommonParameters
- */
 int RGBCamera::InitializeCamera()
 {
     int stat = XI_OK;
@@ -177,11 +127,6 @@ int RGBCamera::InitializeCamera()
     return stat;
 }
 
-/**
- * @brief Updates the recorded temperature of the camera.
- *
- * @return void
- */
 void XiSpecFamily::UpdateCameraTemperature()
 {
     float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
@@ -196,11 +141,6 @@ void XiSpecFamily::UpdateCameraTemperature()
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 
-/**
- * @brief Updates the recorded temperature of the camera.
- *
- * @return void
- */
 void XiCFamily::UpdateCameraTemperature()
 {
     float sensorBoardTemp;
@@ -208,11 +148,6 @@ void XiCFamily::UpdateCameraTemperature()
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
 }
 
-/**
- * @brief Updates the recorded temperature of the camera.
- *
- * @return void
- */
 void XiQFamily::UpdateCameraTemperature()
 {
     float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
@@ -228,17 +163,6 @@ void XiQFamily::UpdateCameraTemperature()
         this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
     }
 }
-
-/**
- * @brief Set exposure value for the camera interface.
- *
- * This function sets the exposure value for the camera interface. The exposure
- * value determines how long the camera sensor collects light from the scene.
- *
- * @param exp The exposure value to be set.
- *
- * @warning A valid camera connection is required before calling this function.
- */
 
 void Camera::SetExposure(int exp)
 {
@@ -256,20 +180,11 @@ void Camera::SetExposure(int exp)
     }
 }
 
-/**
- * @brief Sets the exposure time in milliseconds for the camera.
- *
- * @param exp The desired exposure time in milliseconds.
- */
 void Camera::SetExposureMs(int exp)
 {
     this->SetExposure(exp * 1000);
 }
 
-/**
- * \brief Retrieves the exposure value from the camera interface.
- * \return The current exposure value.
- */
 int Camera::GetExposure()
 {
     int stat = XI_OK;
@@ -289,18 +204,11 @@ int Camera::GetExposure()
     return exp;
 }
 
-/**
- * \brief Retrieves the exposure value from the camera interface.
- * \return The current exposure value in milliseconds.
- */
 int Camera::GetExposureMs()
 {
     return (this->GetExposure() + 5) / 1000;
 }
 
-/**
- * @brief sets exposure to be updated automatically internally
- */
 void Camera::AutoExposure(bool on)
 {
     int stat = XI_INVALID_HANDLE;
