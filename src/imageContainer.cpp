@@ -1,98 +1,75 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
-#include <iostream>
+ *******************************************************/
+#include "imageContainer.h"
 
 #include <xiApi.h>
+
 #include <boost/thread.hpp>
+#include <iostream>
 
-#include "imageContainer.h"
-#include "util.h"
 #include "logger.h"
+#include "util.h"
 
-
-/**
- * @brief The ImageContainer class represents an image container object.
- *
- * This class encapsulates an image container object used for storing and manipulating images. The memory for the image
- * is is set by memset here.
- */
-ImageContainer::ImageContainer() : m_PollImage(true) {
+ImageContainer::ImageContainer() : m_PollImage(true)
+{
     memset(&m_Image, 0, sizeof(m_Image));
     m_Image.size = sizeof(XI_IMG);
 }
 
-
-/**
- * The member variable for the API wrapper is set to the global API wrapper a a shared pointer.
- *
- * @param apiWrapper
- */
-void ImageContainer::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper) {
+void ImageContainer::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
+{
     this->m_apiWrapper = apiWrapper;
 }
 
-
-/**
- * Images can be stored on an already existing BLOSC file
- */
-void ImageContainer::InitializeFile(const char *filePath) {
+void ImageContainer::InitializeFile(const char *filePath)
+{
     auto image = GetCurrentImage();
     this->m_imageFile = std::make_unique<FileImage>(filePath, image.height, image.width);
 }
 
-
-/**
- * Appends metadata and deallocates resources associated with the File.
- */
-void ImageContainer::CloseFile() {
-    if (this->m_imageFile){
+void ImageContainer::CloseFile()
+{
+    if (this->m_imageFile)
+    {
         this->m_imageFile->AppendMetadata();
         this->m_imageFile = nullptr;
         LOG_SUSICAM(info) << "Closed recording file";
     }
 }
 
-/**
- * Destructor of image container
- */
-ImageContainer::~ImageContainer() {
+ImageContainer::~ImageContainer()
+{
     LOG_SUSICAM(info) << "Destroying image container";
 }
 
-
-/**
- * @brief Polls for a new image from the camera at a given polling rate.
- *
- * This function continuously polls for a new image from the camera using the specified camera handle.
- * It uses the given polling rate to determine how frequently to poll for new images.
- * Once a new image is obtained, it emits a signal to notify that a new image is available.
- *
- * A lock guard is used to avoid overwriting the current container image when other processes are using it.
- *
- * @param cameraHandle The handle to the camera device.
- * @param pollingRate The polling rate in milliseconds.
- */
-void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate) {
+void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
+{
     static unsigned lastImageId = 0;
     static int stat;
-    while (m_PollImage) {
+    while (m_PollImage)
+    {
         {
             boost::lock_guard<boost::mutex> guard(mtx_);
             boost::this_thread::interruption_point();
-            if (cameraHandle != INVALID_HANDLE_VALUE){
+            if (cameraHandle != INVALID_HANDLE_VALUE)
+            {
                 stat = m_apiWrapper->xiGetImage(*cameraHandle, 5000, &m_Image);
-                try {
+                try
+                {
                     HandleResult(stat, "xiGetImage");
-                } catch (const std::exception& e) {
+                }
+                catch (const std::exception &e)
+                {
                     this->StopPolling();
                     LOG_SUSICAM(error) << "Error while trying to get image from device";
                     this->CloseFile();
                     throw;
                 }
             }
-            if (m_Image.acq_nframe != lastImageId) {
+            if (m_Image.acq_nframe != lastImageId)
+            {
                 emit NewImage();
                 lastImageId = m_Image.acq_nframe;
             }
@@ -101,30 +78,18 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate) {
     }
 }
 
-
-/**
- * Stop image polling
- */
-void ImageContainer::StopPolling() {
+void ImageContainer::StopPolling()
+{
     m_PollImage = false;
 }
 
-
-/**
- * Starts image polling
- */
-void ImageContainer::StartPolling() {
+void ImageContainer::StartPolling()
+{
     m_PollImage = true;
 }
 
-
-/**
- * Queries the current image int he container. a lock guard is used to avoid the current image in the container to be
- * overwritten while it is queried.
- *
- * @return current image in container
- */
-XI_IMG ImageContainer::GetCurrentImage() {
+XI_IMG ImageContainer::GetCurrentImage()
+{
     boost::lock_guard<boost::mutex> guard(mtx_);
     return m_Image;
 }

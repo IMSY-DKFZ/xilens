@@ -61,7 +61,7 @@ ELSE ()
 ENDIF ()
 
 # BLOSC2
-find_package(Blosc2 2.14.0 CONFIG REQUIRED)
+find_package(Blosc2 2.15.0 CONFIG REQUIRED)
 
 # Message pack for metadata serialization
 find_package(msgpack REQUIRED)
@@ -77,9 +77,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Boost REQUIRED python system thread timer chrono log filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 # ximea (camera)
-find_library(Ximea_Lib libm3api DOC "Ximeas Xispec library." HINTS "/usr/lib/libm3api.so.0")
-find_path(Ximea_Include_Dir xiApi.h DOC "XiApi include directory" HINTS "/opt/XIMEA/include/xiApi.h")
-include_directories(${Ximea_Include_Dir})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+find_package(Ximea REQUIRED)
+include_directories(${Ximea_INCLUDE_DIRS})
 
 ######################
 ##### susiCamLib #####
@@ -126,7 +126,7 @@ add_library(SUSICAM_LIB ${LIBTYPE}
 target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
 target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
-target_link_libraries(SUSICAM_LIB ${Ximea_Lib})
+target_link_libraries(SUSICAM_LIB ${Ximea_LIBRARIES})
 target_link_libraries(SUSICAM_LIB Blosc2::blosc2_shared)
 
 ###################
@@ -138,9 +138,28 @@ qt6_add_resources(SUSICAM_BIN_SRC resources/theme_resources.qrc)
 add_executable(SUSICAM ${SUSICAM_BIN_SRC})
 target_link_libraries(SUSICAM SUSICAM_LIB)
 
-###################
-###Google Tests####
-###################
+#################################
+##### Install and uninstall #####
+#################################
+# Setup the installation target
+install(TARGETS SUSICAM SUSICAM_LIB
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/icon.png DESTINATION share/pixmaps RENAME susicam.png)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/susicam.desktop DESTINATION share/applications)
+
+# uninstall configuration
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+
+#####################
+### Google Tests ####
+#####################
 find_package(GTest REQUIRED)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

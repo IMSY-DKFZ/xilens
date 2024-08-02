@@ -1,40 +1,41 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QCloseEvent>
 #include <QApplication>
-#include <QGuiApplication>
-#include <QScreen>
+#include <QCloseEvent>
 #include <QElapsedTimer>
+#include <QGuiApplication>
 #include <QLineEdit>
-#include <boost/thread.hpp>
+#include <QMainWindow>
+#include <QScreen>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include "cameraInterface.h"
 #include "display.h"
 #include "xiAPIWrapper.h"
 
-
 /**
  * Main window namespace
  */
-namespace Ui {
-    class MainWindow;
+namespace Ui
+{
+class MainWindow;
 }
 
 /**
  * Main window class declaration.
  */
-class MainWindow : public QMainWindow {
-Q_OBJECT
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = 0,  std::shared_ptr<XiAPIWrapper> xiAPIWrapper = nullptr);
+  public:
+    explicit MainWindow(QWidget *parent = 0, std::shared_ptr<XiAPIWrapper> xiAPIWrapper = nullptr);
 
     ~MainWindow();
 
@@ -91,7 +92,8 @@ public:
     void DisplayCameraTemperature();
 
     /**
-     * Creates schedule for the thread in charge of logging temperature of the camera
+     * Creates schedule for the thread in charge of logging temperature of the
+     * camera
      */
     void ScheduleTemperatureThread();
 
@@ -119,28 +121,31 @@ public:
      * @brief Updates the saturation percentage on the LCD displays.
      *
      * @param image The input image of type CV_8UC1. It must be non-empty.
-     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+     * @throws std::invalid_argument if the input matrix is empty or of the wrong
+     * type.
      */
     void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
-protected:
+  protected:
     /**
      * @brief Event handler for the close event of the main window.
      *
-     * This method is called when the user attempts to close the main window either by clicking the close button
-     * or using the system shortcut. It is responsible for handling any necessary cleanup or actions before
-     * the application closes. If a recording is running when the close event is triggered, the recordings are first
-     * stopped to ensure no loss of data happens.
+     * This method is called when the user attempts to close the main window
+     * either by clicking the close button or using the system shortcut. It is
+     * responsible for handling any necessary cleanup or actions before the
+     * application closes. If a recording is running when the close event is
+     * triggered, the recordings are first stopped to ensure no loss of data
+     * happens.
      *
      * @param event A pointer to the event object representing the close event.
      */
     void closeEvent(QCloseEvent *event);
 
-private slots:
+  private slots:
 
     /**
-     * Qt slot triggered when the snapshot button is pressed. Triggers the recording of snapshot images or stops it
-     * when pressed a second time.
+     * Qt slot triggered when the snapshot button is pressed. Triggers the
+     * recording of snapshot images or stops it when pressed a second time.
      */
     void on_snapshotButton_clicked();
 
@@ -150,49 +155,54 @@ private slots:
     void on_exposureSlider_valueChanged(int value);
 
     /**
-     * Qt slot triggered when the record button is pressed. Stars the continuous recording of images to files and stops
-     * it when pressed a second time. This is synchronized with the exposure time label.
+     * Qt slot triggered when the record button is pressed. Stars the continuous
+     * recording of images to files and stops it when pressed a second time. This
+     * is synchronized with the exposure time label.
      */
     void on_recordButton_clicked(bool clicked);
 
     /**
-     * Qt slot triggered when the button to choose a base folder is clicked. Opens a dialog where a folder can be
-     * selected.
+     * Qt slot triggered when the button to choose a base folder is clicked. Opens
+     * a dialog where a folder can be selected.
      */
     void on_baseFolderButton_clicked();
 
     /**
-     * Qt slot triggered when the exposure time labels is modified manually. This changes the appearance of the field
-     * but does not trigger the change in the camera. Return key needs to be pressed for the change to be applied.
+     * Qt slot triggered when the exposure time labels is modified manually. This
+     * changes the appearance of the field but does not trigger the change in the
+     * camera. Return key needs to be pressed for the change to be applied.
      */
     void on_exposureLineEdit_textEdited(const QString &arg1);
 
     /**
-     * Qt slot triggered when return key is pressed after modifying the exposure time. This is synchronized with the
-     * exposure time slider.
+     * Qt slot triggered when return key is pressed after modifying the exposure
+     * time. This is synchronized with the exposure time slider.
      */
     void on_exposureLineEdit_returnPressed();
 
     /**
-     * Qt slot triggered when return key is pressed on the field where the top folder is defined in the UI.
-     * It updates the member variable that stores the value.
+     * Qt slot triggered when return key is pressed on the field where the top
+     * folder is defined in the UI. It updates the member variable that stores the
+     * value.
      */
     void on_subFolderLineEdit_returnPressed();
 
     /**
-     * Qt slot triggered when the return key is pressed on the field tha tdefines the file prefix in the UI.
-     * It updates the member variable that stores the value.
+     * Qt slot triggered when the return key is pressed on the field tha tdefines
+     * the file prefix in the UI. It updates the member variable that stores the
+     * value.
      */
     void on_filePrefixLineEdit_returnPressed();
 
     /**
-     * Qt slot triggered when auto exposure checkbox is pressed. Handles control of the exposure time to camera.
+     * Qt slot triggered when auto exposure checkbox is pressed. Handles control
+     * of the exposure time to camera.
      */
     void on_autoexposureCheckbox_clicked(bool setAutoexposure);
 
     /**
-     * Qt slot triggered when white balance button is pressed. Records a new white image and sets it in the network
-     * model.
+     * Qt slot triggered when white balance button is pressed. Records a new white
+     * image and sets it in the network model.
      */
     void on_whiteBalanceButton_clicked();
 
@@ -202,13 +212,14 @@ private slots:
     void RecordReferenceImages(QString referenceType);
 
     /**
-     * Stops the thread responsible for recording the reference images (white and dark)
+     * Stops the thread responsible for recording the reference images (white and
+     * dark)
      */
     void StopReferenceRecordingThread();
 
     /**
-     * Qt slot triggered when the dark correction button is pressed. Records a new dark image and sets it in the network
-     * model.
+     * Qt slot triggered when the dark correction button is pressed. Records a new
+     * dark image and sets it in the network model.
      */
     void on_darkCorrectionButton_clicked();
 
@@ -218,7 +229,8 @@ private slots:
     void on_minVhbLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when return key is pressed on the minimum vhb element in the UI.
+     * Qt slot triggered when return key is pressed on the minimum vhb element in
+     * the UI.
      */
     void on_minVhbLineEdit_returnPressed();
 
@@ -228,7 +240,8 @@ private slots:
     void on_maxVhbLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when editing of the blood volume fraction maximum value has finished.
+     * Qt slot triggered when editing of the blood volume fraction maximum value
+     * has finished.
      */
     void on_maxVhbLineEdit_returnPressed();
 
@@ -238,7 +251,8 @@ private slots:
     void on_minSao2LineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when editing of the oxygenation minimum value has finished.
+     * Qt slot triggered when editing of the oxygenation minimum value has
+     * finished.
      */
     void on_minSao2LineEdit_returnPressed();
 
@@ -248,48 +262,52 @@ private slots:
     void on_maxSao2LineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when editing of the oxygenation maximum value has finished.
+     * Qt slot triggered when editing of the oxygenation maximum value has
+     * finished.
      */
     void on_maxSao2LineEdit_returnPressed();
 
     /**
-     * Qt slot triggered when editing the top folder name. It changes the appearance of the field in the UI.
-     * It does not change the value of hte member variable that contains the top folder name.
+     * Qt slot triggered when editing the top folder name. It changes the
+     * appearance of the field in the UI. It does not change the value of hte
+     * member variable that contains the top folder name.
      */
     void on_subFolderLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the prefix file name is edited. It changes the appearance of the field in the UI.
-     * It does not change the value of the member variable that stores the file prefix name.
+     * Qt slot triggered when the prefix file name is edited. It changes the
+     * appearance of the field in the UI. It does not change the value of the
+     * member variable that stores the file prefix name.
      */
     void on_filePrefixLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the "functional" radio button is pressed. It activates the display corresponding to
-     * functional images (model output).
+     * Qt slot triggered when the "functional" radio button is pressed. It
+     * activates the display corresponding to functional images (model output).
      */
     void on_functionalRadioButton_clicked();
 
     /**
-     * Qt slot triggered when the "raw" display is pressed. Displays only the raw image in higher resolution compared to
-     * the "functional" display.
+     * Qt slot triggered when the "raw" display is pressed. Displays only the raw
+     * image in higher resolution compared to the "functional" display.
      */
     void on_rawRadioButton_clicked();
 
     /**
-     * Qt slot triggered when the trigger text is edited. It only changes the appearance of the UI element.
+     * Qt slot triggered when the trigger text is edited. It only changes the
+     * appearance of the UI element.
      */
     void on_logTextLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the trigger text field. It logs the message to the log file
-     * and displays it on the UI.
+     * Qt slot triggered when the return key is pressed on the trigger text field.
+     * It logs the message to the log file and displays it on the UI.
      */
     void on_logTextLineEdit_returnPressed();
 
     /**
-     * Qt slot triggered when the spin box containing the number of images to skip while recording is modified.
-     * It restyles the appearance of the field.
+     * Qt slot triggered when the spin box containing the number of images to skip
+     * while recording is modified. It restyles the appearance of the field.
      */
     void on_skipFramesSpinBox_valueChanged();
 
@@ -305,12 +323,12 @@ private slots:
      * @param newString new value received from element
      * @param originalString original value of hte element before changes occurred
      */
-    void UpdateComponentEditedStyle(QLineEdit* lineEdit, const QString& newString, const QString& originalString);
+    void UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString, const QString &originalString);
 
     /**
      * Restores the appearance of a Qt LineEdit component.
      */
-    void RestoreLineEditStyle(QLineEdit* lineEdit);
+    void RestoreLineEditStyle(QLineEdit *lineEdit);
 
     /**
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
@@ -318,7 +336,8 @@ private slots:
     void on_filePrefixExtrasLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the file prefix field for snapshot images in the UI.
+     * Qt slot triggered when the return key is pressed on the file prefix field
+     * for snapshot images in the UI.
      */
     void on_filePrefixExtrasLineEdit_returnPressed();
 
@@ -328,11 +347,12 @@ private slots:
     void on_subFolderExtrasLineEdit_textEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the sub folder field in the extras tab in the UI.
+     * Qt slot triggered when the return key is pressed on the sub folder field in
+     * the extras tab in the UI.
      */
     void on_subFolderExtrasLineEdit_returnPressed();
 
-private:
+  private:
     Ui::MainWindow *ui;
 
     /**
@@ -370,12 +390,14 @@ private:
      */
     void CreateFolderIfNecessary(QString folder);
 
-   /**
-    * Records image to specified sub folder and using specified file prefix to name the file
-    *
-    * @param ignoreSkipping ignores the number of frames to skip and stores the image anyways
-    */
-   void RecordImage(bool ignoreSkipping);
+    /**
+     * Records image to specified sub folder and using specified file prefix to
+     * name the file
+     *
+     * @param ignoreSkipping ignores the number of frames to skip and stores the
+     * image anyways
+     */
+    void RecordImage(bool ignoreSkipping);
 
     /**
      * Starts IO service in a thread in charge of saving the images to files.
@@ -383,8 +405,8 @@ private:
     void ThreadedRecordImage();
 
     /**
-     * Initializes the file object inside the image container. This object is used to store all images while recording to a
-     * single file.
+     * Initializes the file object inside the image container. This object is used
+     * to store all images while recording to a single file.
      *
      * @param subFolder folder where data will be stored
      * @param filePrefix file prefix used for the file name
@@ -397,8 +419,8 @@ private:
     void DisplayRecordCount();
 
     /**
-     * Indicates if an image should be recorded to file or not depending on the frame number and the number of frames
-     * to skip
+     * Indicates if an image should be recorded to file or not depending on the
+     * frame number and the number of frames to skip
      *
      * @param nSkipFrames number of frames to skip
      * @param ImageID frame number
@@ -422,13 +444,14 @@ private:
     void stopTimer();
 
     /**
-     *  Initializes the DL network in charge of estimating the functional properties.
+     *  Initializes the DL network in charge of estimating the functional
+     * properties.
      */
     void RunNetwork();
 
     /**
-     * @brief RecordSnapshots helper method to take snapshots, basically just created to be able to
-     * thread the snapshot making :-)
+     * @brief RecordSnapshots helper method to take snapshots, basically just
+     * created to be able to thread the snapshot making :-)
      */
     void RecordSnapshots();
 
@@ -438,32 +461,39 @@ private:
     void UpdateVhbSao2Validators();
 
     /**
-     * @brief UpdateExposure Synchronizes the sliders and textedits displaying the current exposure setting
+     * @brief UpdateExposure Synchronizes the sliders and textedits displaying the
+     * current exposure setting
      */
     void UpdateExposure();
 
     /**
-     * Enables and disables elements of the GUI that should not me modified while recordings are in progress
+     * Enables and disables elements of the GUI that should not me modified while
+     * recordings are in progress
      *
      * @param recordingInProgress
      */
     void HandleElementsWhileRecording(bool recordingInProgress);
 
     /**
-     * @brief MainWindow::GetWritingFolder returns the folder there the image files are written to
+     * @brief MainWindow::GetWritingFolder returns the folder there the image
+     * files are written to
      * @return
      */
     QString GetWritingFolder();
 
     /**
-     * @brief GetFullFilenameStandardFormat returns the full filename of the current file which shall be written
+     * @brief GetFullFilenameStandardFormat returns the full filename of the
+     * current file which shall be written
      *
-     * It automatically add the current write path and puts the name in a standard format including timestamp etc.
+     * It automatically add the current write path and puts the name in a standard
+     * format including timestamp etc.
      *
-     * @param filePrefix the name of the file (snapshot, recording, liver_image, ...)
+     * @param filePrefix the name of the file (snapshot, recording, liver_image,
+     * ...)
      * @param frameNumber the acquisition frame number provided by ximea
      * @param extension file extension (.dat or .tif)
-     * @param subFolder sometimes we want to add an additional layer of subfolder, specifically when saving white/dark balance images
+     * @param subFolder sometimes we want to add an additional layer of subfolder,
+     * specifically when saving white/dark balance images
      * @return
      */
     QString GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
@@ -480,12 +510,14 @@ private:
     void StartImageAcquisition(QString camera_identifier);
 
     /**
-     * Stops image acquisition by disconnecting image displayer and stopping image polling to the image container.
+     * Stops image acquisition by disconnecting image displayer and stopping image
+     * polling to the image container.
      */
     void StopImageAcquisition();
 
     /**
-     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human readable format
+     * Formats timestamp tag from format  yyyyMMdd_HH-mm-ss-zzz into a human
+     * readable format
      *
      * @param timestamp
      * @return
@@ -493,7 +525,8 @@ private:
     QString FormatTimeStamp(QString timestamp);
 
     /**
-     * stores the folder name where images are to be stores. This is a folder inside of base folder.
+     * stores the folder name where images are to be stores. This is a folder
+     * inside of base folder.
      */
     QString m_subFolder;
 
@@ -503,7 +536,8 @@ private:
     QString m_recPrefixlineEdit;
 
     /**
-     * Folder path where extra images are to be stored (e.g. snapshots). This is a folder inside the base folder.
+     * Folder path where extra images are to be stored (e.g. snapshots). This is a
+     * folder inside the base folder.
      */
     QString m_extrasSubFolder;
 
@@ -588,7 +622,8 @@ private:
     Displayer *m_display;
 
     /**
-     * Handles if test mode should be set for the program. All images are stored to same file.
+     * Handles if test mode should be set for the program. All images are stored
+     * to same file.
      */
     bool m_testMode;
 
@@ -613,7 +648,8 @@ private:
     boost::asio::io_service m_temperatureIOService;
 
     /**
-     * Async IO work. Keeps the IO service alive in the thread in charge of temperature recording.
+     * Async IO work. Keeps the IO service alive in the thread in charge of
+     * temperature recording.
      */
     std::unique_ptr<boost::asio::io_service::work> m_temperatureIOWork;
 
@@ -655,7 +691,7 @@ private:
     /**
      * Counts how many images whould have been recorded
      */
-    std::atomic< unsigned long> m_imageCounter;
+    std::atomic<unsigned long> m_imageCounter;
 
     /**
      * Counts how many images were skipped during the recording process.

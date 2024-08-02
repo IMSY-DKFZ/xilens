@@ -33,13 +33,13 @@
 
   font-family: monoespace;
 
-  
-    font-size: 13.0px;
-  
 
-  
+    font-size: 13.0px;
+
+
+
     line-height: 13.0px;
-  
+
 
   selection-background-color: #ffff74;
   selection-color: #000000;
@@ -320,9 +320,9 @@ QPushButton {
   height: 32px;
   font-weight: bold;
 
-  
+
     border-radius: 4px;
-  
+
 }
 
 QPushButton:checked,
@@ -698,20 +698,20 @@ QComboBox::indicator:checked:selected {
 QComboBox::item,
 QCalendarWidget QMenu::item,
 QMenu::item {
-  
+
     height: 28px;
-  
+
   border: 8px solid transparent;
   color: #ffffff;
 }
 
 QCalendarWidget QMenu::item,
 QMenu::item {
-  
-    
+
+
       padding: 0px 24px 0px 8px;  /* pyside6 or pyqt6 */
-    
-  
+
+
 }
 
 
@@ -769,7 +769,7 @@ QMenu::indicator:non-exclusive:checked {
 }
 
 QMenu::indicator:non-exclusive:checked:selected {
-  image: url(:/icon/theme/primary/checkbox_checked_invert.svg); 
+  image: url(:/icon/theme/primary/checkbox_checked_invert.svg);
 }
 
 QMenu::indicator:exclusive:unchecked {

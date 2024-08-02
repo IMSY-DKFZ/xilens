@@ -1,29 +1,31 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 
 #ifndef SUSICAM_CAMERA_H
 #define SUSICAM_CAMERA_H
 
 #include <xiApi.h>
-#include <QString>
+
 #include <QMap>
+#include <QString>
 
 #include "constants.h"
 #include "xiAPIWrapper.h"
 
-class CameraFamily{
-protected:
-
+class CameraFamily
+{
+  protected:
     /**
      * Camera identifier used by API to communicate with camera
      */
-    HANDLE* m_cameraHandle;
+    HANDLE *m_cameraHandle;
 
-
-public:
-    explicit CameraFamily(HANDLE* handle) : m_cameraHandle(handle) {}
+  public:
+    explicit CameraFamily(HANDLE *handle) : m_cameraHandle(handle)
+    {
+    }
 
     /**
      * Wrapper to xiAPI, useful for mocking the aPI during testing
@@ -34,8 +36,8 @@ public:
      * @brief The camera temperature data structure.
      *
      * This structure stores temperature values for various camera components.
-     * It uses a nested pair structure, where each element consists of a temperature type
-     * and its corresponding temperature value.
+     * It uses a nested pair structure, where each element consists of a
+     * temperature type and its corresponding temperature value.
      *
      * The temperature types are defined as follows:
      *  - CHIP_TEMP: Temperature of the camera chip
@@ -43,7 +45,8 @@ public:
      *  - HOUSE_BACK_TEMP: Temperature at the back of the camera housing
      *  - SENSOR_BOARD_TEMP: Temperature of the camera sensor board
      *
-     * The temperature values are of type double and represent the temperature in degrees Celsius.
+     * The temperature values are of type double and represent the temperature in
+     * degrees Celsius.
      *
      * Example usage:
      *
@@ -58,20 +61,23 @@ public:
      * @endcode
      */
     QMap<QString, float> m_cameraTemperature = {
-            {CHIP_TEMP,         0.},
-            {HOUSE_TEMP,        0.},
-            {HOUSE_BACK_TEMP,   0.},
-            {SENSOR_BOARD_TEMP, 0.},
+        {CHIP_TEMP, 0.},
+        {HOUSE_TEMP, 0.},
+        {HOUSE_BACK_TEMP, 0.},
+        {SENSOR_BOARD_TEMP, 0.},
     };
 
     /**
      * @brief This function updates the recorded temperature of a camera.
      *
-     * This function is responsible for updating the recorded temperature of a camera.
+     * This function is responsible for updating the recorded temperature of a
+     * camera.
      *
-     * This function does not return any value. However, it modifies the state of the camera's recorded temperature.
+     * This function does not return any value. However, it modifies the state of
+     * the camera's recorded temperature.
      *
-     * @note This function assumes that the camera object has already been instantiated and the necessary data has been set.
+     * @note This function assumes that the camera object has already been
+     * instantiated and the necessary data has been set.
      */
     virtual void UpdateCameraTemperature();
 
@@ -84,20 +90,23 @@ public:
 /**
  * Spectral camera family
  */
-class XiSpecFamily: public CameraFamily{
-private:
+class XiSpecFamily : public CameraFamily
+{
+  private:
     /**
      * Camera handle used to handle all interactions with it
      */
-    HANDLE* m_cameraHandle;
+    HANDLE *m_cameraHandle;
 
-public:
+  public:
     /**
      * Constructor of camera family
      *
      * @param handle camera handle used for all interactions with it
      */
-    explicit XiSpecFamily(HANDLE* handle) : CameraFamily(handle), m_cameraHandle(handle){}
+    explicit XiSpecFamily(HANDLE *handle) : CameraFamily(handle), m_cameraHandle(handle)
+    {
+    }
 
     /**
      * Updates recorded camera temperature
@@ -108,20 +117,23 @@ public:
 /**
  * xiC camera family
  */
-class XiCFamily: public CameraFamily{
-private:
+class XiCFamily : public CameraFamily
+{
+  private:
     /**
      * Camera handle used to handle all interactions with it
      */
-    HANDLE* m_cameraHandle;
+    HANDLE *m_cameraHandle;
 
-public:
+  public:
     /**
      * Constructor of camera family
      *
      * @param handle camera handle used for all interactions with it
      */
-    explicit XiCFamily(HANDLE* handle): CameraFamily(handle), m_cameraHandle(handle){}
+    explicit XiCFamily(HANDLE *handle) : CameraFamily(handle), m_cameraHandle(handle)
+    {
+    }
 
     /**
      * Updates camera temperature
@@ -132,20 +144,23 @@ public:
 /**
  * xiQ camera family
  */
-class XiQFamily: public CameraFamily{
-private:
+class XiQFamily : public CameraFamily
+{
+  private:
     /**
      * Camera handle used to handle all interactions with it
      */
-    HANDLE* m_cameraHandle;
+    HANDLE *m_cameraHandle;
 
-public:
+  public:
     /**
      * Constructor of camera family
      *
      * @param handle camera handle used for all interactions with it
      */
-    explicit XiQFamily(HANDLE* handle): CameraFamily(handle), m_cameraHandle(handle){}
+    explicit XiQFamily(HANDLE *handle) : CameraFamily(handle), m_cameraHandle(handle)
+    {
+    }
 
     /**
      * Updates camera temperature
@@ -156,21 +171,24 @@ public:
 /**
  * Base camera class
  */
-class Camera {
-protected:
+class Camera
+{
+  protected:
     /**
      * Camera handle used to handle all interactions with it
      */
-    HANDLE* m_cameraHandle;
+    HANDLE *m_cameraHandle;
 
-public:
+  public:
     /**
      * Constructor of camera class
      *
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    Camera(std::unique_ptr<CameraFamily> *family, HANDLE* handle):family(family), m_cameraHandle(handle) {}
+    Camera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : family(family), m_cameraHandle(handle)
+    {
+    }
 
     /**
      * Wrapper to xiAPI, useful for mocking the aPI during testing
@@ -183,7 +201,8 @@ public:
     std::unique_ptr<CameraFamily> *family;
 
     /**
-     * initializes camera by setting parameters such as framerate, binning mode, etc.
+     * initializes camera by setting parameters such as framerate, binning mode,
+     * etc.
      *
      * @param cameraHandle camera handle for communication with the camera
      */
@@ -208,7 +227,8 @@ public:
     /**
      * \brief Sets the exposure time in milliseconds.
      *
-     * This function is used to set the exposure time in milliseconds for a device.
+     * This function is used to set the exposure time in milliseconds for a
+     * device.
      *
      * \param exp The exposure time in milliseconds.
      */
@@ -217,9 +237,9 @@ public:
     /**
      * @brief Retrieves the exposure value.
      *
-     * This function returns the exposure value, which represents the amount of light
-     * that reaches the camera sensor. The exposure value determines the brightness
-     * of the captured image.
+     * This function returns the exposure value, which represents the amount of
+     * light that reaches the camera sensor. The exposure value determines the
+     * brightness of the captured image.
      *
      * @return The exposure value.
      */
@@ -237,8 +257,9 @@ public:
     /**
      * \brief A method to control auto exposure settings.
      *
-     * The AutoExposure method enables or disables auto exposure for a given camera.
-     * It is used to adjust the camera settings automatically based on the lighting conditions.
+     * The AutoExposure method enables or disables auto exposure for a given
+     * camera. It is used to adjust the camera settings automatically based on the
+     * lighting conditions.
      */
     void AutoExposure(bool on);
 };
@@ -246,20 +267,24 @@ public:
 /**
  * Spectral camera construct
  */
-class SpectralCamera: public Camera{
-public:
+class SpectralCamera : public Camera
+{
+  public:
     /**
      * Spectral camera constructor
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    SpectralCamera(std::unique_ptr<CameraFamily> *family, HANDLE* handle): Camera(family, handle) {}
+    SpectralCamera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : Camera(family, handle)
+    {
+    }
 
     /**
-     * Initializes the camera by setting parameters common to all cameras and also specific values for spectral
-     * cameras.
+     * Initializes the camera by setting parameters common to all cameras and also
+     * specific values for spectral cameras.
      *
-     * @param cameraHandle camera handle for management of all interactions with it
+     * @param cameraHandle camera handle for management of all interactions with
+     * it
      */
     int InitializeCamera() override;
 };
@@ -267,46 +292,51 @@ public:
 /**
  * Gray scale camera-specific components
  */
-class GrayCamera: public Camera{
-public:
+class GrayCamera : public Camera
+{
+  public:
     /**
      * Constructor of gray scale camera construct
      *
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    GrayCamera(std::unique_ptr<CameraFamily> *family, HANDLE* handle): Camera(family, handle) {}
+    GrayCamera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : Camera(family, handle)
+    {
+    }
 
     /**
-     * Initializes the camera by setting parameters common to all cameras and also specific values for gray scale
-     * cameras.
+     * Initializes the camera by setting parameters common to all cameras and also
+     * specific values for gray scale cameras.
      *
      * @param cameraHandle camera handle used to manage all interactions with it
      */
     int InitializeCamera() override;
 };
 
-
 /**
  * GRGB camera-specific components
  */
-class RGBCamera: public Camera{
-public:
+class RGBCamera : public Camera
+{
+  public:
     /**
      * Constructor of RGB camera construct
      *
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    RGBCamera(std::unique_ptr<CameraFamily> *family, HANDLE* handle): Camera(family, handle) {}
+    RGBCamera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : Camera(family, handle)
+    {
+    }
 
     /**
-     * Initializes the camera by setting parameters common to all cameras and also specific values for RGB
-     * cameras.
+     * Initializes the camera by setting parameters common to all cameras and also
+     * specific values for RGB cameras.
      *
      * @param cameraHandle camera handle used to manage all interactions with it
      */
     int InitializeCamera() override;
 };
 
-#endif //SUSICAM_CAMERA_H
+#endif // SUSICAM_CAMERA_H

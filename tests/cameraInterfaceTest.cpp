@@ -1,16 +1,16 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 
 #include <gtest/gtest.h>
 
-#include "src/cameraInterface.h"
 #include "mocks.h"
+#include "src/cameraInterface.h"
 #include "src/constants.h"
 
-
-TEST(CameraInterfaceTest, SetCameraTypeTest) {
+TEST(CameraInterfaceTest, SetCameraTypeTest)
+{
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
@@ -20,8 +20,8 @@ TEST(CameraInterfaceTest, SetCameraTypeTest) {
     ASSERT_EQ(cameraInterface.m_cameraType, CAMERA_TYPE_SPECTRAL);
 }
 
-
-TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle) {
+TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle)
+{
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
@@ -30,7 +30,6 @@ TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle) {
 
     EXPECT_THROW(cameraInterface.StartAcquisition(testCameraModel), std::runtime_error);
 }
-
 
 TEST(CameraInterfaceTest, StartAcquisition_StartSuccess)
 {

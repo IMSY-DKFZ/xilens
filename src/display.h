@@ -1,20 +1,20 @@
 /*******************************************************
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
-*******************************************************/
+ *******************************************************/
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <QObject>
-#include <QString>
 #include <xiApi.h>
 
+#include <QObject>
+#include <QString>
 
-class Displayer : public QObject {
-Q_OBJECT
+class Displayer : public QObject
+{
+    Q_OBJECT
 
-public:
-
+  public:
     explicit Displayer();
 
     ~Displayer();
@@ -33,17 +33,14 @@ public:
      */
     void StartDisplayer();
 
-
-protected:
-
+  protected:
     virtual void CreateWindows() = 0;
 
     virtual void DestroyWindows() = 0;
 
     bool m_stop = false;
 
-
-public slots:
+  public slots:
 
     virtual void Display(XI_IMG &image) = 0;
 };
