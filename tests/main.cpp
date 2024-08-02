@@ -1,7 +1,9 @@
-#include <QApplication>
 #include <gtest/gtest.h>
 
-int main(int argc, char* argv[]) {
+#include <QApplication>
+
+int main(int argc, char *argv[])
+{
     QApplication a(argc, argv);
 
     ::testing::InitGoogleTest(&argc, argv);

@@ -1,19 +1,19 @@
 #include "display.h"
 
-
-Displayer::Displayer() {
+Displayer::Displayer()
+{
 }
 
-
-Displayer::~Displayer() {
+Displayer::~Displayer()
+{
 }
 
-
-void Displayer::StopDisplayer() {
+void Displayer::StopDisplayer()
+{
     this->m_stop = true;
 }
 
-
-void Displayer::StartDisplayer() {
+void Displayer::StartDisplayer()
+{
     this->m_stop = false;
 }

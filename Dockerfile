@@ -42,7 +42,7 @@ RUN echo "echo 0 > /sys/module/usbcore/parameters/usbfs_memory_mb" >> /etc/rc.lo
 WORKDIR /home
 RUN git clone https://github.com/Blosc/c-blosc2.git
 WORKDIR /home/c-blosc2
-RUN git checkout v2.14.0
+RUN git checkout v2.15.0
 WORKDIR /home/c-blosc2/build
 RUN cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
     cmake --build . --target install --parallel
@@ -52,7 +52,7 @@ WORKDIR /home/susicam
 COPY . .
 WORKDIR /home/susicam/cmake-build
 RUN cmake --version
-RUN cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 -D ENABLE_COVERAGE=ON ..
+RUN cmake -D ENABLE_COVERAGE=ON ..
 RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
 
 # run tests
