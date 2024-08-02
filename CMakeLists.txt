@@ -1,11 +1,37 @@
 cmake_minimum_required(VERSION 3.5)
-project(SUSICAM)
+project(SUSICAM VERSION 0.2.1)
 
 #################################
 ##### compiler fiddling     #####
 #################################
 
 set (CMAKE_CXX_STANDARD 11)
+
+#################################
+##### definitions           #####
+#################################
+
+# Add definitions for project build details
+# build date definitions
+string(TIMESTAMP CURRENT_DATETIME "%Y-%m-%d %H:%M:%S")
+add_definitions("-DBUILD_TIMESTAMP=\"${CURRENT_DATETIME}\"")
+# compiler definitions
+add_definitions("-DCMAKE_CXX_COMPILER=\"${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\"")
+# version definitions
+add_definitions("-DPROJECT_VERSION_MAJOR=\"${PROJECT_VERSION_MAJOR}\"")
+add_definitions("-DPROJECT_VERSION_MINOR=\"${PROJECT_VERSION_MINOR}\"")
+add_definitions("-DPROJECT_VERSION_PATCH=\"${PROJECT_VERSION_PATCH}\"")
+# git definitions
+execute_process(
+    COMMAND git rev-parse HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_COMMIT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+add_definitions("-DGIT_COMMIT=\"${GIT_COMMIT}\"")
+# system definitions
+add_definitions("-DCMAKE_SYSTEM=\"${CMAKE_SYSTEM}\"")
+add_definitions("-DCMAKE_SYSTEM_PROCESSOR=\"${CMAKE_SYSTEM_PROCESSOR}\"")
 
 #################################
 ##### coverage fiddling     #####

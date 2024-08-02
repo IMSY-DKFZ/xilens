@@ -215,6 +215,7 @@ struct CommandLineArguments
     std::string dark_file;
     std::string output_folder;
     bool test_mode;
+    bool version;
 };
 
 /**
