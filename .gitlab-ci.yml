@@ -45,7 +45,8 @@ test:
   stage: test
   variables:
     QT_QPA_PLATFORM: "offscreen"
-  needs: []
+  needs:
+    - build
   script:
     - cd cmake-build
     - xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
