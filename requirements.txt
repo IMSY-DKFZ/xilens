@@ -1,0 +1,7 @@
+libmsgpack-dev
+qt6-base-dev
+libqt6svg6-dev
+libgtest-dev
+gcovr
+libopencv-dev
+libboost-all-dev
