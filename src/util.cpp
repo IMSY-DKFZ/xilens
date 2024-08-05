@@ -196,21 +196,6 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
     }
 }
 
-const char *libfiveGitVersion(void)
-{
-    return GIT_TAG;
-}
-
-const char *libfiveGitRevision(void)
-{
-    return GIT_REV;
-}
-
-const char *libfiveGitBranch(void)
-{
-    return GIT_BRANCH;
-}
-
 void rescale(cv::Mat &mat, float high)
 {
     double min, max;

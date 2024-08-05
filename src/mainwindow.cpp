@@ -455,9 +455,11 @@ void MainWindow::on_baseFolderButton_clicked()
 
 void MainWindow::WriteLogHeader()
 {
-    this->LogMessage(" git hash: " + QString::fromLatin1(libfiveGitRevision()), LOG_FILE_NAME, true);
-    this->LogMessage(" git branch: " + QString::fromLatin1(libfiveGitBranch()), LOG_FILE_NAME, true);
-    this->LogMessage(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion()), LOG_FILE_NAME, true);
+    auto version =
+        QString(" SUSICAM Version: %1.%2.%3").arg(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    auto hash = " git hash: " + QString(GIT_COMMIT);
+    this->LogMessage(hash, LOG_FILE_NAME, true);
+    this->LogMessage(version, LOG_FILE_NAME, true);
 }
 
 QString MainWindow::GetLogFilePath(QString logFile)

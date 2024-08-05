@@ -59,15 +59,7 @@ TEST_F(MockMainWindowTest, WriteLogHeaderTest)
 
         auto line = in.readLine();
         EXPECT_TRUE(timestampRegex.match(line).hasMatch());
-        EXPECT_TRUE(line.contains(" git hash: " + QString::fromLatin1(libfiveGitRevision())));
-
-        line = in.readLine();
-        EXPECT_TRUE(timestampRegex.match(line).hasMatch());
-        EXPECT_TRUE(line.contains(" git branch: " + QString::fromLatin1(libfiveGitBranch())));
-
-        line = in.readLine();
-        EXPECT_TRUE(timestampRegex.match(line).hasMatch());
-        EXPECT_TRUE(line.contains(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion())));
+        EXPECT_TRUE(line.contains(" git hash: " + QString(GIT_COMMIT)));
 
         file.close();
         QFile::remove(logFilePath);

@@ -110,10 +110,7 @@ include_directories(${Ximea_INCLUDE_DIRS})
 ######################
 ##### susiCamLib #####
 ######################
-include(src/version.cmake)
-
 set(SUSICAM_LIB_SRC src/mainwindow.cpp
-        src/version.cpp
         src/cameraInterface.cpp
         src/display.cpp
         src/displayRaw.cpp

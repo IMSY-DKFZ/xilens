@@ -118,14 +118,6 @@ class FileImage
     void AppendMetadata();
 };
 
-// variables where git repo variables are stored
-extern "C"
-{
-    extern const char *GIT_TAG;
-    extern const char *GIT_REV;
-    extern const char *GIT_BRANCH;
-}
-
 /**
  * Appends variable length metadata to a BLOSC n-dimensional array
  *
@@ -152,24 +144,6 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
  * @return string representing the color filter array
  */
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
-
-/**
- * Queries Git tag
- * @return git tag
- */
-const char *libfiveGitVersion(void);
-
-/**
- * Queries Git revision number
- * @return git revision
- */
-const char *libfiveGitRevision(void);
-
-/**
- * Queries Git branch name
- * @return git branch name
- */
-const char *libfiveGitBranch(void);
 
 /**
  * Initializes the logging by setting a severity
