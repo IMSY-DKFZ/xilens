@@ -207,3 +207,16 @@ target_link_libraries(SUSICAM_TESTS GTest::gtest_main SUSICAM_LIB Blosc2::blosc2
 
 include(GoogleTest)
 gtest_discover_tests(SUSICAM_TESTS)
+
+#####################
+### DEB package  ####
+#####################
+include(InstallRequiredSystemLibraries)
+file(STRINGS requirements.txt deps)
+string(REPLACE ";" ", " deps "${deps}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${deps}")
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Leonardo Ayala")
+set(CPACK_PACKAGE_DESCRIPTION "GUI application used to record data with XIMEA cameras")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://git.dkfz.de/imsy/issi/susicam")
+include(CPack)

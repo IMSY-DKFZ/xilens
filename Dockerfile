@@ -19,15 +19,6 @@ RUN apt update && apt install -y \
     libgl1-mesa-dev  \
     git
 
-RUN apt install -y  \
-    libmsgpack-dev  \
-    qt6-base-dev  \
-    libqt6svg6-dev  \
-    libgtest-dev \
-    gcovr \
-    libopencv-dev \
-    --no-install-recommends libboost-all-dev
-
 # install xiAPI
 WORKDIR /home
 RUN wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
@@ -50,10 +41,13 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
 # build susicam
 WORKDIR /home/susicam
 COPY . .
+RUN xargs -a requirements.txt apt install --no-install-recommends -y
 WORKDIR /home/susicam/cmake-build
 RUN cmake --version
 RUN cmake -D ENABLE_COVERAGE=ON ..
 RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
+RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
+RUN dpkg -i SUSICAM*.deb
 
 # run tests
 ENV QT_QPA_PLATFORM offscreen

@@ -10,7 +10,7 @@ before_script:
   - export TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
   - apt-get install -y build-essential sudo udev wget libcanberra-gtk-module libcanberra-gtk3-module cmake xvfb uuid-dev libgl1-mesa-dev git
-  - apt install -y libmsgpack-dev qt6-base-dev libqt6svg6-dev libgtest-dev gcovr libopencv-dev --no-install-recommends libboost-all-dev
+  - xargs -a requirements.txt apt install --no-install-recommends -y
   - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
   - tar xzf XIMEA_Linux_SP.tgz
   - cd package
@@ -28,10 +28,13 @@ before_script:
 # This is the job to build the project
 build:
   stage: build
+  needs: []
   script:
     - mkdir cmake-build && cd cmake-build
-    - cmake -D OpenCV_DIR=/usr/include/opencv4/opencv2 -D Ximea_Include_Dir=/opt/XIMEA/include -D Ximea_Lib=/usr/lib/libm3api.so.2.0.0 -D ENABLE_COVERAGE=ON ..
+    - cmake -D ENABLE_COVERAGE=ON ..
     - xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
+    - xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
+    - dpkg -i SUSICAM*.deb
   artifacts:
     paths:
       - cmake-build/
@@ -39,8 +42,10 @@ build:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test:
+  stage: test
   variables:
     QT_QPA_PLATFORM: "offscreen"
+  needs: []
   script:
     - cd cmake-build
     - xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --extra-verbose --output-on-failure --output-junit Testing/Test.xml --schedule-random -T Test --no-compress-output
@@ -59,6 +64,9 @@ test:
       - if: $CI_COMMIT_BRANCH == "develop" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 pages:
+  needs:
+    - test
+    - build
   script:
     - apt install -y doxygen graphviz  python3 python3-pip
     - pip install -U sphinx furo breathe
