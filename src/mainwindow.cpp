@@ -55,11 +55,6 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     ui->cameraListComboBox->addItems(cameraList);
     ui->cameraListComboBox->setCurrentIndex(0);
 
-    // hack until we implement proper resource management
-    QPixmap pix(":/resources/jet_photo.jpg");
-    ui->jet_sao2->setPixmap(pix);
-    ui->jet_vhb->setPixmap(pix);
-
     // set the base folder loc
     m_baseFolderLoc = QDir::cleanPath(QDir::homePath());
 
@@ -74,7 +69,6 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     expEdit->setValidator(new QIntValidator(slider_min, slider_max, this));
     QString initialExpString = QString::number(slider->value());
     expEdit->setText(initialExpString);
-    UpdateVhbSao2Validators();
 
     LOG_SUSICAM(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
@@ -136,15 +130,6 @@ void MainWindow::EnableUi(bool enable)
     ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
     EnableWidgetsInLayout(layoutExtras, enable);
-    QLayout *functionalLayout = ui->functionalParametersColoringVerticalLayout->layout();
-    if (m_cameraInterface.m_cameraType != CAMERA_TYPE_SPECTRAL)
-    {
-        EnableWidgetsInLayout(functionalLayout, false);
-    }
-    else
-    {
-        EnableWidgetsInLayout(functionalLayout, enable);
-    }
 }
 
 void MainWindow::Display()
@@ -162,14 +147,6 @@ void MainWindow::Display()
         this->m_display->Display(image);
         last = now;
     }
-}
-
-void MainWindow::UpdateVhbSao2Validators()
-{
-    ui->minVhbLineEdit->setValidator(new QIntValidator(MIN_VHB, ui->maxVhbLineEdit->text().toInt(), this));
-    ui->maxVhbLineEdit->setValidator(new QIntValidator(ui->minVhbLineEdit->text().toInt(), MAX_VHB, this));
-    ui->minSao2LineEdit->setValidator(new QIntValidator(MIN_SAO2, ui->maxSao2LineEdit->text().toInt(), this));
-    ui->maxSao2LineEdit->setValidator(new QIntValidator(ui->minSao2LineEdit->text().toInt(), MAX_SAO2, this));
 }
 
 MainWindow::~MainWindow()
@@ -791,64 +768,6 @@ void MainWindow::RecordReferenceImages(QString referenceType)
     {
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
-}
-
-void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
-}
-
-/*
- * Triggers the update of the blood volume fraction and oxygenation validators
- * when minimum range of vhb is modified.
- */
-void MainWindow::on_minVhbLineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_minVhb = ui->minVhbLineEdit->text();
-    RestoreLineEditStyle(ui->minVhbLineEdit);
-}
-
-/*
- * Updates the style of the line edit element when edited.
- */
-void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
-}
-
-void MainWindow::on_maxVhbLineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_maxVhb = ui->maxVhbLineEdit->text();
-    RestoreLineEditStyle(ui->maxVhbLineEdit);
-}
-
-void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
-}
-
-void MainWindow::on_minSao2LineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_minSao2 = ui->minSao2LineEdit->text();
-    RestoreLineEditStyle(ui->minSao2LineEdit);
-}
-
-/*
- * Updates the style of the line edit element when edited.
- */
-void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
-}
-
-void MainWindow::on_maxSao2LineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_maxSao2 = ui->maxSao2LineEdit->text();
-    RestoreLineEditStyle(ui->maxSao2LineEdit);
 }
 
 void MainWindow::UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString,

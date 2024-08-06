@@ -224,50 +224,6 @@ class MainWindow : public QMainWindow
     void on_darkCorrectionButton_clicked();
 
     /**
-     * Qt slot triggered when editing of the blood volume fraction minimum value.
-     */
-    void on_minVhbLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when return key is pressed on the minimum vhb element in
-     * the UI.
-     */
-    void on_minVhbLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the blood volume fraction maximum value.
-     */
-    void on_maxVhbLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the blood volume fraction maximum value
-     * has finished.
-     */
-    void on_maxVhbLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the oxygenation minimum value.
-     */
-    void on_minSao2LineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the oxygenation minimum value has
-     * finished.
-     */
-    void on_minSao2LineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the oxygenation maximum value.
-     */
-    void on_maxSao2LineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the oxygenation maximum value has
-     * finished.
-     */
-    void on_maxSao2LineEdit_returnPressed();
-
-    /**
      * Qt slot triggered when editing the top folder name. It changes the
      * appearance of the field in the UI. It does not change the value of hte
      * member variable that contains the top folder name.
