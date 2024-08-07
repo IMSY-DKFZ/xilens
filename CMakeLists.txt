@@ -113,7 +113,6 @@ include_directories(${Ximea_INCLUDE_DIRS})
 set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/cameraInterface.cpp
         src/display.cpp
-        src/displayRaw.cpp
         src/displayFunctional.cpp
         src/imageContainer.cpp
         src/util.cpp
@@ -123,7 +122,6 @@ set(SUSICAM_LIB_SRC src/mainwindow.cpp
 set(SUSICAM_LIB_HDR src/mainwindow.h
         src/cameraInterface.h
         src/display.h
-        src/displayRaw.h
         src/displayFunctional.h
         src/imageContainer.h
         src/util.h

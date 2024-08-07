@@ -6,6 +6,8 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFileDialog>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QMessageBox>
 #include <QTextStream>
 #include <boost/chrono.hpp>
@@ -26,7 +28,6 @@
 
 #include "constants.h"
 #include "displayFunctional.h"
-#include "displayRaw.h"
 #include "imageContainer.h"
 #include "logger.h"
 #include "mainwindow.h"
@@ -126,8 +127,9 @@ void MainWindow::EnableUi(bool enable)
 {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
     EnableWidgetsInLayout(layout, enable);
-    ui->exposureSlider->setEnabled(enable);
-    ui->logTextLineEdit->setEnabled(enable);
+    SetGraphicsViewScene();
+    this->ui->exposureSlider->setEnabled(enable);
+    this->ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
     EnableWidgetsInLayout(layoutExtras, enable);
 }
@@ -798,24 +800,6 @@ void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
 }
 
-void MainWindow::on_functionalRadioButton_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerFunctional(this);
-    m_display->StartDisplayer();
-    QString cameraModel = ui->cameraListComboBox->currentText();
-    m_display->SetCameraProperties(cameraModel);
-}
-
-void MainWindow::on_rawRadioButton_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerRaw(this);
-    m_display->StartDisplayer();
-    QString cameraModel = ui->cameraListComboBox->currentText();
-    m_display->SetCameraProperties(cameraModel);
-}
-
 void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
@@ -968,4 +952,39 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
     double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
     displayValue = QString::number(percentageBelowThreshold, 'f', 1);
     QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
+}
+
+void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
+                             std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene)
+{
+    QImage qtImage((uchar *)image.data, image.cols, image.rows, image.step, format);
+    qtImage = qtImage.scaled(view->width(), view->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (pixmapItem == nullptr)
+    {
+        pixmapItem.reset(scene->addPixmap(QPixmap::fromImage(qtImage)));
+        pixmapItem->setFlag(QGraphicsItem::ItemIsMovable, false);
+        pixmapItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    }
+    else
+    {
+        pixmapItem->setPixmap(QPixmap::fromImage(qtImage));
+    }
+}
+
+void MainWindow::UpdateRGBImage(cv::Mat &image)
+{
+    UpdateImage(image, QImage::Format_RGB888, this->ui->rgbImageGraphicsView, this->rgbPixMapItem,
+                this->rgbScene.get());
+}
+
+void MainWindow::UpdateRawImage(cv::Mat &image)
+{
+    UpdateImage(image, QImage::Format_BGR888, this->ui->rawImageGraphicsView, this->rawPixMapItem,
+                this->rawScene.get());
+}
+
+void MainWindow::SetGraphicsViewScene()
+{
+    this->ui->rgbImageGraphicsView->setScene(this->rgbScene.get());
+    this->ui->rawImageGraphicsView->setScene(this->rawScene.get());
 }

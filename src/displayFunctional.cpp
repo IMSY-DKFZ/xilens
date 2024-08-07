@@ -28,30 +28,10 @@ typedef cv::Point3_<uint8_t> Pixel;
 
 DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow)
 {
-    CreateWindows();
 }
 
 DisplayerFunctional::~DisplayerFunctional()
 {
-    DestroyWindows();
-}
-
-void PrepareFunctionalImage(cv::Mat &functional_image, [[maybe_unused]] DisplayImageType displayImage, bool do_scaling,
-                            cv::Range bounds, int colormap)
-{
-    if (do_scaling)
-    {
-        functional_image *= 100;
-        // set first and second pixel to extreme values so the colormap is always
-        // scaled the same
-        functional_image.at<float>(0, 0) = bounds.start;
-        functional_image.at<float>(0, 1) = bounds.end;
-        clamp(functional_image, bounds);
-    }
-
-    rescale(functional_image, 255.);
-    functional_image.convertTo(functional_image, CV_8UC1);
-    applyColorMap(functional_image, functional_image, colormap);
 }
 
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm)
@@ -87,11 +67,6 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
     cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
 }
 
-bool IsFunctional(DisplayImageType displayImageType)
-{
-    return (displayImageType == OXY || displayImageType == VHB);
-}
-
 void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist)
 {
     cv::Mat mask = raw_image.clone();
@@ -118,18 +93,6 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
             p.z = DARK_COLOR[2];
         }
     });
-}
-
-void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowName)
-{
-    if (image.channels() != 1 && image.channels() != 3)
-    {
-        throw std::runtime_error("number of channels need to be either 1 or 3");
-    }
-
-    cv::Size newSize(image.size().width, image.size().height);
-    cv::resize(image, image, newSize);
-    cv::imshow(windowName.c_str(), image);
 }
 
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr)
@@ -229,8 +192,6 @@ void DisplayerFunctional::Display(XI_IMG &image)
             cv::Mat raw_image_to_display = rawImage.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
             this->PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
-            DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
-
             // display BGR image
             DownsampleImageIfNecessary(bgrImage);
             if (m_mainWindow->GetNormalize())
@@ -241,9 +202,13 @@ void DisplayerFunctional::Display(XI_IMG &image)
             {
                 PrepareBGRImage(bgrImage, m_mainWindow->GetBGRNorm());
             }
-            DisplayImage(bgrImage, BGR_WINDOW_NAME);
             // update saturation displays
             m_mainWindow->UpdateSaturationPercentageLCDDisplays(rawImage);
+
+            // display images for RGB and Raw
+            m_mainWindow->UpdateRGBImage(bgrImage);
+
+            m_mainWindow->UpdateRawImage(raw_image_to_display);
         }
     }
 }
@@ -275,19 +240,4 @@ void DisplayerFunctional::SetCameraProperties(QString cameraModel)
     this->m_cameraType = std::move(cameraType);
     auto mosaicShape = CAMERA_MAPPER.value(cameraModel).mosaicShape;
     this->m_mosaicShape = std::move(mosaicShape);
-}
-
-void DisplayerFunctional::CreateWindows()
-{
-    // create windows to display result
-    cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(BGR_WINDOW_NAME, cv::WINDOW_NORMAL);
-
-    cv::moveWindow(DISPLAY_WINDOW_NAME, 900, 10);
-    cv::moveWindow(BGR_WINDOW_NAME, 2024 + 11, 10);
-}
-
-void DisplayerFunctional::DestroyWindows()
-{
-    cv::destroyAllWindows();
 }
