@@ -14,7 +14,7 @@ build as in the following commands.
 
 .. code:: bash
 
-   sudo apt install libmsgpack-dev qt6-base-dev libqt6svg6-dev libgtest-dev gcovr libopencv-dev --no-install-recommends libboost-all-dev
+   sudo xargs -a requirements.txt apt-get install -y
 
 You will also have to install the xiAPI package provided by XIMEA
 
@@ -38,9 +38,7 @@ Keep in mind that to install the package in /usr you will need to run the instal
     cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     cmake --build . --target install --parallel
 
-Finally, from the root directory of ``susicam`` do the following. Notice
-that the specified paths have been tested in ``Ubuntu 22.04``. If your
-distribution is different, the specific paths might differ.
+Finally, from the root directory of ``susicam`` do the following.
 
 .. code:: bash
 
@@ -98,18 +96,9 @@ You should see that the service is marked as ``active``.
 
 Launching the application
 =========================
-You can start the application by doing :code:`./SUSICAM` from the terminal. Alternatively you can create an application
-launcher by copying the :code:`susicam.deskptop` and :code:`icon.png` files to :code:`~/.local/share/applications`. After copying these
-files, you will have to modify the paths inside :code:`~/.local/share/applications/susicam.deskptop` to represent the
-full path to the executable and the :code:`icon.png` file:
-
-.. code:: bash
-
-    Exec=/home/<user-name>/<path-to-build-dir>/SUSICAM
-    Icon=/home/<user-name>/.local/share/applications/icon.png
-
-Once you have done this, you should be able to launch the SUSICAM application from the application launcher and pin it
-to your task bar for easy access.
+After doing `sudo make install` from the build directory, the desktop app should be available through the app launcher
+of your system.
+Alternatively, you can run :code:`./SUSICAM` from the build directory in a  terminal.
 
 Docker image
 ==================

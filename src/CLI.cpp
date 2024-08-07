@@ -16,18 +16,10 @@ int main(int argc, char **argv)
     CLI::App app{"XIMEA camera recorder"};
 
     // initialize dummy variables as default values
-    g_commandLineArguments.model_file = "network.prototxt";
-    g_commandLineArguments.trained_file = "model.caffemodel";
-    g_commandLineArguments.white_file = "white.tif";
-    g_commandLineArguments.dark_file = "dark.tif";
     g_commandLineArguments.output_folder = "rec";
     g_commandLineArguments.test_mode = false;
 
     // add options to CLI
-    app.add_option("-n,--net", g_commandLineArguments.model_file, "Network prototxt file");
-    app.add_option("-m,--model", g_commandLineArguments.trained_file, "Model caffemodel file");
-    app.add_option("-w,--white", g_commandLineArguments.white_file, "White tif file");
-    app.add_option("-d,--dark", g_commandLineArguments.dark_file, "Dark tif file");
     app.add_option("-o,--output", g_commandLineArguments.output_folder, "Output folder");
     app.add_flag("-t,--test", g_commandLineArguments.test_mode, "Test mode");
     app.add_flag("-v,--version", g_commandLineArguments.version, "Print version and build information");
