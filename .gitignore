@@ -83,8 +83,8 @@ python_tests_xml/
 *.log
 
 # Sphinx documentation
-doc/build/
-doc/doxygen/
+docs/build/
+docs/doxygen/
 
 # PyBuilder
 target/
