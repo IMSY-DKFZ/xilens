@@ -121,7 +121,6 @@ tutorials/data/*
 *.solverstate
 *.dat
 *.prototxt
-*.sh
 *.pkl
 
 # C++ stuff
