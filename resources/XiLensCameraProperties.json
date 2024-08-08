@@ -5,6 +5,12 @@
     "mosaicWidth": 4,
     "mosaicHeight": 4
   },
+  "MQ022HG-IM-SM5X5-NIR2": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5
+  },
   "MQ022HG-IM-SM4X4-VIS3": {
     "cameraType": "spectral",
     "cameraFamily": "xiSpec",
