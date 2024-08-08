@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     QString initialExpString = QString::number(slider->value());
     expEdit->setText(initialExpString);
 
-    LOG_SUSICAM(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
+    LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
     EnableUi(false);
 }
@@ -90,7 +90,7 @@ void MainWindow::StartImageAcquisition(QString camera_identifier)
     }
     catch (std::runtime_error &error)
     {
-        LOG_SUSICAM(warning) << "could not start camera, got error " << error.what();
+        LOG_XILENS(warning) << "could not start camera, got error " << error.what();
         throw std::runtime_error(error.what());
     }
 }
@@ -103,7 +103,7 @@ void MainWindow::StopImageAcquisition()
     m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-    LOG_SUSICAM(info) << "Stopped Image Acquisition";
+    LOG_XILENS(info) << "Stopped Image Acquisition";
 }
 
 void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
@@ -246,7 +246,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
 {
     if (error == boost::asio::error::operation_aborted)
     {
-        LOG_SUSICAM(warning) << "Timer cancelled. Error: " << error;
+        LOG_XILENS(warning) << "Timer cancelled. Error: " << error;
         return;
     }
 
@@ -278,7 +278,7 @@ void MainWindow::StartTemperatureThread()
         m_temperatureIOService.reset();
         m_temperatureIOService.run();
     });
-    LOG_SUSICAM(info) << "Started temperature thread";
+    LOG_XILENS(info) << "Started temperature thread";
 }
 
 void MainWindow::StopTemperatureThread()
@@ -293,7 +293,7 @@ void MainWindow::StopTemperatureThread()
         m_temperatureIOWork.reset();
         m_temperatureThread.join();
         this->ui->temperatureLCDNumber->display(0);
-        LOG_SUSICAM(info) << "Stopped temperature thread";
+        LOG_XILENS(info) << "Stopped temperature thread";
     }
 }
 
@@ -354,7 +354,7 @@ void MainWindow::on_recordButton_clicked(bool clicked)
 
     if (clicked)
     {
-        this->LogMessage(" SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
+        this->LogMessage(" XILENS RECORDING STARTS", LOG_FILE_NAME, true);
         this->LogMessage(QString(" camera selected: %1 %2")
                              .arg(this->m_cameraInterface.m_cameraModel, this->m_cameraInterface.m_cameraSN),
                          LOG_FILE_NAME, true);
@@ -369,7 +369,7 @@ void MainWindow::on_recordButton_clicked(bool clicked)
     }
     else
     {
-        this->LogMessage(" SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
+        this->LogMessage(" XILENS RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
         this->HandleElementsWhileRecording(clicked);
         ui->recordButton->setText(original_button_text);
@@ -435,7 +435,7 @@ void MainWindow::on_baseFolderButton_clicked()
 void MainWindow::WriteLogHeader()
 {
     auto version =
-        QString(" SUSICAM Version: %1.%2.%3").arg(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+        QString(" XILENS Version: %1.%2.%3").arg(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
     auto hash = " git hash: " + QString(GIT_COMMIT);
     this->LogMessage(hash, LOG_FILE_NAME, true);
     this->LogMessage(version, LOG_FILE_NAME, true);
@@ -541,7 +541,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
         }
         catch (const std::runtime_error &e)
         {
-            LOG_SUSICAM(error) << "Error while saving image: %s\n" << e.what();
+            LOG_XILENS(error) << "Error while saving image: %s\n" << e.what();
         }
         this->DisplayRecordCount();
     }
@@ -623,9 +623,9 @@ void MainWindow::StopRecording()
     this->m_threadGroup.interrupt_all();
     this->m_threadGroup.join_all();
     this->m_imageContainer.CloseFile();
-    LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
-    LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
-    LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
+    LOG_XILENS(info) << "Total of frames recorded: " << m_recordedCount;
+    LOG_XILENS(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
+    LOG_XILENS(info) << "Estimate for frames skipped: " << m_skippedCounter;
 }
 
 QString MainWindow::GetWritingFolder()
@@ -643,7 +643,7 @@ void MainWindow::CreateFolderIfNecessary(QString folder)
     {
         if (folderDir.mkpath(folder))
         {
-            LOG_SUSICAM(info) << "Directory created: " << folder.toStdString();
+            LOG_XILENS(info) << "Directory created: " << folder.toStdString();
         }
     }
 }
@@ -881,7 +881,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
     }
     catch (std::runtime_error &e)
     {
-        LOG_SUSICAM(warning) << "could not stop image acquisition: " << e.what();
+        LOG_XILENS(warning) << "could not stop image acquisition: " << e.what();
     }
     if (index != 0)
     {
@@ -900,7 +900,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
             }
             catch (std::runtime_error &e)
             {
-                LOG_SUSICAM(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                LOG_XILENS(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
                 // restore camera type and index
                 m_display->SetCameraProperties(originalCameraModel);
                 m_cameraInterface.SetCameraProperties(originalCameraModel);
@@ -922,7 +922,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         }
         else
         {
-            LOG_SUSICAM(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
+            LOG_XILENS(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
         }
     }
     else

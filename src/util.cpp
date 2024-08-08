@@ -70,7 +70,7 @@ void FileImage::AppendMetadata()
     PackAndAppendMetadata(this->src, "acq_nframe", this->m_acqNframeMetadata);
     PackAndAppendMetadata(this->src, "color_filter_array", this->m_colorFilterArray);
     PackAndAppendMetadata(this->src, "time_stamp", this->m_timeStamp);
-    LOG_SUSICAM(info) << "Metadata was written to file";
+    LOG_XILENS(info) << "Metadata was written to file";
 }
 
 void FileImage::write(XI_IMG image)

@@ -6,13 +6,13 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'susicam'
+project = 'xilens'
 copyright = '2024, Leonardo Ayala (German Cancer Research Center, Intelligent Medical Systems (IMSY))'
 author = 'Leonardo Ayala (German Cancer Research Center, Intelligent Medical Systems (IMSY))'
 # The short X.Y version.
 version = u'0.2'
 # The full version, including alpha/beta/rc tags.
-release = u'0.2.0'
+release = u'0.2.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -33,6 +33,6 @@ html_logo = '_static/icon.png'
 html_favicon = '_static/icon.png'
 
 # -- breathe configuration ---------------------------------------------------
-breathe_projects = {"susicam": "../doxygen/xml/"}
-breathe_default_project = "susicam"
+breathe_projects = {"xilens": "../doxygen/xml/"}
+breathe_default_project = "xilens"
 breathe_default_members = ('members', 'undoc-members', 'protected-members', 'private-members', 'membergroups')

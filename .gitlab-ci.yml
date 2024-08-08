@@ -34,7 +34,7 @@ build:
     - cmake -D ENABLE_COVERAGE=ON ..
     - xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
     - xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
-    - dpkg -i SUSICAM*.deb
+    - dpkg -i xilens*.deb
   artifacts:
     paths:
       - cmake-build/

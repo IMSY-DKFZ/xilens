@@ -26,7 +26,7 @@ QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
     QDir dir;
     if (QCoreApplication::applicationDirPath() == QDir::cleanPath(QDir::fromNativeSeparators("/usr/bin")))
     {
-        dir.setPath(QDir::fromNativeSeparators("/etc/susicam"));
+        dir.setPath(QDir::fromNativeSeparators("/etc/xilens"));
     }
     else
     {
@@ -36,16 +36,16 @@ QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
     QFile file(dir.filePath(fileName));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        LOG_SUSICAM(error) << "Cannot open file";
+        LOG_XILENS(error) << "Cannot open file";
         throw std::runtime_error("Cannot open file");
     }
-    LOG_SUSICAM(info) << "loading camera properties from: " << QFileInfo(file).absoluteFilePath().toStdString();
+    LOG_XILENS(info) << "loading camera properties from: " << QFileInfo(file).absoluteFilePath().toStdString();
     QJsonDocument document = QJsonDocument::fromJson(file.readAll());
     file.close();
 
     if (document.isNull())
     {
-        LOG_SUSICAM(error) << "INVALID JSON format";
+        LOG_XILENS(error) << "INVALID JSON format";
         throw std::runtime_error("Invalid JSON format");
     }
 
@@ -57,8 +57,8 @@ QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
         CameraData cameraData = CameraData::fromJson(it.value().toObject());
         if (!isCameraSupported(cameraData.cameraType, cameraData.cameraFamily))
         {
-            LOG_SUSICAM(error) << "Unsupported camera - Type: " << cameraData.cameraType.toStdString()
-                               << ", Family: " << cameraData.cameraFamily.toStdString();
+            LOG_XILENS(error) << "Unsupported camera - Type: " << cameraData.cameraType.toStdString()
+                              << ", Family: " << cameraData.cameraFamily.toStdString();
             throw std::runtime_error("Unsupported camera type or family");
         }
         cameraMapper.insert(it.key(), cameraData);

@@ -1,7 +1,8 @@
 ===
 FAQ
 ===
-This section describes some common errors that might appear when building SUSICAM. Solutions to such errors are also
+This section describes some common errors that might appear when building :code:`XiLens`. Solutions to such errors are
+also
 provided.
 
 Camera support

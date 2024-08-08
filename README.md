@@ -1,5 +1,5 @@
-# susicam
-The susicam application allows you to connect to all XIMEA cameras and record images to highly optimized n-dimensional
+# xilens
+The `XiLens` application allows you to connect to all `XIMEA` cameras and record images to highly optimized n-dimensional
 arrays that can be post-processed at high speed.
 
 ## Application features
@@ -11,14 +11,14 @@ arrays that can be post-processed at high speed.
 * Compatible with Linux systems
 * Automatic tests of non-UI components through google tests
 
-# Building susicam from source
-This software can be built following the instructions provided in out [Getting Started guide.](https://imsy.pages.dkfz.de/issi/susicam/getting_started.html)
+# Building XiLens from source
+This software can be built following the instructions provided in out [Getting Started guide.](https://imsy.pages.dkfz.de/issi/XiLens/getting_started.html)
 
 # Contributing
-If you are interested in contributing a feature, please follow the [developer guidelines.](https://imsy.pages.dkfz.de/issi/susicam/developer_guidelines.html)
+If you are interested in contributing a feature, please follow the [developer guidelines.](https://imsy.pages.dkfz.de/issi/XiLens/developer_guidelines.html)
 
 # FAQ
-If you are having issues, make sure to check the [FAQ section](https://imsy.pages.dkfz.de/issi/susicam/faq.html) of our documentation.
+If you are having issues, make sure to check the [FAQ section](https://imsy.pages.dkfz.de/issi/xilens/faq.html) of our documentation.
 
 # Acknowledgments
 Data compression is possible in this application thanks to the [BLOSC2 team](https://github.com/Blosc/c-blosc2).
@@ -36,5 +36,5 @@ Many image processing operations are internally performed through [OpenCV](https
 
 
 # Remarks
-The susicam library is only supported in Linux systems, although all dependencies are also available in Windows systems,
+The XiLens library is only supported in Linux systems, although all dependencies are also available in Windows systems,
 compilation in such systems has not been properly tested.

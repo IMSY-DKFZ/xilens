@@ -47,13 +47,13 @@ To build the documentation locally and check that yours is rendered properly you
 
 
 Now you can navigate to doc/build and open `index.html` to access the documentation. The documentation corresponding to the develop branch is also
-hosted in online: `SUSICAM documentation <https://imsy.pages.dkfz.de/issi/susicam/>`_.
+hosted in online: `XiLens documentation <https://imsy.pages.dkfz.de/issi/xilens/>`_.
 
 Contributing a feature/bug fix
 ==============================
 If you have doubts on how to finish your feature branch, you can always ask for help
 
-#. Create issue on `GitHub <https://git.dkfz.de/imsy/issi/susicam/-/issues>`_, if a task does not exist yet.
+#. Create issue on `GitHub <https://git.dkfz.de/imsy/issi/xilens/-/issues>`_, if a task does not exist yet.
 #. Assign the task to you.
 #. Create a fork of the repository.
 #. Create a new branch.

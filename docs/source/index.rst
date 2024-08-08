@@ -1,7 +1,7 @@
 =====================
-SUSICAM documentation
+XiLens documentation
 =====================
-Welcome to the SUSICAM documentation. This project aims at providing an application
+Welcome to the :code:`XiLens` documentation. This project aims at providing an application
 that can be used to record data from all the **XIMEA** camera families.
 
 .. note::
@@ -24,7 +24,7 @@ that can be used to record data from all the **XIMEA** camera families.
 
 Getting started
 ===============
-Installing dependencies, building SUSICAM and how to use SUSICAM is all introduced in the getting started section:
+Installing dependencies, building :code:`XiLens` and how to use :code:`XiLens` is all introduced in the getting started section:
 
 .. toctree::
     :maxdepth: 1
@@ -38,8 +38,8 @@ Installing dependencies, building SUSICAM and how to use SUSICAM is all introduc
 
 Development logic
 =================
-The SUSICAM application relies at its core on many `Qt <https://www.qt.io/product/qt6>`_ components for the GUI, while
-adding a custom look for the interface. SUSICAM is developed based on the principles that usability and performance are
+The :code:`XiLens` application relies at its core on many `Qt <https://www.qt.io/product/qt6>`_ components for the GUI, while
+adding a custom look for the interface. :code:`XiLens` is developed based on the principles that usability and performance are
 prioritized.
 
 To get the maximum speed while recording data with the XIEMA cameras, the `Boost <https://www.boost.org/>`_ library is

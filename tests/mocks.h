@@ -3,8 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_MOCKS_H
-#define SUSICAM_MOCKS_H
+#ifndef XILENS_MOCKS_H
+#define XILENS_MOCKS_H
 
 #include <xiApi.h>
 
@@ -107,4 +107,4 @@ class MockDisplayerFunctional : public DisplayerFunctional
     ~MockDisplayerFunctional() override = default;
 };
 
-#endif // SUSICAM_MOCKS_H
+#endif // XILENS_MOCKS_H

@@ -3,13 +3,13 @@ Getting started
 ===============
 
 .. note::
-    In the future, you will need the ``CUDA`` library and drivers installed in your computer in order to use susicam.
+    In the future, you will need the ``CUDA`` library and drivers installed in your computer in order to use :code:`XiLens`.
     This is mainly because we are aiming at supporting the use of PyTorch models.
 
-Build susicam from source
+Build XiLens from source
 =========================
 
-To build susicam you only need to install the dependencies and run the
+To build :code:`XiLens` you only need to install the dependencies and run the
 build as in the following commands.
 
 .. code:: bash
@@ -38,7 +38,7 @@ Keep in mind that to install the package in /usr you will need to run the instal
     cmake -DCMAKE_INSTALL_PREFIX=/usr ..
     cmake --build . --target install --parallel
 
-Finally, from the root directory of ``susicam`` do the following.
+Finally, from the root directory of ``XiLens`` do the following.
 
 .. code:: bash
 
@@ -54,7 +54,7 @@ The application can be uninstalled from the system by doing :code:`sudo make uni
 Increase USB buffer limit
 =========================
 .. important::
-    After building ``susicam``, you have to increase the buffer size for the
+    After building ``XiLens``, you have to increase the buffer size for the
     data transfer via USB. This can be done every time you start your
     computer by running the following command.
 
@@ -98,7 +98,7 @@ Launching the application
 =========================
 After doing `sudo make install` from the build directory, the desktop app should be available through the app launcher
 of your system.
-Alternatively, you can run :code:`./SUSICAM` from the build directory in a  terminal.
+Alternatively, you can run :code:`./xilens` from the build directory in a  terminal.
 
 Docker image
 ==================
@@ -111,4 +111,4 @@ Docker image
     .. code:: bash
 
        docker compose --verbose build --progress plain
-       docker run -it --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --gpus all --device /dev/bus/usb/ -e QT_X11_NO_MITSHM=1 -e QT_GRAPHICSSYSTEM="native" susicam
+       docker run -it --privileged -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix --gpus all --device /dev/bus/usb/ -e QT_X11_NO_MITSHM=1 -e QT_GRAPHICSSYSTEM="native" xilens

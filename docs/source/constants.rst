@@ -3,5 +3,5 @@ Constants
 ==========
 
 .. doxygenfile:: constants.h
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:

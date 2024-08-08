@@ -3,5 +3,5 @@ Displays
 ==========
 
 .. doxygenclass:: DisplayerFunctional
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:

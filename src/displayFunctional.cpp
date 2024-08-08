@@ -179,14 +179,14 @@ void DisplayerFunctional::Display(XI_IMG &image)
                 }
                 else
                 {
-                    LOG_SUSICAM(error) << "Could not interpret filter array of type: " << image.color_filter_array;
+                    LOG_XILENS(error) << "Could not interpret filter array of type: " << image.color_filter_array;
                 }
 
                 bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
             }
             else
             {
-                LOG_SUSICAM(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+                LOG_XILENS(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
                 throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
             cv::Mat raw_image_to_display = rawImage.clone();
@@ -230,7 +230,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     }
     catch (const cv::Exception &e)
     {
-        LOG_SUSICAM(error) << "OpenCV error: " << e.what();
+        LOG_XILENS(error) << "OpenCV error: " << e.what();
     }
 }
 

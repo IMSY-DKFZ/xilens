@@ -5,9 +5,9 @@
 
 #include "logger.h"
 
-BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, SUSICAM_LOGGER)
+BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, XILENS_LOGGER)
 {
-    SUSICAM_LOGGER lg;
+    XILENS_LOGGER lg;
     logging::core::get()->add_global_attribute("TimeStamp", logging::attributes::local_clock());
 
     logging::add_console_log(
