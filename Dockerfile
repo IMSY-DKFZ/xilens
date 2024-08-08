@@ -24,7 +24,7 @@ WORKDIR /home/xilens
 COPY . .
 
 # install dependencies
-RUN chmod -x install_dependencies.sh
+RUN chmod +x install_dependencies.sh
 RUN ./install_dependencies.sh
 
 # build and install package
