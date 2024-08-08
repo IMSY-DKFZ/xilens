@@ -236,8 +236,8 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 
 void DisplayerFunctional::SetCameraProperties(QString cameraModel)
 {
-    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
+    QString cameraType = getCameraMapper().value(cameraModel).cameraType;
     this->m_cameraType = std::move(cameraType);
-    auto mosaicShape = CAMERA_MAPPER.value(cameraModel).mosaicShape;
+    auto mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
     this->m_mosaicShape = std::move(mosaicShape);
 }

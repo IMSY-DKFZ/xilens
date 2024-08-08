@@ -887,9 +887,9 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
     {
         QString cameraModel = ui->cameraListComboBox->currentText();
         m_cameraInterface.m_cameraModel = cameraModel;
-        if (CAMERA_MAPPER.contains(cameraModel))
+        if (getCameraMapper().contains(cameraModel))
         {
-            QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
+            QString cameraType = getCameraMapper().value(cameraModel).cameraType;
             QString originalCameraModel = m_cameraInterface.m_cameraModel;
             try
             {

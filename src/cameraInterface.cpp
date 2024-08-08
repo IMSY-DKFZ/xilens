@@ -25,8 +25,8 @@ void CameraInterface::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
 
 void CameraInterface::SetCameraProperties(QString cameraModel)
 {
-    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
-    QString cameraFamily = CAMERA_MAPPER.value(cameraModel).cameraFamily;
+    QString cameraType = getCameraMapper().value(cameraModel).cameraType;
+    QString cameraFamily = getCameraMapper().value(cameraModel).cameraFamily;
     this->m_cameraType = std::move(cameraType);
     this->m_cameraFamilyName = std::move(cameraFamily);
 }

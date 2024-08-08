@@ -49,6 +49,7 @@ int main(int argc, char **argv)
         QString stylesheetContent = stream.readAll();
         a.setStyleSheet(stylesheetContent);
     }
+    themeFile.close();
     MainWindow w;
     w.move(400, 10);
     w.show();

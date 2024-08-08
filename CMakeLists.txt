@@ -118,6 +118,7 @@ set(SUSICAM_LIB_SRC src/mainwindow.cpp
         src/util.cpp
         src/camera.cpp
         src/logger.cpp
+        src/constants.cpp
 )
 set(SUSICAM_LIB_HDR src/mainwindow.h
         src/cameraInterface.h
@@ -158,6 +159,7 @@ qt6_add_resources(SUSICAM_BIN_SRC resources/resources.qrc)
 qt6_add_resources(SUSICAM_BIN_SRC resources/theme_resources.qrc)
 add_executable(SUSICAM ${SUSICAM_BIN_SRC})
 target_link_libraries(SUSICAM SUSICAM_LIB)
+file(COPY resources/XiLensCameraProperties.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 #################################
 ##### Install and uninstall #####
@@ -166,6 +168,7 @@ target_link_libraries(SUSICAM SUSICAM_LIB)
 install(TARGETS SUSICAM SUSICAM_LIB
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/XiLensCameraProperties.json  DESTINATION /etc/susicam)
 install(FILES ${CMAKE_SOURCE_DIR}/resources/icon.png DESTINATION share/pixmaps RENAME susicam.png)
 install(FILES ${CMAKE_SOURCE_DIR}/resources/susicam.desktop DESTINATION share/applications)
 
@@ -197,6 +200,7 @@ add_executable(
         tests/imageContainerTest.cpp
         tests/bloscTest.cpp
         tests/mainWindowTest.cpp
+        tests/constantsTest.cpp
 )
 target_link_libraries(SUSICAM_TESTS GTest::gtest_main SUSICAM_LIB Blosc2::blosc2_shared)
 
