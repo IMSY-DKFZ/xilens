@@ -10,20 +10,7 @@ before_script:
   - export TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
   - apt-get install -y build-essential sudo udev wget libcanberra-gtk-module libcanberra-gtk3-module cmake xvfb uuid-dev libgl1-mesa-dev git
-  - xargs -a requirements.txt apt install --no-install-recommends -y
-  - wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
-  - tar xzf XIMEA_Linux_SP.tgz
-  - cd package
-  - sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
-  - ./install
-  - cd ..
-  - git clone https://github.com/Blosc/c-blosc2.git
-  - cd c-blosc2
-  - git checkout v2.15.0
-  - mkdir build && cd build
-  - cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-  - cmake --build . --target install --parallel
-  - cd ../..
+  - ./install_dependencies.sh
 
 # This is the job to build the project
 build:

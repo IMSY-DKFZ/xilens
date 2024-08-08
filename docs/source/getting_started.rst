@@ -12,33 +12,22 @@ Build XiLens from source
 To build :code:`XiLens` you only need to install the dependencies and run the
 build as in the following commands.
 
-.. code:: bash
+.. note::
 
-   sudo xargs -a requirements.txt apt-get install -y
-
-You will also have to install the xiAPI package provided by XIMEA
+    You should run this from a directory where BLOSC2 and XiAPI will be downloaded.
 
 .. code:: bash
 
-   wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
-   tar xzf XIMEA_Linux_SP.tgz
-   cd package
-   sudo ./install
+   chmod +x install_dependencies.sh
+   sudo ./install_dependencies.sh
 
-We use `BLOSC2 <https://www.blosc.org/c-blosc2/c-blosc2.html>`_ to store all images to a single file while using
-lossless compression. To install it you simply need to run the following commands from a folder of your choosing.
-Keep in mind that to install the package in /usr you will need to run the install command with :code:`sudo`.
+This takes care of installing dependencies including the xiAPI package provided by XIMEA and BLOSC2.
 
-.. code:: bash
+.. warning::
 
-    RUN git clone https://github.com/Blosc/c-blosc2.git
-    cd c-blosc2
-    git checkout v2.15.0
-    mkdir build && cd build
-    cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-    cmake --build . --target install --parallel
+    The previous script will install :code:`BLOSC2` and :code:`XiAPI` on your system!
 
-Finally, from the root directory of ``XiLens`` do the following.
+Finally, from the root directory of :code:`XiLens` do the following.
 
 .. code:: bash
 

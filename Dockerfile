@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM ubuntu:22.04
 
 # Avoid Docker build freeze due to region selection
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,29 +19,15 @@ RUN apt update && apt install -y \
     libgl1-mesa-dev  \
     git
 
-# install xiAPI
-WORKDIR /home
-RUN wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
-RUN tar xzf XIMEA_Linux_SP.tgz
-WORKDIR /home/package/scripts
-RUN sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' install_steps
-WORKDIR /home/package
-RUN ./install
-RUN echo "echo 0 > /sys/module/usbcore/parameters/usbfs_memory_mb" >> /etc/rc.local
-
-# install BLOSC2
-WORKDIR /home
-RUN git clone https://github.com/Blosc/c-blosc2.git
-WORKDIR /home/c-blosc2
-RUN git checkout v2.15.0
-WORKDIR /home/c-blosc2/build
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-    cmake --build . --target install --parallel
-
 # build xilens
 WORKDIR /home/xilens
 COPY . .
-RUN xargs -a requirements.txt apt install --no-install-recommends -y
+
+# install dependencies
+RUN chmod -x install_dependencies.sh
+RUN ./install_dependencies.sh
+
+# build and install package
 WORKDIR /home/xilens/cmake-build
 RUN cmake --version
 RUN cmake -D ENABLE_COVERAGE=ON ..
