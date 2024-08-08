@@ -53,7 +53,7 @@ Contributing a feature/bug fix
 ==============================
 If you have doubts on how to finish your feature branch, you can always ask for help
 
-#. Create issue on `GitHub <https://git.dkfz.de/imsy/issi/xilens/-/issues>`_, if a task does not exist yet.
+#. Create issue on `GitHub <https://github.com/IMSY-DKFZ/xilens/issues>`_, if a task does not exist yet.
 #. Assign the task to you.
 #. Create a fork of the repository.
 #. Create a new branch.
