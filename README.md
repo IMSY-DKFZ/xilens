@@ -2,6 +2,12 @@
     <img src="resources/icon.png" alt="Logo" width="200"/>
 </p>
 
+<p align="center">
+
+<img src="resources/ui-animation.gif" alt="UI animation">
+
+</p>
+
 # XiLens
 The `XiLens` application allows you to connect to all `XIMEA` cameras and record images to highly optimized n-dimensional
 arrays that can be post-processed at high speed.
