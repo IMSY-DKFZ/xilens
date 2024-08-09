@@ -1,7 +1,8 @@
 ===
 FAQ
 ===
-This section describes some common errors that might appear when building SUSICAM. Solutions to such errors are also
+This section describes some common errors that might appear when building :code:`XiLens`. Solutions to such errors are
+also
 provided.
 
 Camera support
@@ -15,21 +16,6 @@ In Ubuntu you can do this by running:
     /opt/XIMEA/bin/xiCOP -save_diag
 
 The report is then stored in the file :code:`xicop_report.xml` in the current working directory.
-
-libtiff conflicts
------------------
-.. error::
-
-    .. code:: bash
-
-        Libopencv_imgcodes.so.4.2.0: undefined reference to 'TIFFReadRGBAStripe@IBTIFF_4.0'
-        no rule to make target '../anaconda3/lib/libhdf5_cpp.sp', needed by 'libsusiCamLib.so'
-
-.. hint::
-
-    .. code:: bash
-
-       conda uninstall libtiff
 
 
 Linking error of ``libuuid``

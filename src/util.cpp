@@ -70,7 +70,7 @@ void FileImage::AppendMetadata()
     PackAndAppendMetadata(this->src, "acq_nframe", this->m_acqNframeMetadata);
     PackAndAppendMetadata(this->src, "color_filter_array", this->m_colorFilterArray);
     PackAndAppendMetadata(this->src, "time_stamp", this->m_timeStamp);
-    LOG_SUSICAM(info) << "Metadata was written to file";
+    LOG_XILENS(info) << "Metadata was written to file";
 }
 
 void FileImage::write(XI_IMG image)
@@ -194,21 +194,6 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
             throw std::runtime_error("Error when using blosc2_vlmeta_update");
         }
     }
-}
-
-const char *libfiveGitVersion(void)
-{
-    return GIT_TAG;
-}
-
-const char *libfiveGitRevision(void)
-{
-    return GIT_REV;
-}
-
-const char *libfiveGitBranch(void)
-{
-    return GIT_BRANCH;
 }
 
 void rescale(cv::Mat &mat, float high)

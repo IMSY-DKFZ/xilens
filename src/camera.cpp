@@ -172,11 +172,11 @@ void Camera::SetExposure(int exp)
         // Setting "exposure" parameter (10ms=10000us)
         stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
         HandleResult(stat, "xiSetParam (exposure set)");
-        LOG_SUSICAM(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
+        LOG_XILENS(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
     }
     else
     {
-        LOG_SUSICAM(warning) << "exposure not set: camera not initialized";
+        LOG_XILENS(warning) << "exposure not set: camera not initialized";
     }
 }
 
@@ -197,8 +197,8 @@ int Camera::GetExposure()
     }
     else
     {
-        LOG_SUSICAM(warning) << "exposure not determined, camera not initalized. "
-                                "Return standard value.";
+        LOG_XILENS(warning) << "exposure not determined, camera not initalized. "
+                               "Return standard value.";
     }
 
     return exp;
@@ -219,6 +219,6 @@ void Camera::AutoExposure(bool on)
     }
     else
     {
-        LOG_SUSICAM(warning) << "autoexposure not set: camera not initialized";
+        LOG_XILENS(warning) << "autoexposure not set: camera not initialized";
     }
 }

@@ -1,0 +1,43 @@
+name: Build, Test & Install
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v4.1.7
+    - name: Install apt dependencies
+      run: |
+        apt install xvfb -y
+        chmod +x install_dependencies.sh
+        ./install_dependencies.sh
+    - name: Build project
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+        xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
+    - name: Run tests
+      run: |
+        xvfb-run -a --server-args="-screen 0 1024x768x24" make test -j
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and install DEB package
+      run: |
+          xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
+          dpkg -i xilens*.deb
+    - name: Install application
+      run: |
+          make install

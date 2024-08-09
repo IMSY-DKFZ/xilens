@@ -6,6 +6,8 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFileDialog>
+#include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QMessageBox>
 #include <QTextStream>
 #include <boost/chrono.hpp>
@@ -26,7 +28,6 @@
 
 #include "constants.h"
 #include "displayFunctional.h"
-#include "displayRaw.h"
 #include "imageContainer.h"
 #include "logger.h"
 #include "mainwindow.h"
@@ -55,11 +56,6 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     ui->cameraListComboBox->addItems(cameraList);
     ui->cameraListComboBox->setCurrentIndex(0);
 
-    // hack until we implement proper resource management
-    QPixmap pix(":/resources/jet_photo.jpg");
-    ui->jet_sao2->setPixmap(pix);
-    ui->jet_vhb->setPixmap(pix);
-
     // set the base folder loc
     m_baseFolderLoc = QDir::cleanPath(QDir::homePath());
 
@@ -74,9 +70,8 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     expEdit->setValidator(new QIntValidator(slider_min, slider_max, this));
     QString initialExpString = QString::number(slider->value());
     expEdit->setText(initialExpString);
-    UpdateVhbSao2Validators();
 
-    LOG_SUSICAM(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
+    LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
     EnableUi(false);
 }
@@ -95,7 +90,7 @@ void MainWindow::StartImageAcquisition(QString camera_identifier)
     }
     catch (std::runtime_error &error)
     {
-        LOG_SUSICAM(warning) << "could not start camera, got error " << error.what();
+        LOG_XILENS(warning) << "could not start camera, got error " << error.what();
         throw std::runtime_error(error.what());
     }
 }
@@ -108,7 +103,7 @@ void MainWindow::StopImageAcquisition()
     m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
-    LOG_SUSICAM(info) << "Stopped Image Acquisition";
+    LOG_XILENS(info) << "Stopped Image Acquisition";
 }
 
 void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
@@ -132,19 +127,11 @@ void MainWindow::EnableUi(bool enable)
 {
     QLayout *layout = ui->mainUiVerticalLayout->layout();
     EnableWidgetsInLayout(layout, enable);
-    ui->exposureSlider->setEnabled(enable);
-    ui->logTextLineEdit->setEnabled(enable);
+    SetGraphicsViewScene();
+    this->ui->exposureSlider->setEnabled(enable);
+    this->ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
     EnableWidgetsInLayout(layoutExtras, enable);
-    QLayout *functionalLayout = ui->functionalParametersColoringVerticalLayout->layout();
-    if (m_cameraInterface.m_cameraType != CAMERA_TYPE_SPECTRAL)
-    {
-        EnableWidgetsInLayout(functionalLayout, false);
-    }
-    else
-    {
-        EnableWidgetsInLayout(functionalLayout, enable);
-    }
 }
 
 void MainWindow::Display()
@@ -162,14 +149,6 @@ void MainWindow::Display()
         this->m_display->Display(image);
         last = now;
     }
-}
-
-void MainWindow::UpdateVhbSao2Validators()
-{
-    ui->minVhbLineEdit->setValidator(new QIntValidator(MIN_VHB, ui->maxVhbLineEdit->text().toInt(), this));
-    ui->maxVhbLineEdit->setValidator(new QIntValidator(ui->minVhbLineEdit->text().toInt(), MAX_VHB, this));
-    ui->minSao2LineEdit->setValidator(new QIntValidator(MIN_SAO2, ui->maxSao2LineEdit->text().toInt(), this));
-    ui->maxSao2LineEdit->setValidator(new QIntValidator(ui->minSao2LineEdit->text().toInt(), MAX_SAO2, this));
 }
 
 MainWindow::~MainWindow()
@@ -267,7 +246,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
 {
     if (error == boost::asio::error::operation_aborted)
     {
-        LOG_SUSICAM(warning) << "Timer cancelled. Error: " << error;
+        LOG_XILENS(warning) << "Timer cancelled. Error: " << error;
         return;
     }
 
@@ -299,7 +278,7 @@ void MainWindow::StartTemperatureThread()
         m_temperatureIOService.reset();
         m_temperatureIOService.run();
     });
-    LOG_SUSICAM(info) << "Started temperature thread";
+    LOG_XILENS(info) << "Started temperature thread";
 }
 
 void MainWindow::StopTemperatureThread()
@@ -314,7 +293,7 @@ void MainWindow::StopTemperatureThread()
         m_temperatureIOWork.reset();
         m_temperatureThread.join();
         this->ui->temperatureLCDNumber->display(0);
-        LOG_SUSICAM(info) << "Stopped temperature thread";
+        LOG_XILENS(info) << "Stopped temperature thread";
     }
 }
 
@@ -375,7 +354,7 @@ void MainWindow::on_recordButton_clicked(bool clicked)
 
     if (clicked)
     {
-        this->LogMessage(" SUSICAM RECORDING STARTS", LOG_FILE_NAME, true);
+        this->LogMessage(" XILENS RECORDING STARTS", LOG_FILE_NAME, true);
         this->LogMessage(QString(" camera selected: %1 %2")
                              .arg(this->m_cameraInterface.m_cameraModel, this->m_cameraInterface.m_cameraSN),
                          LOG_FILE_NAME, true);
@@ -390,7 +369,7 @@ void MainWindow::on_recordButton_clicked(bool clicked)
     }
     else
     {
-        this->LogMessage(" SUSICAM RECORDING ENDS", LOG_FILE_NAME, true);
+        this->LogMessage(" XILENS RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
         this->HandleElementsWhileRecording(clicked);
         ui->recordButton->setText(original_button_text);
@@ -455,9 +434,11 @@ void MainWindow::on_baseFolderButton_clicked()
 
 void MainWindow::WriteLogHeader()
 {
-    this->LogMessage(" git hash: " + QString::fromLatin1(libfiveGitRevision()), LOG_FILE_NAME, true);
-    this->LogMessage(" git branch: " + QString::fromLatin1(libfiveGitBranch()), LOG_FILE_NAME, true);
-    this->LogMessage(" git tags matching hash: " + QString::fromLatin1(libfiveGitVersion()), LOG_FILE_NAME, true);
+    auto version =
+        QString(" XILENS Version: %1.%2.%3").arg(PROJECT_VERSION_MAJOR, PROJECT_VERSION_MINOR, PROJECT_VERSION_PATCH);
+    auto hash = " git hash: " + QString(GIT_COMMIT);
+    this->LogMessage(hash, LOG_FILE_NAME, true);
+    this->LogMessage(version, LOG_FILE_NAME, true);
 }
 
 QString MainWindow::GetLogFilePath(QString logFile)
@@ -560,7 +541,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
         }
         catch (const std::runtime_error &e)
         {
-            LOG_SUSICAM(error) << "Error while saving image: %s\n" << e.what();
+            LOG_XILENS(error) << "Error while saving image: %s\n" << e.what();
         }
         this->DisplayRecordCount();
     }
@@ -642,9 +623,9 @@ void MainWindow::StopRecording()
     this->m_threadGroup.interrupt_all();
     this->m_threadGroup.join_all();
     this->m_imageContainer.CloseFile();
-    LOG_SUSICAM(info) << "Total of frames recorded: " << m_recordedCount;
-    LOG_SUSICAM(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
-    LOG_SUSICAM(info) << "Estimate for frames skipped: " << m_skippedCounter;
+    LOG_XILENS(info) << "Total of frames recorded: " << m_recordedCount;
+    LOG_XILENS(info) << "Total of frames dropped : " << m_imageCounter - m_recordedCount;
+    LOG_XILENS(info) << "Estimate for frames skipped: " << m_skippedCounter;
 }
 
 QString MainWindow::GetWritingFolder()
@@ -662,7 +643,7 @@ void MainWindow::CreateFolderIfNecessary(QString folder)
     {
         if (folderDir.mkpath(folder))
         {
-            LOG_SUSICAM(info) << "Directory created: " << folder.toStdString();
+            LOG_XILENS(info) << "Directory created: " << folder.toStdString();
         }
     }
 }
@@ -791,64 +772,6 @@ void MainWindow::RecordReferenceImages(QString referenceType)
     }
 }
 
-void MainWindow::on_minVhbLineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->minVhbLineEdit, newText, m_minVhb);
-}
-
-/*
- * Triggers the update of the blood volume fraction and oxygenation validators
- * when minimum range of vhb is modified.
- */
-void MainWindow::on_minVhbLineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_minVhb = ui->minVhbLineEdit->text();
-    RestoreLineEditStyle(ui->minVhbLineEdit);
-}
-
-/*
- * Updates the style of the line edit element when edited.
- */
-void MainWindow::on_maxVhbLineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->maxVhbLineEdit, newText, m_maxVhb);
-}
-
-void MainWindow::on_maxVhbLineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_maxVhb = ui->maxVhbLineEdit->text();
-    RestoreLineEditStyle(ui->maxVhbLineEdit);
-}
-
-void MainWindow::on_minSao2LineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->minSao2LineEdit, newText, m_minSao2);
-}
-
-void MainWindow::on_minSao2LineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_minSao2 = ui->minSao2LineEdit->text();
-    RestoreLineEditStyle(ui->minSao2LineEdit);
-}
-
-/*
- * Updates the style of the line edit element when edited.
- */
-void MainWindow::on_maxSao2LineEdit_textEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->maxSao2LineEdit, newText, m_maxSao2);
-}
-
-void MainWindow::on_maxSao2LineEdit_returnPressed()
-{
-    this->UpdateVhbSao2Validators();
-    m_maxSao2 = ui->maxSao2LineEdit->text();
-    RestoreLineEditStyle(ui->maxSao2LineEdit);
-}
-
 void MainWindow::UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString,
                                             const QString &originalString)
 {
@@ -875,24 +798,6 @@ void MainWindow::on_subFolderLineEdit_textEdited(const QString &newText)
 void MainWindow::on_filePrefixLineEdit_textEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixlineEdit);
-}
-
-void MainWindow::on_functionalRadioButton_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerFunctional(this);
-    m_display->StartDisplayer();
-    QString cameraModel = ui->cameraListComboBox->currentText();
-    m_display->SetCameraProperties(cameraModel);
-}
-
-void MainWindow::on_rawRadioButton_clicked()
-{
-    delete m_display;
-    m_display = new DisplayerRaw(this);
-    m_display->StartDisplayer();
-    QString cameraModel = ui->cameraListComboBox->currentText();
-    m_display->SetCameraProperties(cameraModel);
 }
 
 void MainWindow::on_subFolderExtrasLineEdit_textEdited(const QString &newText)
@@ -976,15 +881,15 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
     }
     catch (std::runtime_error &e)
     {
-        LOG_SUSICAM(warning) << "could not stop image acquisition: " << e.what();
+        LOG_XILENS(warning) << "could not stop image acquisition: " << e.what();
     }
     if (index != 0)
     {
         QString cameraModel = ui->cameraListComboBox->currentText();
         m_cameraInterface.m_cameraModel = cameraModel;
-        if (CAMERA_MAPPER.contains(cameraModel))
+        if (getCameraMapper().contains(cameraModel))
         {
-            QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
+            QString cameraType = getCameraMapper().value(cameraModel).cameraType;
             QString originalCameraModel = m_cameraInterface.m_cameraModel;
             try
             {
@@ -995,7 +900,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
             }
             catch (std::runtime_error &e)
             {
-                LOG_SUSICAM(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                LOG_XILENS(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
                 // restore camera type and index
                 m_display->SetCameraProperties(originalCameraModel);
                 m_cameraInterface.SetCameraProperties(originalCameraModel);
@@ -1017,7 +922,7 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         }
         else
         {
-            LOG_SUSICAM(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
+            LOG_XILENS(error) << "camera model not in CAMERA_MAPPER: " << cameraModel.toStdString();
         }
     }
     else
@@ -1047,4 +952,39 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
     double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
     displayValue = QString::number(percentageBelowThreshold, 'f', 1);
     QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
+}
+
+void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
+                             std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene)
+{
+    QImage qtImage((uchar *)image.data, image.cols, image.rows, image.step, format);
+    qtImage = qtImage.scaled(view->width(), view->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (pixmapItem == nullptr)
+    {
+        pixmapItem.reset(scene->addPixmap(QPixmap::fromImage(qtImage)));
+        pixmapItem->setFlag(QGraphicsItem::ItemIsMovable, false);
+        pixmapItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    }
+    else
+    {
+        pixmapItem->setPixmap(QPixmap::fromImage(qtImage));
+    }
+}
+
+void MainWindow::UpdateRGBImage(cv::Mat &image)
+{
+    UpdateImage(image, QImage::Format_RGB888, this->ui->rgbImageGraphicsView, this->rgbPixMapItem,
+                this->rgbScene.get());
+}
+
+void MainWindow::UpdateRawImage(cv::Mat &image)
+{
+    UpdateImage(image, QImage::Format_BGR888, this->ui->rawImageGraphicsView, this->rawPixMapItem,
+                this->rawScene.get());
+}
+
+void MainWindow::SetGraphicsViewScene()
+{
+    this->ui->rgbImageGraphicsView->setScene(this->rgbScene.get());
+    this->ui->rawImageGraphicsView->setScene(this->rawScene.get());
 }

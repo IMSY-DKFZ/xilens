@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QElapsedTimer>
+#include <QGraphicsScene>
 #include <QGuiApplication>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -126,6 +127,33 @@ class MainWindow : public QMainWindow
      */
     void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
+    /**
+     * Updates the RGB image displayed in the GUI
+     *
+     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed
+     */
+    void UpdateRGBImage(cv::Mat &image);
+
+    /**
+     * Updates the raw image displayed in the GUI
+     *
+     * @param image OpenCV matrix containing an 8bit single channel image to be displayed
+     */
+    void UpdateRawImage(cv::Mat &image);
+
+    /**
+     * Takes an image, and scales it to the available width in the QtGraphicsView element before displaying it in the
+     * provided scene.
+     *
+     * @param image OpenCV matrix to be displayed
+     * @param format format expected of the image, for example `QImage::Format_RGB888` for an 8bit RGB image
+     * @param view the graphics view element where image will be displayed
+     * @param pixmapItem pixmap item where the image is to be placed
+     * @param scene the scene that will contain the pixmap
+     */
+    void UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
+                     std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene);
+
   protected:
     /**
      * @brief Event handler for the close event of the main window.
@@ -224,50 +252,6 @@ class MainWindow : public QMainWindow
     void on_darkCorrectionButton_clicked();
 
     /**
-     * Qt slot triggered when editing of the blood volume fraction minimum value.
-     */
-    void on_minVhbLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when return key is pressed on the minimum vhb element in
-     * the UI.
-     */
-    void on_minVhbLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the blood volume fraction maximum value.
-     */
-    void on_maxVhbLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the blood volume fraction maximum value
-     * has finished.
-     */
-    void on_maxVhbLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the oxygenation minimum value.
-     */
-    void on_minSao2LineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the oxygenation minimum value has
-     * finished.
-     */
-    void on_minSao2LineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when editing of the oxygenation maximum value.
-     */
-    void on_maxSao2LineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when editing of the oxygenation maximum value has
-     * finished.
-     */
-    void on_maxSao2LineEdit_returnPressed();
-
-    /**
      * Qt slot triggered when editing the top folder name. It changes the
      * appearance of the field in the UI. It does not change the value of hte
      * member variable that contains the top folder name.
@@ -280,18 +264,6 @@ class MainWindow : public QMainWindow
      * member variable that stores the file prefix name.
      */
     void on_filePrefixLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the "functional" radio button is pressed. It
-     * activates the display corresponding to functional images (model output).
-     */
-    void on_functionalRadioButton_clicked();
-
-    /**
-     * Qt slot triggered when the "raw" display is pressed. Displays only the raw
-     * image in higher resolution compared to the "functional" display.
-     */
-    void on_rawRadioButton_clicked();
 
     /**
      * Qt slot triggered when the trigger text is edited. It only changes the
@@ -456,13 +428,8 @@ class MainWindow : public QMainWindow
     void RecordSnapshots();
 
     /**
-     * Updates the blood volume fraction and oxygenation value validators.
-     */
-    void UpdateVhbSao2Validators();
-
-    /**
-     * @brief UpdateExposure Synchronizes the sliders and textedits displaying the
-     * current exposure setting
+     * @brief UpdateExposure Synchronizes the sliders and textedits displaying
+     * the current exposure setting
      */
     void UpdateExposure();
 
@@ -697,6 +664,31 @@ class MainWindow : public QMainWindow
      * Counts how many images were skipped during the recording process.
      */
     std::atomic<unsigned long> m_skippedCounter;
+
+    /**
+     * Smart pointer to the RGB scene where the RGB images will be displayed
+     */
+    std::unique_ptr<QGraphicsScene> rgbScene = std::make_unique<QGraphicsScene>(this);
+
+    /**
+     * smart pointer to raw scene where the raw unprocessed images will be displayed
+     */
+    std::unique_ptr<QGraphicsScene> rawScene = std::make_unique<QGraphicsScene>(this);
+
+    /**
+     * smart pointer to pixmap used to display the RGB images
+     */
+    std::unique_ptr<QGraphicsPixmapItem> rgbPixMapItem;
+
+    /**
+     * Smart pointer to pixmap where raw unprocessed images will be displayed
+     */
+    std::unique_ptr<QGraphicsPixmapItem> rawPixMapItem;
+
+    /**
+     * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations
+     */
+    void SetGraphicsViewScene();
 };
 
 #endif // MAINWINDOW_H

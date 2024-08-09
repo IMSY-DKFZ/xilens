@@ -3,5 +3,5 @@ MainWindow
 ==========
 
 .. doxygenclass:: MainWindow
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:

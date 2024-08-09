@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM ubuntu:22.04
 
 # Avoid Docker build freeze due to region selection
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,35 +19,21 @@ RUN apt update && apt install -y \
     libgl1-mesa-dev  \
     git
 
-# install xiAPI
-WORKDIR /home
-RUN wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
-RUN tar xzf XIMEA_Linux_SP.tgz
-WORKDIR /home/package/scripts
-RUN sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' install_steps
-WORKDIR /home/package
-RUN ./install
-RUN echo "echo 0 > /sys/module/usbcore/parameters/usbfs_memory_mb" >> /etc/rc.local
-
-# install BLOSC2
-WORKDIR /home
-RUN git clone https://github.com/Blosc/c-blosc2.git
-WORKDIR /home/c-blosc2
-RUN git checkout v2.15.0
-WORKDIR /home/c-blosc2/build
-RUN cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
-    cmake --build . --target install --parallel
-
-# build susicam
-WORKDIR /home/susicam
+# build xilens
+WORKDIR /home/xilens
 COPY . .
-RUN xargs -a requirements.txt apt install --no-install-recommends -y
-WORKDIR /home/susicam/cmake-build
+
+# install dependencies
+RUN chmod +x install_dependencies.sh
+RUN ./install_dependencies.sh
+
+# build and install package
+WORKDIR /home/xilens/cmake-build
 RUN cmake --version
 RUN cmake -D ENABLE_COVERAGE=ON ..
 RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
 RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
-RUN dpkg -i SUSICAM*.deb
+RUN dpkg -i xilens*.deb
 
 # run tests
 ENV QT_QPA_PLATFORM offscreen
@@ -55,4 +41,4 @@ RUN xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --output-on-failure
 RUN gcovr --html --exclude-unreachable-branches --print-summary -o coverage.html -e '/.*cmake-build.*/.*' --root ../
 
 # run application
-CMD QT_GRAPHICSSYSTEM="native" QT_X11_NO_MITSHM=1 /home/susicam/build/susiCam /home/caffe/models/susi/imec_patchnet_4_LAYER_in_vivo.prototxt /home/caffe/models/susi/model_20SNR_20stain_3patch.caffemodel /home/caffe/models/susi/white.tif /home/caffe/models/susi/dark.tif
+CMD QT_GRAPHICSSYSTEM="native" QT_X11_NO_MITSHM=1 /home/xilens/build/xilens /home/caffe/models/susi/imec_patchnet_4_LAYER_in_vivo.prototxt /home/caffe/models/susi/model_20SNR_20stain_3patch.caffemodel /home/caffe/models/susi/white.tif /home/caffe/models/susi/dark.tif
