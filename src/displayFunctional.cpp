@@ -175,7 +175,7 @@ void DisplayerFunctional::Display(XI_IMG &image)
                 bgrImage = currentImage.clone();
                 if (image.color_filter_array == XI_CFA_BAYER_GBRG)
                 {
-                    cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2RGB);
+                    cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
                 }
                 else
                 {
