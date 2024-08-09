@@ -148,3 +148,4 @@ build*
 *.ptx
 *.cubin
 *.cu_o
+*.cast
