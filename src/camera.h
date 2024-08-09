@@ -3,8 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_CAMERA_H
-#define SUSICAM_CAMERA_H
+#ifndef XILENS_CAMERA_H
+#define XILENS_CAMERA_H
 
 #include <xiApi.h>
 
@@ -339,4 +339,4 @@ class RGBCamera : public Camera
     int InitializeCamera() override;
 };
 
-#endif // SUSICAM_CAMERA_H
+#endif // XILENS_CAMERA_H

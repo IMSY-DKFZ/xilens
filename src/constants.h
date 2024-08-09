@@ -5,6 +5,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QJsonObject>
 #include <QMap>
 #include <QString>
 #include <QVariant>
@@ -112,6 +113,16 @@ const QString CAMERA_FAMILY_XIQ = "xiQ";
 ///@}
 
 /**
+ * Supported camera types
+ */
+const std::vector<QString> SUPPORTED_CAMERA_TYPES = {CAMERA_TYPE_SPECTRAL, CAMERA_TYPE_GRAY, CAMERA_TYPE_RGB};
+
+/**
+ * Supported camera families
+ */
+const std::vector<QString> SUPPORTED_CAMERA_FAMILIES = {CAMERA_FAMILY_XISPEC, CAMERA_FAMILY_XIC, CAMERA_FAMILY_XIQ};
+
+/**
  *  \name Image Recording Constants
  *  These constants are used for image recording configurations.
  * @{
@@ -129,19 +140,37 @@ struct CameraData
     QString cameraType;
     QString cameraFamily;
     std::vector<int> mosaicShape;
+
+    static CameraData fromJson(const QJsonObject &jsonObject)
+    {
+        CameraData data;
+        data.cameraType = jsonObject.value("cameraType").toString();
+        data.cameraFamily = jsonObject.value("cameraFamily").toString();
+        data.mosaicShape.push_back(jsonObject.value("mosaicWidth").toInt());
+        data.mosaicShape.push_back(jsonObject.value("mosaicHeight").toInt());
+        return data;
+    }
 };
 
+QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName);
+
 /**
- * @brief A mapper that maps camera models to their corresponding type and
- * family, e.g. (spectral, xiSpec), (gray, xiC), etc.
+ * Checks that the camera type and family are supported by the application
  *
+ * @param type The type of camera, e.g. spectral, rgb or gray.
+ * @param family The camera family, e.g. xiQ, xiC or xiU.
+ * @return true if both camera type and family are supported
+ */
+bool isCameraSupported(const QString &type, const QString &family);
+
+/**
+ * Loads the camera mapper on first call and returns it.
  * This mapper is represented as a constant map with camera models as keys and
  * camera types as values.
+ *
+ * @return A mapper that maps camera models to their corresponding type and
+ * family, e.g. (spectral, xiSpec), (gray, xiC), etc.
  */
-const QMap<QString, CameraData> CAMERA_MAPPER = {
-    {"MQ022HG-IM-SM4X4-VIS", CameraData{CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC, {4, 4}}},
-    {"MQ022HG-IM-SM4X4-VIS3", CameraData{CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC, {4, 4}}},
-    {"MC050MG-SY-UB", CameraData{CAMERA_TYPE_GRAY, CAMERA_FAMILY_XIC, {0, 0}}},
-    {"MQ042CG-CM", CameraData{CAMERA_TYPE_RGB, CAMERA_FAMILY_XIQ, {0, 0}}}};
+QMap<QString, CameraData> &getCameraMapper();
 
 #endif

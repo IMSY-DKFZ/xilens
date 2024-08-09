@@ -35,13 +35,13 @@ void ImageContainer::CloseFile()
     {
         this->m_imageFile->AppendMetadata();
         this->m_imageFile = nullptr;
-        LOG_SUSICAM(info) << "Closed recording file";
+        LOG_XILENS(info) << "Closed recording file";
     }
 }
 
 ImageContainer::~ImageContainer()
 {
-    LOG_SUSICAM(info) << "Destroying image container";
+    LOG_XILENS(info) << "Destroying image container";
 }
 
 void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
@@ -63,7 +63,7 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
                 catch (const std::exception &e)
                 {
                     this->StopPolling();
-                    LOG_SUSICAM(error) << "Error while trying to get image from device";
+                    LOG_XILENS(error) << "Error while trying to get image from device";
                     this->CloseFile();
                     throw;
                 }

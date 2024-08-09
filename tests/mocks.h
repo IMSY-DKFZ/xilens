@@ -3,13 +3,12 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_MOCKS_H
-#define SUSICAM_MOCKS_H
+#ifndef XILENS_MOCKS_H
+#define XILENS_MOCKS_H
 
 #include <xiApi.h>
 
 #include "src/displayFunctional.h"
-#include "src/displayRaw.h"
 #include "src/mainwindow.h"
 #include "src/xiAPIWrapper.h"
 
@@ -108,19 +107,4 @@ class MockDisplayerFunctional : public DisplayerFunctional
     ~MockDisplayerFunctional() override = default;
 };
 
-/**
- * Mock of the Functional displayer class to be able to test it without needing
- * the camera
- */
-class MockDisplayerRaw : public DisplayerRaw
-{
-  public:
-    MockDisplayerRaw() : DisplayerRaw()
-    {
-        m_mainWindow = new MockMainWindow();
-    };
-
-    ~MockDisplayerRaw() override = default;
-};
-
-#endif // SUSICAM_MOCKS_H
+#endif // XILENS_MOCKS_H

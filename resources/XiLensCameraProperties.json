@@ -1,0 +1,32 @@
+{
+  "MQ022HG-IM-SM4X4-VIS": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4
+  },
+  "MQ022HG-IM-SM5X5-NIR2": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5
+  },
+  "MQ022HG-IM-SM4X4-VIS3": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4
+  },
+  "MC050MG-SY-UB": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ042CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  }
+}

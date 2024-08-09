@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bumped BLOSC2 version
+- Bumped BLOSC2 version.
+- Bumped version of CLI11 to 2.4.2.
 
 ### Removed
 

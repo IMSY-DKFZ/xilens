@@ -1,11 +1,11 @@
 [Desktop Entry]
-Name=susicam
+Name=xilens
 GenericName=Surgical Spectral Imaging Camera
 Comment=Application to record spectral data
-Exec=SUSICAM
-Icon=susicam.png
+Exec=xilens
+Icon=xilens.png
 Terminal=True
 Type=Application
 Categories=Qt;Utility;
-Keywords=Qt;susicam;
+Keywords=Qt;xilens;
 StartupNotify=true

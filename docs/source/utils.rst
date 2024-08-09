@@ -3,5 +3,5 @@ Utils
 ==========
 
 .. doxygenfile:: util.h
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:

@@ -3,8 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_XIAPIWRAPPER_H
-#define SUSICAM_XIAPIWRAPPER_H
+#ifndef XILENS_XIAPIWRAPPER_H
+#define XILENS_XIAPIWRAPPER_H
 
 #include <xiApi.h>
 
@@ -73,4 +73,4 @@ class XiAPIWrapper
     }
 };
 
-#endif // SUSICAM_XIAPIWRAPPER_H
+#endif // XILENS_XIAPIWRAPPER_H

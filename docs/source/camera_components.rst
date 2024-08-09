@@ -3,29 +3,29 @@ Camera Components
 =================
 
 .. doxygenclass:: CameraInterface
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: Camera
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: CameraFamily
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: SpectralCamera
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: GrayCamera
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: XiSpecFamily
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:
 
 .. doxygenclass:: XiCFamily
-    :project: susicam
+    :project: xilens
     :allow-dot-graphs:

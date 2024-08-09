@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(SUSICAM VERSION 0.2.1)
+project(xilens VERSION 0.2.1)
 
 #################################
 ##### compiler fiddling     #####
@@ -108,25 +108,21 @@ find_package(Ximea REQUIRED)
 include_directories(${Ximea_INCLUDE_DIRS})
 
 ######################
-##### susiCamLib #####
+##### xilensLib #####
 ######################
-include(src/version.cmake)
-
-set(SUSICAM_LIB_SRC src/mainwindow.cpp
-        src/version.cpp
+set(XILENS_LIB_SRC src/mainwindow.cpp
         src/cameraInterface.cpp
         src/display.cpp
-        src/displayRaw.cpp
         src/displayFunctional.cpp
         src/imageContainer.cpp
         src/util.cpp
         src/camera.cpp
         src/logger.cpp
+        src/constants.cpp
 )
-set(SUSICAM_LIB_HDR src/mainwindow.h
+set(XILENS_LIB_HDR src/mainwindow.h
         src/cameraInterface.h
         src/display.h
-        src/displayRaw.h
         src/displayFunctional.h
         src/imageContainer.h
         src/util.h
@@ -135,44 +131,46 @@ set(SUSICAM_LIB_HDR src/mainwindow.h
         src/xiAPIWrapper.h
         src/constants.h
 )
-set(SUSICAM_LIB_UI src/mainwindow.ui)
+set(XILENS_LIB_UI src/mainwindow.ui)
 
-qt6_wrap_cpp(SUSICAM_LIB_HDR_MOC ${SUSICAM_LIB_HDR})
-qt6_wrap_ui(SUSICAM_LIB_UI_MOC ${SUSICAM_LIB_UI})
+qt6_wrap_cpp(XILENS_LIB_HDR_MOC ${XILENS_LIB_HDR})
+qt6_wrap_ui(XILENS_LIB_UI_MOC ${XILENS_LIB_UI})
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
-add_library(SUSICAM_LIB ${LIBTYPE}
-        ${SUSICAM_LIB_SRC}
-        ${SUSICAM_LIB_HDR}
-        ${SUSICAM_LIB_HDR_MOC}
-        ${SUSICAM_LIB_UI_MOC}
+add_library(XILENS_LIB ${LIBTYPE}
+        ${XILENS_LIB_SRC}
+        ${XILENS_LIB_HDR}
+        ${XILENS_LIB_HDR_MOC}
+        ${XILENS_LIB_UI_MOC}
 )
-target_link_libraries(SUSICAM_LIB Qt6::Widgets Qt6::Svg)
-target_link_libraries(SUSICAM_LIB ${OpenCV_LIBS})
-target_link_libraries(SUSICAM_LIB ${Boost_LIBRARIES})
-target_link_libraries(SUSICAM_LIB ${Ximea_LIBRARIES})
-target_link_libraries(SUSICAM_LIB Blosc2::blosc2_shared)
+target_link_libraries(XILENS_LIB Qt6::Widgets Qt6::Svg)
+target_link_libraries(XILENS_LIB ${OpenCV_LIBS})
+target_link_libraries(XILENS_LIB ${Boost_LIBRARIES})
+target_link_libraries(XILENS_LIB ${Ximea_LIBRARIES})
+target_link_libraries(XILENS_LIB Blosc2::blosc2_shared)
 
 ###################
-##### susiCam #####
+##### XiLens #####
 ###################
-set(SUSICAM_BIN_SRC src/CLI.cpp src/CLI11.h)
-qt6_add_resources(SUSICAM_BIN_SRC resources/resources.qrc)
-qt6_add_resources(SUSICAM_BIN_SRC resources/theme_resources.qrc)
-add_executable(SUSICAM ${SUSICAM_BIN_SRC})
-target_link_libraries(SUSICAM SUSICAM_LIB)
+set(XILENS_BIN_SRC src/CLI.cpp src/CLI11.h)
+qt6_add_resources(XILENS_BIN_SRC resources/resources.qrc)
+qt6_add_resources(XILENS_BIN_SRC resources/theme_resources.qrc)
+add_executable(xilens ${XILENS_BIN_SRC})
+target_link_libraries(xilens XILENS_LIB)
+file(COPY resources/XiLensCameraProperties.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 #################################
 ##### Install and uninstall #####
 #################################
 # Setup the installation target
-install(TARGETS SUSICAM SUSICAM_LIB
+install(TARGETS xilens XILENS_LIB
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
-install(FILES ${CMAKE_SOURCE_DIR}/resources/icon.png DESTINATION share/pixmaps RENAME susicam.png)
-install(FILES ${CMAKE_SOURCE_DIR}/resources/susicam.desktop DESTINATION share/applications)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/XiLensCameraProperties.json  DESTINATION /etc/xilens)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/icon.png DESTINATION share/pixmaps RENAME xilens.png)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/xilens.desktop DESTINATION share/applications)
 
 # uninstall configuration
 configure_file(
@@ -193,7 +191,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 enable_testing()
 
 add_executable(
-        SUSICAM_TESTS
+        XILENS_TESTS
         tests/main.cpp
         tests/mocks.h
         tests/utilTest.cpp
@@ -202,11 +200,12 @@ add_executable(
         tests/imageContainerTest.cpp
         tests/bloscTest.cpp
         tests/mainWindowTest.cpp
+        tests/constantsTest.cpp
 )
-target_link_libraries(SUSICAM_TESTS GTest::gtest_main SUSICAM_LIB Blosc2::blosc2_shared)
+target_link_libraries(XILENS_TESTS GTest::gtest_main XILENS_LIB Blosc2::blosc2_shared)
 
 include(GoogleTest)
-gtest_discover_tests(SUSICAM_TESTS)
+gtest_discover_tests(XILENS_TESTS)
 
 #####################
 ### DEB package  ####
@@ -218,5 +217,5 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "${deps}")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Leonardo Ayala")
 set(CPACK_PACKAGE_DESCRIPTION "GUI application used to record data with XIMEA cameras")
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://git.dkfz.de/imsy/issi/susicam")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/IMSY-DKFZ/xilens/issues")
 include(CPack)
