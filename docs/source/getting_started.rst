@@ -9,6 +9,9 @@ Getting started
 Build XiLens from source
 =========================
 
+.. image:: https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV.svg
+   :target: https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV
+
 To build :code:`XiLens` you only need to install the dependencies and run the
 build as in the following commands.
 
