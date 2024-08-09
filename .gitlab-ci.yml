@@ -10,6 +10,7 @@ before_script:
   - export TZ=Europe/Berlin
   - apt-get update && apt-get -y install tzdata
   - apt-get install -y build-essential sudo udev wget libcanberra-gtk-module libcanberra-gtk3-module cmake xvfb uuid-dev libgl1-mesa-dev git
+  - chmod +x install_dependencies.sh
   - ./install_dependencies.sh
 
 # This is the job to build the project
