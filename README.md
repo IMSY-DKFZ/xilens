@@ -24,6 +24,8 @@ arrays that can be post-processed at high speed.
 # Building XiLens from source
 This software can be built following the instructions provided in out [Getting Started guide.](https://imsy.pages.dkfz.de/issi/XiLens/getting_started.html)
 
+[![asciicast](https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV.svg)](https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV)
+
 # Contributing
 If you are interested in contributing a feature, please follow the [developer guidelines.](https://imsy.pages.dkfz.de/issi/XiLens/developer_guidelines.html)
 
