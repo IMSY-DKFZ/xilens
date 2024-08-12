@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v4.1.7
     - name: Install apt dependencies
       run: |
-        sudo apt install xvfb -y
+        sudo apt install xvfb libgl1-mesa-dev -y
         chmod +x install_dependencies.sh
         sudo ./install_dependencies.sh
     - name: Build project
