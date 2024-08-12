@@ -6,7 +6,6 @@ build:
   jobs:
     post_create_environment:
       - pip install -U furo breathe
-    post_install:
       - apt install doxygen graphviz -y
       - cd docs && doxygen Doxyfile
 
@@ -14,10 +13,3 @@ sphinx:
   builder: html
   configuration: docs/source/conf.py
   fail_on_warning: false
-
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
