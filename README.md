@@ -1,3 +1,13 @@
+[![Documentation Status](https://readthedocs.org/projects/xilens/badge/?version=latest)](https://xilens.readthedocs.io/en/latest/?badge=latest)
+![Tests](https://github.com/IMSY-DKFZ/xilens/actions/workflows/build.yml/badge.svg?branch=develop)
+![Static Badge](https://img.shields.io/badge/releases%20-%20Semantic%20Versioning%20-%20green?logo=semver)
+![Language](https://img.shields.io/badge/Language%20-%20C%2B%2B11%20-%20green?logo=cplusplus)
+![Static Badge](https://img.shields.io/badge/Pre%20Commit%20hooks%20-%20Enabled%20-%20?logo=precommit&color=pink)
+![Static Badge](https://img.shields.io/badge/Doc%20Style%20-%20Doxygen%20-%20?color=pink)
+![Static Badge](https://img.shields.io/badge/Code%20Style%20-%20Microsoft%20%20-%20?color=pink)
+![Static Badge](https://img.shields.io/badge/Application%20-%20Qt6%20-%20green?style=flat&logo=qt)
+![Static Badge](https://img.shields.io/badge/System%20-%20Linux%20-%20green?style=flat&logo=Ubuntu)
+
 <p align="center">
     <img src="resources/icon.png" alt="Logo" width="200"/>
 </p>

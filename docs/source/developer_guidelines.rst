@@ -11,8 +11,9 @@ General rules
    Example of files that can NOT be added to the repository: :code:`.png, .tif, .npy, .pkl, .dat, .html`
    If you have doubts about the files you are committing, you can always ask for help.
 #. Branch naming follows the pattern :code:`<#>-feature_description` where :code:`<#>` represents the issue number.
+   For example: :code:`1-new_feature`.
 #. You need to have implemented tests for your code before merging into develop.
-#. You need to run all the tests before opening a merge request.
+#. You need to run all the tests before opening a pull request.
 
 Code style
 ==========
@@ -22,6 +23,8 @@ Coding style is enforced with pre-commit hooks, you should install them by doing
 
     sudo apt install pre-commit
     pre-commit install
+
+The docstrings follow the ``Doxygen`` format, while the code style follows a ``Microsoft`` style.
 
 Tests
 =====
@@ -53,20 +56,19 @@ Contributing a feature/bug fix
 ==============================
 If you have doubts on how to finish your feature branch, you can always ask for help
 
-#. Create issue on `GitHub <https://github.com/IMSY-DKFZ/xilens/issues>`_, if a task does not exist yet.
-#. Assign the task to you.
+#. Create issue on `GitHub <https://github.com/IMSY-DKFZ/xilens/issues>`_, if an issue does not exist yet.
+#. Assign the issue to you.
 #. Create a fork of the repository.
-#. Create a new branch.
+#. Create a new branch based from the:code:`develop` branch.
 
    .. tip::
 
-      The `branch name` has to match the following pattern: `<issue-number>-<short_description_of_task>`
+      The :code:`branch name` has to match the following pattern: :code:`<#>-<short_description>`, For example: :code:`1-new_feature`.
 
 #. Implement your feature
-#. Update :code:`feature` branch: :code:`git checkout <branch_name> && git merge develop`.
-#. Run tests in :code:`feature` branch
-#. Create a merge request for your feature.
-   select `develop` as the destination branch.
+#. Update your branch: :code:`git checkout <branch_name> && git merge develop`.
+#. Run tests in your branch
+#. Create a pull request for your branch. select ``develop`` as the destination branch.
 #. The branch will be reviewed and automatically merged if there are no requested changes.
 
 Finished or deprecated branches
