@@ -4,6 +4,8 @@ XiLens documentation
 Welcome to the :code:`XiLens` documentation. This project aims at providing an application
 that can be used to record data from all the **XIMEA** camera families.
 
+.. image:: ../../resources/ui-animation.gif
+
 .. note::
 
     Main features:

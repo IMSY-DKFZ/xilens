@@ -8,6 +8,8 @@ authors:
   given-names: "Sebastian"
 - family-names: "Vemuri"
   given-names: "Anant"
+- family-names: "Maier-Hein"
+  given-names: "Lena"
 title: "XiLens"
 version: 0.2.1
 url: "https://github.com/IMSY-DKFZ/xilens"

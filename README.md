@@ -50,3 +50,9 @@ Many image processing operations are internally performed through [OpenCV](https
 # Remarks
 The XiLens library is only supported in Linux systems, although all dependencies are also available in Windows systems,
 compilation in such systems has not been properly tested.
+
+# Funding
+This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. [101002198]).
+
+![ERC](resources/LOGO_ERC-FLAG_EU_.jpg)
+![DKFZ](resources/LOGO_DKFZ.png)
