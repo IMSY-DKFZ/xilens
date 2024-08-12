@@ -6,8 +6,11 @@ build:
   jobs:
     post_create_environment:
       - pip install -U furo breathe
-      - apt install doxygen graphviz -y
-      - cd docs && doxygen Doxyfile
+    pre_build:
+        - cd doxygen && doxygen Doxyfile
+  apt_packages:
+      - doxygen
+      - graphviz
 
 sphinx:
   builder: html
