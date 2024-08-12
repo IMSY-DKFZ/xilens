@@ -31,13 +31,16 @@ jobs:
         xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
     - name: Run tests
       run: |
+        cd build
         xvfb-run -a --server-args="-screen 0 1024x768x24" make test -j
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build and install DEB package
       run: |
+          cd build
           xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
           sudo dpkg -i xilens*.deb
     - name: Install application
       run: |
+          cd build
           sudo make install
