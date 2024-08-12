@@ -7,7 +7,7 @@ build:
     post_create_environment:
       - pip install -U furo breathe
     pre_build:
-        - cd doxygen && doxygen Doxyfile
+        - cd docs && doxygen Doxyfile
   apt_packages:
       - doxygen
       - graphviz
