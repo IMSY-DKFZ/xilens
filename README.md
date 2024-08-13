@@ -31,6 +31,9 @@ arrays that can be post-processed at high speed.
 * Compatible with Linux systems
 * Automatic tests of non-UI components through google tests
 
+# Documentation
+The documentation for this project is hosted in [Read The Docs](https://xilens.readthedocs.io).
+
 # Building XiLens from source
 This software can be built following the instructions provided in out [Getting Started guide.](https://imsy.pages.dkfz.de/issi/XiLens/getting_started.html)
 
