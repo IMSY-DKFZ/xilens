@@ -50,7 +50,7 @@ To build the documentation locally and check that yours is rendered properly you
 
 
 Now you can navigate to doc/build and open `index.html` to access the documentation. The documentation corresponding to the develop branch is also
-hosted in online: `XiLens documentation <https://imsy.pages.dkfz.de/issi/xilens/>`_.
+hosted in online: `XiLens documentation <https://xilens.readthedocs.io/en/latest/>`_.
 
 Contributing a feature/bug fix
 ==============================

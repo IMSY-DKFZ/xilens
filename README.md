@@ -35,15 +35,15 @@ arrays that can be post-processed at high speed.
 The documentation for this project is hosted in [Read The Docs](https://xilens.readthedocs.io).
 
 # Building XiLens from source
-This software can be built following the instructions provided in out [Getting Started guide.](https://imsy.pages.dkfz.de/issi/XiLens/getting_started.html)
+This software can be built following the instructions provided in out [Getting Started guide.](https://xilens.readthedocs.io/en/latest/getting_started.html)
 
 [![asciicast](https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV.svg)](https://asciinema.org/a/YSmGYswUqGmYGk969rmQUb0mV)
 
 # Contributing
-If you are interested in contributing a feature, please follow the [developer guidelines.](https://imsy.pages.dkfz.de/issi/XiLens/developer_guidelines.html)
+If you are interested in contributing a feature, please follow the [developer guidelines.](https://xilens.readthedocs.io/en/latest/developer_guidelines.html)
 
 # FAQ
-If you are having issues, make sure to check the [FAQ section](https://imsy.pages.dkfz.de/issi/xilens/faq.html) of our documentation.
+If you are having issues, make sure to check the [FAQ section](https://xilens.readthedocs.io/en/latest/faq.html) of our documentation.
 
 # Acknowledgments
 Data compression is possible in this application thanks to the [BLOSC2 team](https://github.com/Blosc/c-blosc2).
