@@ -44,3 +44,10 @@ jobs:
       run: |
           cd build
           sudo make install
+    - name: Documentation
+      run: |
+          sudo apt install doxygen graphviz
+          pip install -U sphinx furo breathe
+          cd docs
+          doxygen Doxyfile
+          make html
