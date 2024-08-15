@@ -26,6 +26,7 @@
     <file>theme/disabled/radiobutton_checked_invert.svg</file>
     <file>theme/disabled/radiobutton_unchecked.svg</file>
     <file>theme/disabled/radiobutton_unchecked_invert.svg</file>
+    <file>theme/disabled/reload.svg</file>
     <file>theme/disabled/rightarrow.svg</file>
     <file>theme/disabled/rightarrow2.svg</file>
     <file>theme/disabled/sizegrip.svg</file>
@@ -63,6 +64,7 @@
     <file>theme/primary/radiobutton_checked_invert.svg</file>
     <file>theme/primary/radiobutton_unchecked.svg</file>
     <file>theme/primary/radiobutton_unchecked_invert.svg</file>
+    <file>theme/primary/reload.svg</file>
     <file>theme/primary/rightarrow.svg</file>
     <file>theme/primary/rightarrow2.svg</file>
     <file>theme/primary/sizegrip.svg</file>
@@ -100,6 +102,7 @@
     <file>theme/active/radiobutton_checked_invert.svg</file>
     <file>theme/active/radiobutton_unchecked.svg</file>
     <file>theme/active/radiobutton_unchecked_invert.svg</file>
+    <file>theme/active/reload.svg</file>
     <file>theme/active/rightarrow.svg</file>
     <file>theme/active/rightarrow2.svg</file>
     <file>theme/active/sizegrip.svg</file>

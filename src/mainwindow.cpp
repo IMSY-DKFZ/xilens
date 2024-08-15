@@ -45,15 +45,15 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
     m_imageContainer.Initialize(this->m_xiAPIWrapper);
     ui->setupUi(this);
+    this->SetUpCustomUiComponents();
 
     // Display needs to be instantiated before changing camera list because
     // calling setCurrentIndex on the list.
     m_display = new DisplayerFunctional(this);
 
     // populate available cameras
-    QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItem("select camera to enable UI...");
-    ui->cameraListComboBox->addItems(cameraList);
+    this->on_reloadCamerasPushButton_clicked();
     ui->cameraListComboBox->setCurrentIndex(0);
 
     // set the base folder loc
@@ -132,6 +132,15 @@ void MainWindow::EnableUi(bool enable)
     this->ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
     EnableWidgetsInLayout(layoutExtras, enable);
+}
+
+void MainWindow::SetUpCustomUiComponents()
+{
+    QIcon buttonIcon;
+    buttonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
+    buttonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
+    buttonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
+    this->ui->reloadCamerasPushButton->setIcon(buttonIcon);
 }
 
 void MainWindow::Display()
@@ -386,6 +395,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
     else
     {
@@ -395,6 +405,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -930,6 +941,28 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
         m_cameraInterface.SetCameraIndex(index);
         this->EnableUi(false);
+    }
+}
+
+void MainWindow::on_reloadCamerasPushButton_clicked()
+{
+    QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();
+    // Only add new camera models
+    for (const QString &camera : cameraList) {
+        if (ui->cameraListComboBox->findText(camera) == -1)
+        {
+            ui->cameraListComboBox->addItem(camera);
+        }
+    }
+
+    // Remove camera models that are no longer available except for the first placeholder
+    int i = 1;
+    while (i < ui->cameraListComboBox->count()) {
+        if (cameraList.contains(ui->cameraListComboBox->itemText(i))) {
+            ++i;
+        } else {
+            ui->cameraListComboBox->removeItem(i);
+        }
     }
 }
 
