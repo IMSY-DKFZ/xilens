@@ -21,6 +21,20 @@ class MockXiAPIWrapper : public XiAPIWrapper
   public:
     int xiGetParamString(IN HANDLE hDevice, const char *prm, void *val, DWORD size) override
     {
+        const char *mockDeviceName = "MockDeviceModel";
+        const char *mockSensorSN = "MockSensorSN";
+        if (std::strcmp(prm, XI_PRM_DEVICE_NAME) == 0)
+        {
+            std::strncpy(static_cast<char *>(val), mockDeviceName, size - 1);
+            // Ensure null termination
+            static_cast<char *>(val)[size - 1] = '\0';
+        }
+        else if (std::strcmp(prm, XI_PRM_DEVICE_SENS_SN) == 0)
+        {
+            std::strncpy(static_cast<char *>(val), mockSensorSN, size - 1);
+            // Ensure null termination
+            static_cast<char *>(val)[size - 1] = '\0';
+        }
         return 0;
     }
 
