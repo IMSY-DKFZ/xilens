@@ -6,51 +6,51 @@ on:
       - main
       - develop
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        os: [ ubuntu-22.04, ubuntu-24.04 ]
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Checkout project
-      uses: actions/checkout@v4.1.7
-    - name: Install apt dependencies
-      run: |
-        sudo apt install xvfb libgl1-mesa-dev -y
-        chmod +x install_dependencies.sh
-        sudo ./install_dependencies.sh
-    - name: Build project
-      run: |
-        mkdir build
-        cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-        xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
-    - name: Run tests
-      run: |
-        cd build
-        xvfb-run -a --server-args="-screen 0 1024x768x24" make test -j
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build and install DEB package
-      run: |
+      - name: Checkout project
+        uses: actions/checkout@v4.1.7
+      - name: Install apt dependencies
+        run: |
+          sudo apt install xvfb libgl1-mesa-dev -y
+          chmod +x install_dependencies.sh
+          sudo ./install_dependencies.sh
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+          xvfb-run -a --server-args="-screen 0 1024x768x24" make all -j
+      - name: Run tests
+        run: |
+          cd build
+          xvfb-run -a --server-args="-screen 0 1024x768x24" make test -j
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and install DEB package
+        run: |
           cd build
           xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
           sudo dpkg -i xilens*.deb
-    - name: Install application
-      run: |
+      - name: Install application
+        run: |
           cd build
           sudo make install
   documentation:
-      runs-on: ubuntu-22.04
-      steps:
-        - name: Documentation
-          run: |
-              sudo apt install doxygen graphviz
-              sudo pip3 install -U sphinx furo breathe
-              cd docs
-              doxygen Doxyfile
-              make html
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Documentation
+        run: |
+          sudo apt install doxygen graphviz
+          sudo pip3 install -U sphinx furo breathe
+          cd docs
+          doxygen Doxyfile
+          make html
