@@ -61,6 +61,11 @@ class MainWindow : public QMainWindow
     void EnableUi(bool enable);
 
     /**
+     * Configures custom UI elements such as custom icons in buttons, etc.
+     */
+    void SetUpCustomUiComponents();
+
+    /**
      * Disables the UI elements
      */
     void EnableWidgetsInLayout(QLayout *layout, bool enable);
@@ -289,6 +294,11 @@ class MainWindow : public QMainWindow
     void on_cameraListComboBox_currentIndexChanged(int index);
 
     /**
+     * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
+     */
+    void on_reloadCamerasPushButton_clicked();
+
+    /**
      * Updates the stile of a Qt LineEdit component.
      *
      * @param lineEdit element to update
@@ -474,7 +484,7 @@ class MainWindow : public QMainWindow
     /**
      * Starts image acquisition by initializing image contained and displayer.
      */
-    void StartImageAcquisition(QString camera_identifier);
+    void StartImageAcquisition(QString cameraIdentifier);
 
     /**
      * Stops image acquisition by disconnecting image displayer and stopping image

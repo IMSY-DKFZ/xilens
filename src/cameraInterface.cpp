@@ -25,10 +25,13 @@ void CameraInterface::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
 
 void CameraInterface::SetCameraProperties(QString cameraModel)
 {
-    QString cameraType = getCameraMapper().value(cameraModel).cameraType;
-    QString cameraFamily = getCameraMapper().value(cameraModel).cameraFamily;
-    this->m_cameraType = std::move(cameraType);
-    this->m_cameraFamilyName = std::move(cameraFamily);
+    if (!getCameraMapper().contains(cameraModel))
+    {
+        LOG_XILENS(error) << "Could not find camera model in Mapper: " << cameraModel.toStdString();
+        throw std::runtime_error("Could not find camera in Mapper");
+    }
+    this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
+    this->m_cameraFamilyName = getCameraMapper().value(cameraModel).cameraFamily;
 }
 
 void CameraInterface::SetCameraIndex(int index)
@@ -36,10 +39,22 @@ void CameraInterface::SetCameraIndex(int index)
     this->m_cameraIndex = index;
 }
 
-int CameraInterface::StartAcquisition(QString camera_identifier)
+int CameraInterface::StartAcquisition(QString cameraIdentifier)
 {
-    int stat_open = OpenDevice(m_availableCameras[camera_identifier]);
+    if (!m_availableCameras.contains(cameraIdentifier))
+    {
+        LOG_XILENS(error) << "camera identifier not in mapper: " << cameraIdentifier.toStdString();
+        throw std::runtime_error("Camera identifier not found in Mapper");
+    }
+    int stat_open = OpenDevice(m_availableCameras[cameraIdentifier]);
     HandleResult(stat_open, "OpenDevice");
+    auto openedCameraIdentifier = GetCameraIdentifier(m_cameraHandle);
+    if (openedCameraIdentifier != cameraIdentifier)
+    {
+        LOG_XILENS(error) << "Opened camera not the same as selected camera: " << cameraIdentifier.toStdString()
+                          << "!=" << cameraIdentifier.toStdString();
+        throw std::runtime_error("Opened camera is not the same as the selected one.");
+    }
 
     char cameraSN[100] = {0};
     this->m_apiWrapper->xiGetParamString(this->m_cameraHandle, XI_PRM_DEVICE_SN, cameraSN, sizeof(cameraSN));
@@ -72,18 +87,18 @@ int CameraInterface::StopAcquisition()
     return stat;
 }
 
-int CameraInterface::OpenDevice(DWORD cameraIdentifier)
+int CameraInterface::OpenDevice(DWORD cameraDeviceID)
 {
     int stat = XI_OK;
-    stat = this->m_apiWrapper->xiOpenDevice(cameraIdentifier, &m_cameraHandle);
-    HandleResult(stat, "xiGetNumberDevices");
+    stat = this->m_apiWrapper->xiOpenDevice(cameraDeviceID, &m_cameraHandle);
+    HandleResult(stat, "xiOepnDevice");
 
     this->setCamera(m_cameraType, m_cameraFamilyName);
 
     stat = this->m_camera->InitializeCamera();
     if (stat != XI_OK)
     {
-        LOG_XILENS(error) << "Failed to initialize camera: " << cameraIdentifier;
+        LOG_XILENS(error) << "Failed to initialize camera: " << cameraDeviceID;
         return stat;
     }
     return stat;
@@ -107,9 +122,10 @@ HANDLE CameraInterface::GetHandle()
     return this->m_cameraHandle;
 }
 
-QStringList CameraInterface::GetAvailableCameraModels()
+QStringList CameraInterface::GetAvailableCameraIdentifiers()
 {
-    QStringList cameraModels;
+    m_availableCameras.clear();
+    QStringList cameraIdentifiers;
     // DWORD and HANDLE are defined by xiAPI
     DWORD dwCamCount = 0;
     this->m_apiWrapper->xiGetNumberDevices(&dwCamCount);
@@ -124,16 +140,24 @@ QStringList CameraInterface::GetAvailableCameraModels()
         }
         else
         {
-            char cameraModel[256] = {0};
-            this->m_apiWrapper->xiGetParamString(cameraHandle, XI_PRM_DEVICE_NAME, cameraModel, sizeof(cameraModel));
-
-            cameraModels.append(QString::fromUtf8(cameraModel));
-            m_availableCameras[QString::fromUtf8(cameraModel)] = i;
+            auto cameraIdentifier = GetCameraIdentifier(cameraHandle);
+            cameraIdentifiers.append(cameraIdentifier);
+            m_availableCameras[cameraIdentifier] = i;
 
             this->m_apiWrapper->xiCloseDevice(cameraHandle);
         }
     }
-    return cameraModels;
+    return cameraIdentifiers;
+}
+
+QString CameraInterface::GetCameraIdentifier(HANDLE cameraHandle)
+{
+    char cameraModel[256] = {0};
+    char sensorSN[100] = "";
+    this->m_apiWrapper->xiGetParamString(cameraHandle, XI_PRM_DEVICE_NAME, cameraModel, sizeof(cameraModel));
+    this->m_apiWrapper->xiGetParamString(cameraHandle, XI_PRM_DEVICE_SENS_SN, sensorSN, sizeof(sensorSN));
+    QString cameraIdentifier = QString("%1@%2").arg(QString::fromUtf8(cameraModel), QString::fromUtf8(sensorSN));
+    return cameraIdentifier;
 }
 
 CameraInterface::~CameraInterface()

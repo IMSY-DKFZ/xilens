@@ -45,15 +45,15 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
     m_imageContainer.Initialize(this->m_xiAPIWrapper);
     ui->setupUi(this);
+    this->SetUpCustomUiComponents();
 
     // Display needs to be instantiated before changing camera list because
     // calling setCurrentIndex on the list.
     m_display = new DisplayerFunctional(this);
 
     // populate available cameras
-    QStringList cameraList = m_cameraInterface.GetAvailableCameraModels();
     ui->cameraListComboBox->addItem("select camera to enable UI...");
-    ui->cameraListComboBox->addItems(cameraList);
+    this->on_reloadCamerasPushButton_clicked();
     ui->cameraListComboBox->setCurrentIndex(0);
 
     // set the base folder loc
@@ -76,12 +76,12 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     EnableUi(false);
 }
 
-void MainWindow::StartImageAcquisition(QString camera_identifier)
+void MainWindow::StartImageAcquisition(QString cameraIdentifier)
 {
     try
     {
         this->m_display->StartDisplayer();
-        m_cameraInterface.StartAcquisition(std::move(camera_identifier));
+        m_cameraInterface.StartAcquisition(std::move(cameraIdentifier));
         this->StartPollingThread();
         this->StartTemperatureThread();
 
@@ -132,6 +132,15 @@ void MainWindow::EnableUi(bool enable)
     this->ui->logTextLineEdit->setEnabled(enable);
     QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
     EnableWidgetsInLayout(layoutExtras, enable);
+}
+
+void MainWindow::SetUpCustomUiComponents()
+{
+    QIcon buttonIcon;
+    buttonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
+    buttonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
+    buttonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
+    this->ui->reloadCamerasPushButton->setIcon(buttonIcon);
 }
 
 void MainWindow::Display()
@@ -221,7 +230,7 @@ void MainWindow::LogCameraTemperature()
         message = QString("\t%1\t%2\t%3\t%4")
                       .arg(key)
                       .arg(temp)
-                      .arg(this->m_cameraInterface.m_cameraModel)
+                      .arg(this->m_cameraInterface.m_cameraIdentifier)
                       .arg(this->m_cameraInterface.m_cameraSN);
         this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
     }
@@ -356,7 +365,7 @@ void MainWindow::on_recordButton_clicked(bool clicked)
     {
         this->LogMessage(" XILENS RECORDING STARTS", LOG_FILE_NAME, true);
         this->LogMessage(QString(" camera selected: %1 %2")
-                             .arg(this->m_cameraInterface.m_cameraModel, this->m_cameraInterface.m_cameraSN),
+                             .arg(this->m_cameraInterface.m_cameraIdentifier, this->m_cameraInterface.m_cameraSN),
                          LOG_FILE_NAME, true);
         this->m_elapsedTimer.start();
         this->StartRecording();
@@ -386,6 +395,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
     else
     {
@@ -395,6 +405,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -885,25 +896,26 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
     }
     if (index != 0)
     {
-        QString cameraModel = ui->cameraListComboBox->currentText();
-        m_cameraInterface.m_cameraModel = cameraModel;
+        QString cameraIdentifier = ui->cameraListComboBox->currentText();
+        QString cameraModel = cameraIdentifier.split("@").at(0);
+        m_cameraInterface.m_cameraIdentifier = cameraIdentifier;
         if (getCameraMapper().contains(cameraModel))
         {
             QString cameraType = getCameraMapper().value(cameraModel).cameraType;
-            QString originalCameraModel = m_cameraInterface.m_cameraModel;
+            QString originalCameraIdentifier = m_cameraInterface.m_cameraIdentifier;
             try
             {
                 // set camera type needed by the camera interface initialization
                 m_display->SetCameraProperties(cameraModel);
                 m_cameraInterface.SetCameraProperties(cameraModel);
-                this->StartImageAcquisition(ui->cameraListComboBox->currentText());
+                this->StartImageAcquisition(cameraIdentifier);
             }
             catch (std::runtime_error &e)
             {
-                LOG_XILENS(error) << "could not start image acquisition for camera: " << cameraModel.toStdString();
+                LOG_XILENS(error) << "could not start image acquisition for camera: " << cameraIdentifier.toStdString();
                 // restore camera type and index
-                m_display->SetCameraProperties(originalCameraModel);
-                m_cameraInterface.SetCameraProperties(originalCameraModel);
+                m_display->SetCameraProperties(originalCameraIdentifier);
+                m_cameraInterface.SetCameraProperties(originalCameraIdentifier);
                 const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
                 ui->cameraListComboBox->setCurrentIndex(m_cameraInterface.m_cameraIndex);
                 return;
@@ -930,6 +942,33 @@ void MainWindow::on_cameraListComboBox_currentIndexChanged(int index)
         const QSignalBlocker blocker_spinbox(ui->cameraListComboBox);
         m_cameraInterface.SetCameraIndex(index);
         this->EnableUi(false);
+    }
+}
+
+void MainWindow::on_reloadCamerasPushButton_clicked()
+{
+    QStringList cameraList = m_cameraInterface.GetAvailableCameraIdentifiers();
+    // Only add new camera models
+    for (const QString &camera : cameraList)
+    {
+        if (ui->cameraListComboBox->findText(camera) == -1)
+        {
+            ui->cameraListComboBox->addItem(camera);
+        }
+    }
+
+    // Remove camera models that are no longer available except for the first placeholder
+    int i = 1;
+    while (i < ui->cameraListComboBox->count())
+    {
+        if (cameraList.contains(ui->cameraListComboBox->itemText(i)))
+        {
+            ++i;
+        }
+        else
+        {
+            ui->cameraListComboBox->removeItem(i);
+        }
     }
 }
 
