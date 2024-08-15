@@ -181,7 +181,7 @@ class CameraInterface : public QObject
      *
      * This function retrieves a list of available camera identifiers that can be used
      * with the application. The returned list contains the names of the camera
-     * models and sensor serial number according tot he patter: :code:`camera_model\@sensorSN`
+     * models and sensor serial number according to the pattern: `camera_model@sensorSN`
      *
      * @return QList<QString> A vector of strings representing the available
      * camera models and their ID in the system.
@@ -191,8 +191,8 @@ class CameraInterface : public QObject
     /**
      * Given a camera handle, it constructs a camera identifier based on the model and the sensor serial number.
      *
-     * @param cameraHandle Handle of the camera, it should be a valid handle initialized by :code:`xiOpenDevice`.
-     * @return camera identifier in the format :code:`camera_model\@sensorSN`.
+     * @param cameraHandle Handle of the camera, it should be a valid handle initialized by `xiOpenDevice`.
+     * @return camera identifier in the format `camera_model@sensorSN`.
      */
     QString GetCameraIdentifier(HANDLE cameraHandle);
 
