@@ -484,7 +484,7 @@ class MainWindow : public QMainWindow
     /**
      * Starts image acquisition by initializing image contained and displayer.
      */
-    void StartImageAcquisition(QString camera_identifier);
+    void StartImageAcquisition(QString cameraIdentifier);
 
     /**
      * Stops image acquisition by disconnecting image displayer and stopping image
