@@ -51,9 +51,6 @@ jobs:
       - if: matrix.build-mode == 'manual'
         shell: bash
         run: |
-          sudo apt install xvfb libgl1-mesa-dev -y
-          chmod +x install_dependencies.sh
-          sudo ./install_dependencies.sh
           mkdir build
           cd build
           cmake -DCMAKE_INSTALL_PREFIX=/usr ..
