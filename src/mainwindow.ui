@@ -93,11 +93,55 @@
                    <enum>QLayout::SetDefaultConstraint</enum>
                   </property>
                   <item>
-                   <widget class="QComboBox" name="cameraListComboBox">
-                    <property name="editable">
-                     <bool>false</bool>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <property name="topMargin">
+                     <number>0</number>
                     </property>
-                   </widget>
+                    <item>
+                     <widget class="QPushButton" name="reloadCamerasPushButton">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                      <property name="toolTip">
+                       <string>Check if new cameras have been connected to the system</string>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>20</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="cameraListComboBox">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="editable">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                   <item>
                    <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
@@ -940,7 +984,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
-  <tabstop>cameraListComboBox</tabstop>
   <tabstop>filePrefixLineEdit</tabstop>
   <tabstop>subFolderLineEdit</tabstop>
   <tabstop>baseFolderButton</tabstop>

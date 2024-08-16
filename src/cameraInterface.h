@@ -59,22 +59,22 @@ class CameraInterface : public QObject
     /**
      * @brief Initializes a device with the specified camera ID.
      *
-     * This function opens a device with the specified camera serial number.
+     * This function opens a device with the specified camera device ID associated by XiAPI.
      *
-     * @param cameraIdentifier The serial number/ID of the camera to open.
+     * @param cameraDeviceID The device ID assigned by XiAPI to the camera.
      *
      * @return 0 if the device was successfully opened, 1 otherwise.
      */
-    int OpenDevice(DWORD cameraIdentifier);
+    int OpenDevice(DWORD cameraDeviceID);
 
     /**
      * @brief StartAcquisition function
      *
      * This function starts the acquisition process for a specified camera.
      *
-     * @param camera_identifier The name of the camera to be used for acquisition.
+     * @param cameraIdentifier The deviceID used by XiAPI to open the device.
      */
-    int StartAcquisition(QString camera_identifier);
+    int StartAcquisition(QString cameraIdentifier);
 
     /**
      * @brief Stops the acquisition process.
@@ -177,22 +177,30 @@ class CameraInterface : public QObject
     QMap<QString, DWORD> m_availableCameras;
 
     /**
-     * @brief Retrieves a list of available camera models.
+     * @brief Retrieves a list of available camera identifiers.
      *
-     * This function retrieves a list of available camera models that can be used
+     * This function retrieves a list of available camera identifiers that can be used
      * with the application. The returned list contains the names of the camera
-     * models.
+     * models and sensor serial number according to the pattern: `camera_model@sensorSN`
      *
      * @return QList<QString> A vector of strings representing the available
      * camera models and their ID in the system.
      */
-    QStringList GetAvailableCameraModels();
+    QStringList GetAvailableCameraIdentifiers();
 
     /**
-     * @brief The variable m_cameraModel represents the model of the camera being
+     * Given a camera handle, it constructs a camera identifier based on the model and the sensor serial number.
+     *
+     * @param cameraHandle Handle of the camera, it should be a valid handle initialized by `xiOpenDevice`.
+     * @return camera identifier in the format `camera_model@sensorSN`.
+     */
+    QString GetCameraIdentifier(HANDLE cameraHandle);
+
+    /**
+     * @brief The variable m_cameraIdentifier represents the model of the camera being
      * used.
      */
-    QString m_cameraModel;
+    QString m_cameraIdentifier;
 
     /**
      * Serial number of camera

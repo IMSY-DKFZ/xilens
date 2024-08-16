@@ -209,7 +209,7 @@ struct CommandLineArguments
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
 
 /**
- * Generates a timestamp with the format :code:`yyyyMMdd_hh-mm-ss-zzz`
+ * Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`
  *
  * @return
  */

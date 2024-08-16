@@ -236,8 +236,11 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 
 void DisplayerFunctional::SetCameraProperties(QString cameraModel)
 {
-    QString cameraType = getCameraMapper().value(cameraModel).cameraType;
-    this->m_cameraType = std::move(cameraType);
-    auto mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
-    this->m_mosaicShape = std::move(mosaicShape);
+    if (!getCameraMapper().contains(cameraModel))
+    {
+        LOG_XILENS(error) << "Could not find camera model in Mapper: " << cameraModel.toStdString();
+        throw std::runtime_error("Could not find camera in Mapper");
+    }
+    this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
+    this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }
