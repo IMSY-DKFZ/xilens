@@ -99,7 +99,8 @@ void CreateBLOSCArray(char *urlpath)
     for (int i = 0; i < N_images; i++)
     {
         auto file = fopen("test_image.dat", "wb");
-        fwrite(image->bp, image->width * image->height, sizeof(uint16_t), file);
+        fwrite(image->bp, static_cast<size_t>(image->width) * static_cast<size_t>(image->height), sizeof(uint16_t),
+               file);
     }
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
