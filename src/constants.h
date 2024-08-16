@@ -42,7 +42,6 @@ const cv::Vec3b DARK_COLOR = cv::Vec3b(0, 0, 255);
  * @{
  */
 const QString LOG_FILE_NAME = "logFile.txt";
-const QString TEMP_LOG_FILE_NAME = "temperatureLogFile.txt";
 ///@}
 
 /**

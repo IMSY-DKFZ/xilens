@@ -265,14 +265,6 @@ void MainWindow::StartTemperatureThread()
     {
         StopTemperatureThread();
     }
-    QString log_filename = QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + TEMP_LOG_FILE_NAME);
-    QFile file(log_filename);
-    QFileInfo fileInfo(file);
-    if (fileInfo.size() == 0)
-    {
-        this->LogMessage("time\tsensor_location\ttemperature\tcamera_model\tcamera_sn", TEMP_LOG_FILE_NAME, false);
-    }
-    file.close();
     m_temperatureThread = boost::thread([&]() {
         ScheduleTemperatureThread();
         m_temperatureIOService.reset();
