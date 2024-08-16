@@ -75,8 +75,12 @@ void FileImage::AppendMetadata()
 
 void FileImage::write(XI_IMG image)
 {
-    const int64_t buffer_size = image.width * image.height * sizeof(uint16_t);
-    int result = b2nd_append(src, image.bp, buffer_size, 0);
+    const size_t buffer_size = static_cast<size_t>(image.width) * static_cast<size_t>(image.height) * sizeof(uint16_t);
+    if (buffer_size > static_cast<size_t>(INT64_MAX))
+    {
+        throw std::overflow_error("Buffer size exceeds the maximum value of int64_t.");
+    }
+    int result = b2nd_append(src, image.bp, static_cast<int64_t>(buffer_size), 0);
     HandleBLOSCResult(result, "b2nd_append");
     // store metadata
     this->m_exposureMetadata.emplace_back(image.exposure_time_us);
