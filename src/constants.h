@@ -49,10 +49,10 @@ const QString TEMP_LOG_FILE_NAME = "temperatureLogFile.txt";
  *  \name Camera Temperature Locations
  * @{
  */
-const QString CHIP_TEMP = "chip";
-const QString HOUSE_TEMP = "house";
-const QString HOUSE_BACK_TEMP = "house_back_side";
-const QString SENSOR_BOARD_TEMP = "sensor_board";
+const QString CHIP_TEMP = "temperature_chip";
+const QString HOUSE_TEMP = "temperature_house";
+const QString HOUSE_BACK_TEMP = "temperature_house_back_side";
+const QString SENSOR_BOARD_TEMP = "temperature_sensor_board";
 const int TEMP_LOG_INTERVAL = 5;
 ///@}
 
@@ -172,5 +172,25 @@ bool isCameraSupported(const QString &type, const QString &family);
  * family, e.g. (spectral, xiSpec), (gray, xiC), etc.
  */
 QMap<QString, CameraData> &getCameraMapper();
+
+/**
+ * name of key to be used to store exposure time in the metadata of the arrays.
+ */
+constexpr const char *EXPOSURE_KEY = "exposure_us";
+
+/**
+ * name of key to be used to store frame number in the metadata of the arrays.
+ */
+constexpr const char *FRAME_NUMBER_KEY = "acq_nframe";
+
+/**
+ * name of key to be used to store filter array format in the metadata of the arrays.
+ */
+constexpr const char *COLOR_FILTER_ARRAY_FORMAT_KEY = "color_filter_array";
+
+/**
+ * name of key to be used to store time stamp in the metadata of the arrays.
+ */
+constexpr const char *TIME_STAMP_KEY = "time_stamp";
 
 #endif

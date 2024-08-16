@@ -83,9 +83,9 @@ class MainWindow : public QMainWindow
     QString GetLogFilePath(QString logFile);
 
     /**
-     * Logs camera temperature to log file
+     * Gets camera temperature
      */
-    void LogCameraTemperature();
+    QMap<QString, float> GetCameraTemperature();
 
     /**
      * Displays camera temperature on an LCD display

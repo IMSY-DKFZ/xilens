@@ -195,10 +195,12 @@ void MainWindow::RecordSnapshots()
         int waitTime = 2 * exp_time;
         wait(waitTime);
         image = m_imageContainer.GetCurrentImage();
-        snapshotsFile.write(image);
+        snapshotsFile.write(image, GetCameraTemperature());
         int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
+    snapshotsFile.AppendMetadata();
+    LOG_XILENS(info) << "Closed snapshot recording file";
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -210,21 +212,11 @@ void MainWindow::on_snapshotButton_clicked()
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
-void MainWindow::LogCameraTemperature()
+QMap<QString, float> MainWindow::GetCameraTemperature()
 {
-    QString message;
     m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
     auto cameraTemperature = m_cameraInterface.m_camera->family->get()->m_cameraTemperature;
-    for (const QString &key : cameraTemperature.keys())
-    {
-        float temp = m_cameraInterface.m_cameraTemperature.value(key);
-        message = QString("\t%1\t%2\t%3\t%4")
-                      .arg(key)
-                      .arg(temp)
-                      .arg(this->m_cameraInterface.m_cameraModel)
-                      .arg(this->m_cameraInterface.m_cameraSN);
-        this->LogMessage(message, TEMP_LOG_FILE_NAME, true);
-    }
+    return cameraTemperature;
 }
 
 void MainWindow::DisplayCameraTemperature()
@@ -250,7 +242,6 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
         return;
     }
 
-    this->LogCameraTemperature();
     this->DisplayCameraTemperature();
 
     // Reset timer
@@ -536,7 +527,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
     {
         try
         {
-            this->m_imageContainer.m_imageFile->write(image);
+            this->m_imageContainer.m_imageFile->write(image, GetCameraTemperature());
             m_recordedCount++;
         }
         catch (const std::runtime_error &e)
@@ -760,6 +751,7 @@ void MainWindow::RecordReferenceImages(QString referenceType)
         int progress = static_cast<int>((static_cast<float>(i + 1) / NR_REFERENCE_IMAGES_TO_RECORD) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
+    this->m_imageContainer.CloseFile();
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     if (referenceType == "white")

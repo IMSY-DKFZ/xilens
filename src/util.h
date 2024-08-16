@@ -8,6 +8,7 @@
 #include <b2nd.h>
 #include <xiApi.h>
 
+#include <QMap>
 #include <QString>
 #include <boost/log/trivial.hpp>
 #include <cstdio>
@@ -79,6 +80,12 @@ class FileImage
     std::vector<std::string> m_timeStamp;
 
     /**
+     * additional metadata to append to the NDArrays. Each vector will be appended to the vl metadata of the array
+     * using the key of the map as identifier.
+     */
+    QMap<QString, std::vector<float>> m_additionalMetadata;
+
+    /**
      * path to file location
      */
     char *filePath;
@@ -107,8 +114,9 @@ class FileImage
     /**
      * Writes the content of an image into a file in UINT16 format
      * @param image Ximea image where data is stored
+     * @param additionalMetadata Additional metadata to be stored in the array
      */
-    void write(XI_IMG image);
+    void write(XI_IMG image, QMap<QString, float> additionalMetadata);
 
     /**
      * Appends metadata to BLOSC ND array. This method should be called before

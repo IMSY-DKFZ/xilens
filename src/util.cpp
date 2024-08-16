@@ -66,14 +66,18 @@ FileImage::~FileImage()
 void FileImage::AppendMetadata()
 {
     // pack and append metadata
-    PackAndAppendMetadata(this->src, "exposure_us", this->m_exposureMetadata);
-    PackAndAppendMetadata(this->src, "acq_nframe", this->m_acqNframeMetadata);
-    PackAndAppendMetadata(this->src, "color_filter_array", this->m_colorFilterArray);
-    PackAndAppendMetadata(this->src, "time_stamp", this->m_timeStamp);
+    PackAndAppendMetadata(this->src, EXPOSURE_KEY, this->m_exposureMetadata);
+    PackAndAppendMetadata(this->src, FRAME_NUMBER_KEY, this->m_acqNframeMetadata);
+    PackAndAppendMetadata(this->src, COLOR_FILTER_ARRAY_FORMAT_KEY, this->m_colorFilterArray);
+    PackAndAppendMetadata(this->src, TIME_STAMP_KEY, this->m_timeStamp);
+    for (const QString &key : m_additionalMetadata.keys())
+    {
+        PackAndAppendMetadata(this->src, key.toUtf8().constData(), this->m_additionalMetadata[key]);
+    }
     LOG_XILENS(info) << "Metadata was written to file";
 }
 
-void FileImage::write(XI_IMG image)
+void FileImage::write(XI_IMG image, QMap<QString, float> additionalMetadata)
 {
     const int64_t buffer_size = image.width * image.height * sizeof(uint16_t);
     int result = b2nd_append(src, image.bp, buffer_size, 0);
@@ -83,6 +87,10 @@ void FileImage::write(XI_IMG image)
     this->m_acqNframeMetadata.emplace_back(image.acq_nframe);
     this->m_colorFilterArray.emplace_back(colorFilterToString(image.color_filter_array));
     this->m_timeStamp.emplace_back(GetTimeStamp().toStdString());
+    for (const QString &key : additionalMetadata.keys())
+    {
+        m_additionalMetadata[key].push_back(additionalMetadata[key]);
+    }
 }
 
 template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T> &metadata)
@@ -165,26 +173,43 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
         msgpack::sbuffer sbuf;
 
         // Assume that the existing and new data should have the same type
-        if (oldoh.get().type == msgpack::type::ARRAY && oldoh.get().via.array.size > 0 &&
-            oldoh.get().via.array.ptr[0].type == msgpack::type::STR)
+        if (oldoh.get().type == msgpack::type::ARRAY && oldoh.get().via.array.size > 0)
         {
-            // It's a vector of strings
-            auto oldData = oldoh.get().as<std::vector<std::string>>();
-            auto appendData = newoh.get().as<std::vector<std::string>>();
-
-            oldData.insert(oldData.end(), appendData.begin(), appendData.end());
-
-            msgpack::pack(sbuf, oldData);
+            switch (oldoh.get().via.array.ptr[0].type)
+            {
+            case msgpack::type::STR: {
+                // It's a vector of strings
+                auto oldData = oldoh.get().as<std::vector<std::string>>();
+                auto appendData = newoh.get().as<std::vector<std::string>>();
+                oldData.insert(oldData.end(), appendData.begin(), appendData.end());
+                msgpack::pack(sbuf, oldData);
+                break;
+            }
+            case msgpack::type::POSITIVE_INTEGER:
+            case msgpack::type::NEGATIVE_INTEGER: {
+                // It's a vector of ints
+                auto oldData = oldoh.get().as<std::vector<int>>();
+                auto appendData = newoh.get().as<std::vector<int>>();
+                oldData.insert(oldData.end(), appendData.begin(), appendData.end());
+                msgpack::pack(sbuf, oldData);
+                break;
+            }
+            case msgpack::type::FLOAT: {
+                // It's a vector of floats
+                auto oldData = oldoh.get().as<std::vector<float>>();
+                auto appendData = newoh.get().as<std::vector<float>>();
+                oldData.insert(oldData.end(), appendData.begin(), appendData.end());
+                msgpack::pack(sbuf, oldData);
+                break;
+            }
+            default: {
+                throw std::runtime_error("Unhandled MsgPack type.");
+            }
+            }
         }
         else
         {
-            // It's a vector of ints
-            auto oldData = oldoh.get().as<std::vector<int>>();
-            auto appendData = newoh.get().as<std::vector<int>>();
-
-            oldData.insert(oldData.end(), appendData.begin(), appendData.end());
-
-            msgpack::pack(sbuf, oldData);
+            throw std::runtime_error("Unexpected metadata type or empty array.");
         }
 
         // Update the metadata with the new data
