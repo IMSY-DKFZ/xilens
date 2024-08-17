@@ -94,9 +94,10 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     blosc2_remove_urlpath(urlpath);
 
     FileImage fileImage(urlpath, xiImage.height, xiImage.width);
+    QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
     for (int i = 0; i < nrImages; i++)
     {
-        fileImage.write(xiImage);
+        fileImage.write(xiImage, additionalMetadata);
     }
     fileImage.AppendMetadata();
 
@@ -129,7 +130,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     }
 
     // check metadata exists
-    std::vector<std::string> keys = {"exposure_us", "acq_nframe", "color_filter_array", "time_stamp"};
+    std::vector<std::string> keys = {"exposure_us", "acq_nframe", "color_filter_array", "time_stamp", "extraMetadata"};
     const size_t NAME_BUFFER_SIZE = src->sc->nvlmetalayers * sizeof(char *);
     char **names = (char **)malloc(NAME_BUFFER_SIZE);
     int nkeys = blosc2_vlmeta_get_names(src->sc, names);
@@ -141,6 +142,72 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
             if (key == std::string(names[i]))
             {
                 found = true;
+                uint8_t *content = nullptr;
+                int32_t content_len = 0;
+                int result = blosc2_vlmeta_get(src->sc, names[i], &content, &content_len);
+
+                if (result < 0 || content == nullptr)
+                {
+                    FAIL() << "Failed to retrieve metadata content for key " << key << std::endl;
+                }
+                else
+                {
+                    msgpack::unpacker pac;
+                    pac.reserve_buffer(content_len);
+                    memcpy(pac.buffer(), content, content_len);
+                    pac.buffer_consumed(content_len);
+
+                    msgpack::object_handle oh;
+                    while (pac.next(oh))
+                    {
+                        const msgpack::object &obj = oh.get();
+
+                        std::cout << "Content for key " << key << ": ";
+
+                        if (obj.type == msgpack::type::ARRAY && obj.via.array.size > 0)
+                        {
+                            for (uint32_t j = 0; j < obj.via.array.size; ++j)
+                            {
+                                const msgpack::object &entry = obj.via.array.ptr[j];
+
+                                switch (entry.type)
+                                {
+                                case msgpack::type::FLOAT32:
+                                case msgpack::type::FLOAT64: {
+                                    float value = entry.as<float>();
+                                    std::cout << value << " ";
+                                    if (value != 1.0)
+                                    {
+                                        FAIL() << "Invalid floating stored metadata: " << value;
+                                    }
+                                    break;
+                                }
+                                case msgpack::type::POSITIVE_INTEGER:
+                                case msgpack::type::NEGATIVE_INTEGER: {
+                                    int value = entry.as<int>();
+                                    std::cout << value << " ";
+                                    break;
+                                }
+                                case msgpack::type::STR: {
+                                    std::string value = entry.as<std::string>();
+                                    std::cout << "\"" << value << "\" ";
+                                    break;
+                                }
+                                default: {
+                                    std::cerr << "Unhandled MsgPack type for key " << key << std::endl;
+                                    break;
+                                }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            std::cerr << "Unexpected metadata type or empty array for key " << key << std::endl;
+                        }
+
+                        std::cout << std::endl;
+                    }
+                }
                 break;
             }
         }
