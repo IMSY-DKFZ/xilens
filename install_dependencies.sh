@@ -1,8 +1,16 @@
 #!/bin/bash
 set -e
 
-# install apt dependencies
-xargs -a requirements.txt apt install --no-install-recommends -y
+# Default dependencies file
+DEPENDENCIES_FILE="dev-requirements.txt"
+
+# Check if the --user argument is passed
+if [[ $1 == "--user" ]]; then
+    DEPENDENCIES_FILE="user-requirements.txt"
+fi
+
+# Install apt dependencies
+xargs -a "$DEPENDENCIES_FILE" apt install --no-install-recommends -y
 
 # install XiAPI
 wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz

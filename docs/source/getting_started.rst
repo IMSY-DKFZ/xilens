@@ -22,13 +22,15 @@ build as in the following commands.
 .. code:: bash
 
    chmod +x install_dependencies.sh
-   sudo ./install_dependencies.sh
+   sudo ./install_dependencies.sh --user
 
 This takes care of installing dependencies including the xiAPI package provided by XIMEA and BLOSC2.
 
 .. warning::
 
     The previous script will install :code:`BLOSC2` and :code:`XiAPI` on your system!
+    If you are building the application for development purposes, you should remove the flag `--user` to install the
+    development dependencies instead.
 
 Finally, from the root directory of :code:`XiLens` do the following.
 

@@ -211,7 +211,7 @@ gtest_discover_tests(XILENS_TESTS)
 ### DEB package  ####
 #####################
 include(InstallRequiredSystemLibraries)
-file(STRINGS requirements.txt deps)
+file(STRINGS user-requirements.txt deps)
 string(REPLACE ";" ", " deps "${deps}")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${deps}")
 set(CPACK_GENERATOR "DEB")

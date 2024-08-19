@@ -40,10 +40,47 @@ jobs:
           cd build
           xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
           sudo dpkg -i xilens*.deb
+      - name: Upload DEB package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xilens_deb
+          path: build/xilens*.deb
       - name: Install application
         run: |
           cd build
           sudo make install
+  install_deb:
+    needs: build
+    strategy:
+      matrix:
+        os: [ ubuntu-22.04, ubuntu-24.04 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Download DEB package
+        uses: actions/download-artifact@v4
+        with:
+          name: xilens_deb
+      - name: Install DEB package
+        run: |
+          sudo apt install ./xiles*.deb
+      - name: Install non-apt dependencies
+        run: |
+          wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
+          tar xzf XIMEA_Linux_SP.tgz
+          cd package
+          sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
+          sudo ./install
+          cd ..
+          git clone https://github.com/Blosc/c-blosc2.git
+          cd c-blosc2
+          git checkout v2.15.0
+          mkdir build
+          cd build
+          cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+          sudo make install -j
+      - name: Check app installation
+        run: |
+          xilens --version
   documentation:
     runs-on: ubuntu-22.04
     steps:
