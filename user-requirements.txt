@@ -1,6 +1,5 @@
 libmsgpackc2
 libqt6core6
 libqt6svg6
-libopencv-core4.5d
-libboost-system1.74.0
-libboost-thread1.74.0
+libopencv-core-dev
+libboost-dev
