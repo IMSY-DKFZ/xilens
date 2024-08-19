@@ -102,7 +102,15 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
     // pack metadata and add it to array
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, metadata);
-    AppendBLOSCVLMetadata(src, key, sbuf);
+    try
+    {
+        AppendBLOSCVLMetadata(src, key, sbuf);
+    }
+    catch (const std::runtime_error &err)
+    {
+        LOG_XILENS(error) << "Error while trying to add metadata for key: " << key;
+        throw err;
+    }
 }
 
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
@@ -198,6 +206,7 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
                 msgpack::pack(sbuf, oldData);
                 break;
             }
+            case msgpack::type::FLOAT32:
             case msgpack::type::FLOAT: {
                 // It's a vector of floats
                 auto oldData = oldoh.get().as<std::vector<float>>();
@@ -207,6 +216,7 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
                 break;
             }
             default: {
+                LOG_XILENS(error) << "Cannot handle MsgPack data type: " << oldoh.get().via.array.ptr[0].type;
                 throw std::runtime_error("Unhandled MsgPack type.");
             }
             }
