@@ -544,6 +544,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
         m_skippedCounter++;
     }
     lastImageID = image.acq_nframe;
+    emit NewImageRecorded();
 }
 
 bool MainWindow::ImageShouldBeRecorded(int nSkipFrames, long ImageID)
@@ -559,7 +560,7 @@ void MainWindow::DisplayRecordCount()
 
 void MainWindow::updateTimer()
 {
-    m_elapsedTime = static_cast<float>(m_elapsedTimer.elapsed()) / 1000.0;
+    m_elapsedTime = static_cast<double>(m_elapsedTimer.elapsed()) / 1000.0;
     int totalSeconds = static_cast<int>(m_elapsedTime);
     int hours = totalSeconds / 3600;
     int minutes = (totalSeconds % 3600) / 60;
@@ -600,9 +601,27 @@ void MainWindow::StartRecording()
     {
         m_threadGroup.create_thread([&] { return m_IOService.run(); });
     }
-    QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
-    QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
-    QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
+    bool status =
+        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
+    if (!status)
+    {
+        LOG_XILENS(error) << "Error while connecting record image to new image signal";
+    }
+    status = QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
+    if (!status)
+    {
+        LOG_XILENS(error) << "Error while connecting count image to new image signal";
+    }
+    status = QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
+    if (!status)
+    {
+        LOG_XILENS(error) << "Error while connecting update timer to new image signal";
+    }
+    status = QObject::connect(this, &MainWindow::NewImageRecorded, this, &MainWindow::UpdateFPSLCDDisplay);
+    if (!status)
+    {
+        LOG_XILENS(error) << "Error while connecting update FPS to new image signal";
+    }
 }
 
 void MainWindow::StopRecording()
@@ -610,6 +629,7 @@ void MainWindow::StopRecording()
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
+    QObject::disconnect(this, &MainWindow::NewImageRecorded, this, &MainWindow::UpdateFPSLCDDisplay);
     this->stopTimer();
     this->m_IOWork.reset();
     this->m_IOWork = nullptr;
@@ -969,12 +989,25 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
     double totalPixels = image.total(); // Total number of pixels in the matrix
     double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
     QString displayValue = QString::number(percentageAboveThreshold, 'f', 1);
-    QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
+    QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Qt::QueuedConnection,
+                              Q_ARG(QString, displayValue));
 
     int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
     double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
     displayValue = QString::number(percentageBelowThreshold, 'f', 1);
-    QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Q_ARG(QString, displayValue));
+    QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Qt::QueuedConnection,
+                              Q_ARG(QString, displayValue));
+}
+
+void MainWindow::UpdateFPSLCDDisplay()
+{
+    if (this->m_elapsedTime == 0)
+    {
+        return;
+    }
+    double fps = static_cast<double>(this->m_recordedCount.load()) / this->m_elapsedTime;
+    QString displayValue = QString::number(fps, 'f', 1);
+    QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, displayValue));
 }
 
 void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
