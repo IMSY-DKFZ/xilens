@@ -132,6 +132,8 @@ class MainWindow : public QMainWindow
      */
     void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
+    void UpdateFPSLCDDisplay();
+
     /**
      * Updates the RGB image displayed in the GUI
      *
@@ -333,6 +335,12 @@ class MainWindow : public QMainWindow
      * the extras tab in the UI.
      */
     void on_subFolderExtrasLineEdit_returnPressed();
+
+  signals:
+    /**
+     * Signal indicating that an image was recorded to file.
+     */
+    void NewImageRecorded();
 
   private:
     Ui::MainWindow *ui;
@@ -546,7 +554,7 @@ class MainWindow : public QMainWindow
     /**
      * Time elapsed since recordings started.
      */
-    float m_elapsedTime;
+    double m_elapsedTime;
 
     /**
      * Time elapsed since recordings started as text field.

@@ -162,8 +162,11 @@
                           <verstretch>0</verstretch>
                          </sizepolicy>
                         </property>
+                        <property name="toolTip">
+                         <string>File name</string>
+                        </property>
                         <property name="text">
-                         <string>File Prefix     </string>
+                         <string>File Name</string>
                         </property>
                        </widget>
                       </item>
@@ -176,7 +179,7 @@
                          <string/>
                         </property>
                         <property name="placeholderText">
-                         <string>File prefix: before_clamping...</string>
+                         <string>file1, file2, ...</string>
                         </property>
                        </widget>
                       </item>
@@ -192,21 +195,24 @@
                           <verstretch>0</verstretch>
                          </sizepolicy>
                         </property>
+                        <property name="toolTip">
+                         <string>Folder where files will be stored (inside save folder)</string>
+                        </property>
                         <property name="text">
-                         <string>Sub Folder    </string>
+                         <string>File Folder    </string>
                         </property>
                        </widget>
                       </item>
                       <item>
                        <widget class="QLineEdit" name="subFolderLineEdit">
                         <property name="toolTip">
-                         <string>Folder where data is stored (inside of Base Folder)</string>
+                         <string>Folder where files will be stored (inside save folder)</string>
                         </property>
                         <property name="text">
                          <string/>
                         </property>
                         <property name="placeholderText">
-                         <string>Sub-folder: before_clamping...</string>
+                         <string>fodler1, fodler2, ...</string>
                         </property>
                        </widget>
                       </item>
@@ -226,7 +232,7 @@
                          <string>Select folder where all data is organized</string>
                         </property>
                         <property name="text">
-                         <string>Base Folder</string>
+                         <string>Save folder</string>
                         </property>
                        </widget>
                       </item>
@@ -239,7 +245,7 @@
                          <bool>true</bool>
                         </property>
                         <property name="placeholderText">
-                         <string>./ Folder to save recordings</string>
+                         <string>Base folder where all recordings are saved</string>
                         </property>
                        </widget>
                       </item>
@@ -286,6 +292,9 @@
                       <property name="enabled">
                        <bool>false</bool>
                       </property>
+                      <property name="toolTip">
+                       <string>Record dark reference images</string>
+                      </property>
                       <property name="text">
                        <string>Dark correction</string>
                       </property>
@@ -295,6 +304,9 @@
                      <widget class="QPushButton" name="whiteBalanceButton">
                       <property name="enabled">
                        <bool>false</bool>
+                      </property>
+                      <property name="toolTip">
+                       <string>Record white reference images</string>
                       </property>
                       <property name="text">
                        <string>White balance</string>
@@ -319,14 +331,7 @@
                          </sizepolicy>
                         </property>
                         <property name="text">
-                         <string>Exposure:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="msLabel">
-                        <property name="text">
-                         <string>ms =</string>
+                         <string>Exposure [ms]:</string>
                         </property>
                        </widget>
                       </item>
@@ -364,7 +369,7 @@
                       <item>
                        <widget class="QLabel" name="skipFramesLabel">
                         <property name="text">
-                         <string>skip frames</string>
+                         <string>Skip frames:</string>
                         </property>
                        </widget>
                       </item>
@@ -441,6 +446,9 @@
                           <width>0</width>
                           <height>60</height>
                          </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Time elapsed while recording</string>
                         </property>
                         <property name="frameShadow">
                          <enum>QFrame::Raised</enum>
@@ -568,6 +576,9 @@
                 </item>
                 <item>
                  <widget class="QSlider" name="exposureSlider">
+                  <property name="toolTip">
+                   <string>Select exposure time</string>
+                  </property>
                   <property name="minimum">
                    <number>5</number>
                   </property>
@@ -625,6 +636,9 @@
                       <height>16777215</height>
                      </size>
                     </property>
+                    <property name="toolTip">
+                     <string>Logged messages</string>
+                    </property>
                     <property name="sizeAdjustPolicy">
                      <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
                     </property>
@@ -642,6 +656,9 @@
                   </item>
                   <item>
                    <widget class="QLineEdit" name="logTextLineEdit">
+                    <property name="toolTip">
+                     <string/>
+                    </property>
                     <property name="inputMask">
                      <string/>
                     </property>
@@ -834,6 +851,9 @@
               <height>272</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Raw image</string>
+            </property>
             <property name="verticalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
             </property>
@@ -858,6 +878,9 @@
               <width>512</width>
               <height>272</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>RGB image</string>
             </property>
             <property name="verticalScrollBarPolicy">
              <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -892,6 +915,9 @@
        <layout class="QHBoxLayout" name="statusHorizontalLayout">
         <item>
          <widget class="QLCDNumber" name="temperatureLCDNumber">
+          <property name="toolTip">
+           <string>Camera temperature</string>
+          </property>
           <property name="digitCount">
            <number>4</number>
           </property>
@@ -912,10 +938,16 @@
           <property name="text">
            <string>overexp:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QLCDNumber" name="overexposurePercentageLCDNumber">
+          <property name="toolTip">
+           <string>Percentage of pixels overexposed</string>
+          </property>
           <property name="digitCount">
            <number>5</number>
           </property>
@@ -936,10 +968,16 @@
           <property name="text">
            <string>underexp:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QLCDNumber" name="underexposurePercentageLCDNumber">
+          <property name="toolTip">
+           <string>Percentage of pixels underexposed</string>
+          </property>
           <property name="digitCount">
            <number>5</number>
           </property>
@@ -960,15 +998,50 @@
           <property name="text">
            <string>Nr. images:</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QLCDNumber" name="recordedImagesLCDNumber">
+          <property name="toolTip">
+           <string>Number of recorded images</string>
+          </property>
           <property name="frameShadow">
            <enum>QFrame::Raised</enum>
           </property>
           <property name="digitCount">
            <number>7</number>
+          </property>
+          <property name="segmentStyle">
+           <enum>QLCDNumber::Flat</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="fpsLabel">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>FPS:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="fpsLCDNumber">
+          <property name="toolTip">
+           <string>Frames per second recorded</string>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="digitCount">
+           <number>4</number>
           </property>
           <property name="segmentStyle">
            <enum>QLCDNumber::Flat</enum>
