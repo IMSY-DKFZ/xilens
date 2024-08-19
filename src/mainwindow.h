@@ -132,6 +132,9 @@ class MainWindow : public QMainWindow
      */
     void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
+    /**
+     * Updates the frames per second that are stored to file on the UI.
+     */
     void UpdateFPSLCDDisplay();
 
     /**
