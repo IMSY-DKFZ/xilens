@@ -62,7 +62,7 @@ jobs:
           name: xilens_deb-${{ matrix.os }}
       - name: Install DEB package
         run: |
-          sudo apt install ./xiles*.deb
+          sudo apt install ./xilens*.deb
       - name: Install non-apt dependencies
         run: |
           wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
