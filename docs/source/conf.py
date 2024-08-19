@@ -28,7 +28,7 @@ todo_include_todos = False
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_theme = "furo"
-html_logo = "../../resources/icon.png"
+html_logo = "../../resources/logo.png"
 html_favicon = "../../resources/icon.png"
 html_theme_options = {
     "footer_icons": [
