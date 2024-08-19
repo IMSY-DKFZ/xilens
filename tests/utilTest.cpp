@@ -236,3 +236,31 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     free(names);
     blosc2_remove_urlpath(urlpath);
 }
+
+TEST_F(FileImageWriteTest, AppendMetadataTwice)
+{
+    uint32_t nrImages = 10;
+    XI_IMG xiImage;
+    xiImage.width = 64;
+    xiImage.height = 64;
+    xiImage.exposure_time_us = 40000;
+    xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
+    std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
+    const char *urlpath = strdup("test_image.b2nd");
+    blosc2_remove_urlpath(urlpath);
+
+    FileImage fileImage(urlpath, xiImage.height, xiImage.width);
+    QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
+    for (int i = 0; i < nrImages; i++)
+    {
+        fileImage.write(xiImage, additionalMetadata);
+    }
+    fileImage.AppendMetadata();
+
+    // append more images to the file
+    for (int i = 0; i < nrImages; i++)
+    {
+        fileImage.write(xiImage, additionalMetadata);
+    }
+    fileImage.AppendMetadata();
+}
