@@ -22,8 +22,9 @@ Steps to reproduce the behavior:
 
 ### Environment
 
-* OS: [e.g. Linux / Windows / macOS]
-* Python version: [e.g. 3.10]
+* OS: e.g. Linux / Windows / macOS
+* CMake version: e.g. 3.22.1
+* Compiler: e.g. gcc / clang
 
 ### Screenshots
 

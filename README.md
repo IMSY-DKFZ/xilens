@@ -9,7 +9,7 @@
 ![Static Badge](https://img.shields.io/badge/System%20-%20Linux%20-%20green?style=flat&logo=Ubuntu)
 
 <p align="center">
-    <img src="resources/icon.png" alt="Logo" width="200"/>
+    <img src="resources/logo.png" alt="Logo" width="200"/>
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 </p>
 
-# XiLens
+# XiLens /ksɪlɛns/
 The `XiLens` application allows you to connect to all `XIMEA` cameras and record images to highly optimized n-dimensional
 arrays that can be post-processed at high speed.
 

@@ -1,0 +1,8 @@
+libmsgpackc2
+libqt6core6
+libqt6widgets6
+libqt6svg6
+libopencv-core-dev
+libopencv-imgproc-dev
+libboost-dev
+libboost-log-dev
