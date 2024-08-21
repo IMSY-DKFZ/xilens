@@ -190,6 +190,14 @@ class DisplayerFunctional : public Displayer
      * @param bgr_image The output BGR image.
      */
     void GetBGRImage(cv::Mat &image, cv::Mat &rgb_image);
+
+    /**
+     * Initializes a channel image based on the raw image.
+     *
+     * @param image The raw image
+     * @return Image filled with 0's with a size capable of holding a band image after demosaic operation is applied
+     */
+    cv::Mat InitializeBandImage(cv::Mat &image);
 };
 
 /**

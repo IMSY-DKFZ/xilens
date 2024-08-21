@@ -100,6 +100,10 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
 
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr)
 {
+    if (band_nr < 1 || band_nr > (this->m_mosaicShape[0] * this->m_mosaicShape[1]))
+    {
+        throw std::out_of_range("Band number is out of the expected range.");
+    }
     // compute location of first value
     int init_col = (band_nr - 1) % this->m_mosaicShape[0];
     int init_row = (band_nr - 1) / this->m_mosaicShape[1];
@@ -155,8 +159,7 @@ void DisplayerFunctional::Display(XI_IMG &image)
 
             if (m_cameraType == CAMERA_TYPE_SPECTRAL)
             {
-                rawImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
-                                          currentImage.cols / this->m_mosaicShape[1], CV_16UC1);
+                rawImage = InitializeBandImage(currentImage);
                 this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
                 bgrImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
                                           currentImage.cols / this->m_mosaicShape[1], CV_8UC3);
@@ -221,8 +224,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     std::vector<cv::Mat> channels;
     for (int i : m_bgr_channels)
     {
-        cv::Mat band_image =
-            cv::Mat::zeros(image.rows / this->m_mosaicShape[0], image.cols / this->m_mosaicShape[1], CV_16UC1);
+        cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
         channels.push_back(band_image);
     }
@@ -235,6 +237,14 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     {
         LOG_XILENS(error) << "OpenCV error: " << e.what();
     }
+}
+
+cv::Mat DisplayerFunctional::InitializeBandImage(cv::Mat &image)
+{
+    int band_rows = (image.rows + m_mosaicShape[0] - 1) / m_mosaicShape[0]; // Using ceiling division
+    int band_cols = (image.cols + m_mosaicShape[1] - 1) / m_mosaicShape[1]; // Using ceiling division
+    cv::Mat band_image = cv::Mat::zeros(band_rows, band_cols, CV_16UC1);
+    return band_image;
 }
 
 void DisplayerFunctional::SetCameraProperties(QString cameraModel)
