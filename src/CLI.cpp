@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     // instantiate application
     QApplication a(argc, argv);
-    QFile themeFile(":/resources/dark_amber.qss");
+    QFile themeFile(":/resources/dark_amber.css");
     if (themeFile.open(QFile::ReadOnly | QFile::Text))
     {
         QTextStream stream(&themeFile);

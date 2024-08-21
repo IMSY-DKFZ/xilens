@@ -164,6 +164,13 @@ class MainWindow : public QMainWindow
     void UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
                      std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene);
 
+    /**
+     * Identifies if the saturation tool button is checked or not.
+     *
+     * @return true if the saturation button is checked, false otherwise
+     */
+    bool IsSaturationButtonChecked();
+
   protected:
     /**
      * @brief Event handler for the close event of the main window.

@@ -1087,29 +1087,21 @@ QToolBar::separator:vertical {
 QToolButton {
   background: #31363b;
   border: 0px;
-  height: 36px;
-  margin: 3px;
-  padding: 3px;
-  border-right: 12px solid #31363b;
-  border-left: 12px solid #31363b;
+  margin: 1px;
+  padding: 1px;
+  border-radius: 4px;
 }
 
 QToolButton:hover {
   background: #4f5b62;
-  border-right: 12px solid #4f5b62;
-  border-left: 12px solid #4f5b62;
 }
 
 QToolButton:pressed {
   background: #232629;
-  border-right: 12px solid #232629;
-  border-left: 12px solid #232629;
 }
 
 QToolButton:checked {
   background: #4f5b62;
-  border-left: 12px solid #4f5b62;
-  border-right: 12px solid #ffd740;
 }
 
 /*  ------------------------------------------------------------------------  */
