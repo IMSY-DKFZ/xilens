@@ -22,6 +22,6 @@
 <!-- Mark with an `x` all the checkboxes that apply (like `[x]`) -->
 
 - [ ] I've read the `CODE_OF_CONDUCT.md` document.
-- [ ] I've updated the code style using `make codestyle`.
+- [ ] I've updated the code style using the `pre-commit hooks`.
 - [ ] I've written tests for all new methods and classes that I created.
 - [ ] I've written the docstring for all the methods and classes that I used.
