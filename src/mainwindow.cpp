@@ -136,11 +136,18 @@ void MainWindow::EnableUi(bool enable)
 
 void MainWindow::SetUpCustomUiComponents()
 {
-    QIcon buttonIcon;
-    buttonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
-    buttonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
-    buttonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
-    this->ui->reloadCamerasPushButton->setIcon(buttonIcon);
+    // reload camera list button
+    QIcon reloadButtonIcon;
+    reloadButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
+    reloadButtonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
+    reloadButtonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
+    this->ui->reloadCamerasPushButton->setIcon(reloadButtonIcon);
+    // contrast tool button
+    QIcon saturationButtonIcon;
+    saturationButtonIcon.addFile(":/icon/theme/primary/saturation.svg", QSize(), QIcon::Normal);
+    saturationButtonIcon.addFile(":/icon/theme/disabled/saturation.svg", QSize(), QIcon::Disabled);
+    saturationButtonIcon.addFile(":/icon/theme/active/saturation.svg", QSize(), QIcon::Active);
+    this->ui->saturationToolButton->setIcon(saturationButtonIcon);
 }
 
 void MainWindow::Display()
@@ -1043,4 +1050,9 @@ void MainWindow::SetGraphicsViewScene()
 {
     this->ui->rgbImageGraphicsView->setScene(this->rgbScene.get());
     this->ui->rawImageGraphicsView->setScene(this->rawScene.get());
+}
+
+bool MainWindow::IsSaturationButtonChecked()
+{
+    return this->ui->saturationToolButton->isChecked();
 }

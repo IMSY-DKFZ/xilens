@@ -9,13 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- pre-commit hooks
+- pre-commit hooks.
 - Documentation build using sphinx and breath.
-- editorconfig
-- CMAKE script to find XIMEA API library automatically
+- editorconfig.
+- CMAKE script to find XIMEA API library automatically.
 - install and uninstall targets
-- Creates simple examples in examples/
-- --version flag to print version and build information
+- Creates simple examples in `examples`.
+- --version flag to print version and build information.
+- Tool button to display and hide saturation overlay on graphics.
+- Logs camera temperature to images VLMetadata.
+- Button to check if new cameras have been connected to the system.
 
 ### Changed
 
@@ -28,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--
+- Recording on existing file.
+- Potential overflow on multiplication operations.
 
 ## [0.2.0]
 

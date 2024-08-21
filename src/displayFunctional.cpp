@@ -78,21 +78,24 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
     }
     cvtColor(raw_image, raw_image, cv::COLOR_GRAY2RGB);
 
-    // Parallel execution on each pixel using C++11 lambda.
-    raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
-        if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
-        {
-            p.x = SATURATION_COLOR[0];
-            p.y = SATURATION_COLOR[1];
-            p.z = SATURATION_COLOR[2];
-        }
-        else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
-        {
-            p.x = DARK_COLOR[0];
-            p.y = DARK_COLOR[1];
-            p.z = DARK_COLOR[2];
-        }
-    });
+    if (m_mainWindow->IsSaturationButtonChecked())
+    {
+        // Parallel execution on each pixel using C++11 lambda.
+        raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
+            if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
+            {
+                p.x = SATURATION_COLOR[0];
+                p.y = SATURATION_COLOR[1];
+                p.z = SATURATION_COLOR[2];
+            }
+            else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
+            {
+                p.x = DARK_COLOR[0];
+                p.y = DARK_COLOR[1];
+                p.z = DARK_COLOR[2];
+            }
+        });
+    }
 }
 
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr)
