@@ -36,7 +36,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
   public:
-    explicit MainWindow(QWidget *parent = 0, std::shared_ptr<XiAPIWrapper> xiAPIWrapper = nullptr);
+    explicit MainWindow(QWidget *parent = 0, const std::shared_ptr<XiAPIWrapper> &xiAPIWrapper = nullptr);
 
     ~MainWindow();
 
@@ -78,19 +78,19 @@ class MainWindow : public QMainWindow
     /**
      * Logs message to log file and returns the timestamp used during logging
      */
-    QString LogMessage(QString message, QString logFile, bool logTime);
+    QString LogMessage(const QString &message, const QString &logFile, bool logTime);
 
     /**
      * Queries the path where the logfile is stored
      *
      * @return
      */
-    QString GetLogFilePath(QString logFile);
+    QString GetLogFilePath(const QString &logFile);
 
     /**
      * Gets camera temperature
      */
-    QMap<QString, float> GetCameraTemperature();
+    QMap<QString, float> GetCameraTemperature() const;
 
     /**
      * Displays camera temperature on an LCD display
@@ -161,8 +161,8 @@ class MainWindow : public QMainWindow
      * @param pixmapItem pixmap item where the image is to be placed
      * @param scene the scene that will contain the pixmap
      */
-    void UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
-                     std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene);
+    static void UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
+                            std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene);
 
     /**
      * Identifies if the saturation tool button is checked or not.
@@ -254,7 +254,7 @@ class MainWindow : public QMainWindow
     /**
      * Records the white reference to a folder called "white"
      */
-    void RecordReferenceImages(QString referenceType);
+    void RecordReferenceImages(const QString &referenceType);
 
     /**
      * Stops the thread responsible for recording the reference images (white and
@@ -317,12 +317,13 @@ class MainWindow : public QMainWindow
      * @param newString new value received from element
      * @param originalString original value of hte element before changes occurred
      */
-    void UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString, const QString &originalString);
+    static void UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &newString,
+                                           const QString &originalString);
 
     /**
      * Restores the appearance of a Qt LineEdit component.
      */
-    void RestoreLineEditStyle(QLineEdit *lineEdit);
+    static void RestoreLineEditStyle(QLineEdit *lineEdit);
 
     /**
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
@@ -377,12 +378,12 @@ class MainWindow : public QMainWindow
     /**
      * Sets the base folder path where the data is to be stored.
      */
-    bool SetBaseFolder(QString baseFolderPath);
+    bool SetBaseFolder(const QString &baseFolderPath);
 
     /**
      * Creates a folder if it does not exist
      */
-    void CreateFolderIfNecessary(QString folder);
+    static void CreateFolderIfNecessary(const QString &folder);
 
     /**
      * Records image to specified sub folder and using specified file prefix to
@@ -420,7 +421,7 @@ class MainWindow : public QMainWindow
      * @param ImageID frame number
      * @return true if image should be recorded to file or false if not
      */
-    bool ImageShouldBeRecorded(int nSkipFrames, long ImageID);
+    static bool ImageShouldBeRecorded(int nSkipFrames, long ImageID);
 
     /**
      * Updates image counter
@@ -511,7 +512,7 @@ class MainWindow : public QMainWindow
      * @param timestamp
      * @return
      */
-    QString FormatTimeStamp(QString timestamp);
+    static QString FormatTimeStamp(const QString &timestamp);
 
     /**
      * stores the folder name where images are to be stores. This is a folder

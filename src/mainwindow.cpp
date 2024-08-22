@@ -35,7 +35,7 @@
 #include "util.h"
 #include "xiAPIWrapper.h"
 
-MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapper)
+MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiAPIWrapper)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_IOService(), m_temperatureIOService(),
       m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)), m_cameraInterface(),
       m_recordedCount(0), m_testMode(g_commandLineArguments.test_mode), m_imageCounter(0), m_skippedCounter(0),
@@ -87,7 +87,12 @@ void MainWindow::StartImageAcquisition(QString cameraIdentifier)
         this->StartTemperatureThread();
 
         // when a new image arrives, display it
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
+        auto status =
+            QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display);
+        if (!status)
+        {
+            LOG_XILENS(error) << "Error while connecting NewImage signal to Display";
+        }
     }
     catch (std::runtime_error &error)
     {
@@ -107,6 +112,8 @@ void MainWindow::StopImageAcquisition()
     LOG_XILENS(info) << "Stopped Image Acquisition";
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
 {
     for (int i = 0; i < layout->count(); ++i)
@@ -123,6 +130,7 @@ void MainWindow::EnableWidgetsInLayout(QLayout *layout, bool enable)
         }
     }
 }
+#pragma clang diagnostic pop
 
 void MainWindow::EnableUi(bool enable)
 {
@@ -185,7 +193,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::RecordSnapshots()
 {
-    static QString recordButtonOriginalColour = ui->recordButton->styleSheet();
     int nr_images = ui->nSnapshotsSpinBox->value();
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -213,7 +220,7 @@ void MainWindow::RecordSnapshots()
         wait(waitTime);
         image = m_imageContainer.GetCurrentImage();
         snapshotsFile.write(image, GetCameraTemperature());
-        int progress = static_cast<int>((static_cast<float>(i + 1) / nr_images) * 100);
+        int progress = static_cast<int>((static_cast<float>(i + 1) / static_cast<float>(nr_images)) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
     snapshotsFile.AppendMetadata();
@@ -229,7 +236,7 @@ void MainWindow::on_snapshotButton_clicked()
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
-QMap<QString, float> MainWindow::GetCameraTemperature()
+QMap<QString, float> MainWindow::GetCameraTemperature() const
 {
     m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
     auto cameraTemperature = m_cameraInterface.m_camera->family->get()->m_cameraTemperature;
@@ -248,7 +255,7 @@ void MainWindow::ScheduleTemperatureThread()
     m_temperatureThreadTimer = std::make_shared<boost::asio::steady_timer>(m_temperatureIOService);
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
     m_temperatureThreadTimer->async_wait(
-        boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
+        [this](const boost::system::error_code &error) { this->HandleTemperatureTimer(error); });
 }
 
 void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
@@ -264,7 +271,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
     // Reset timer
     m_temperatureThreadTimer->expires_after(std::chrono::seconds(TEMP_LOG_INTERVAL));
     m_temperatureThreadTimer->async_wait(
-        boost::bind(&MainWindow::HandleTemperatureTimer, this, boost::asio::placeholders::error));
+        [this](const boost::system::error_code &error) { this->HandleTemperatureTimer(error); });
 }
 
 void MainWindow::StartTemperatureThread()
@@ -443,12 +450,12 @@ void MainWindow::WriteLogHeader()
     this->LogMessage(version, LOG_FILE_NAME, true);
 }
 
-QString MainWindow::GetLogFilePath(QString logFile)
+QString MainWindow::GetLogFilePath(const QString &logFile)
 {
     return QDir::cleanPath(ui->baseFolderLineEdit->text() + QDir::separator() + logFile);
 }
 
-QString MainWindow::LogMessage(QString message, QString logFile, bool logTime)
+QString MainWindow::LogMessage(const QString &message, const QString &logFile, bool logTime)
 {
     auto timestamp = GetTimeStamp();
     QFile file(this->GetLogFilePath(logFile));
@@ -490,7 +497,7 @@ unsigned MainWindow::GetBGRNorm() const
     return this->ui->rgbNormSlider->value();
 }
 
-bool MainWindow::SetBaseFolder(QString baseFolderPath)
+bool MainWindow::SetBaseFolder(const QString &baseFolderPath)
 {
     if (QDir(baseFolderPath).exists())
     {
@@ -534,7 +541,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
     boost::lock_guard<boost::mutex> guard(this->mtx_);
     static long lastImageID = image.acq_nframe;
     int nSkipFrames = ui->skipFramesSpinBox->value();
-    if (this->ImageShouldBeRecorded(nSkipFrames, image.acq_nframe) || ignoreSkipping)
+    if (MainWindow::ImageShouldBeRecorded(nSkipFrames, image.acq_nframe) || ignoreSkipping)
     {
         try
         {
@@ -670,7 +677,7 @@ QString MainWindow::GetWritingFolder()
     return QDir::cleanPath(writeFolder);
 }
 
-void MainWindow::CreateFolderIfNecessary(QString folder)
+void MainWindow::CreateFolderIfNecessary(const QString &folder)
 {
     QDir folderDir(folder);
 
@@ -691,7 +698,7 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, cons
     {
         writingFolder += QDir::separator();
     }
-    this->CreateFolderIfNecessary(writingFolder);
+    MainWindow::CreateFolderIfNecessary(writingFolder);
 
     QString fileName;
     if (!m_testMode)
@@ -747,7 +754,7 @@ void MainWindow::on_darkCorrectionButton_clicked()
     m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "dark");
 }
 
-void MainWindow::RecordReferenceImages(QString referenceType)
+void MainWindow::RecordReferenceImages(const QString &referenceType)
 {
     QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     if (referenceType == "white")
@@ -863,7 +870,7 @@ void MainWindow::on_logTextLineEdit_textEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
-QString MainWindow::FormatTimeStamp(QString timestamp)
+QString MainWindow::FormatTimeStamp(const QString &timestamp)
 {
     QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
     QString formattedDate = dateTime.toString("hh:mm:ss AP");
@@ -1007,7 +1014,7 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
     }
 
     int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
-    double totalPixels = image.total(); // Total number of pixels in the matrix
+    auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
     double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
     QString displayValue = QString::number(percentageAboveThreshold, 'f', 1);
     QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Qt::QueuedConnection,
@@ -1038,7 +1045,7 @@ void MainWindow::UpdateFPSLCDDisplay()
 void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
                              std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene)
 {
-    QImage qtImage((uchar *)image.data, image.cols, image.rows, image.step, format);
+    QImage qtImage((uchar *)image.data, image.cols, image.rows, static_cast<long>(image.step), format);
     qtImage = qtImage.scaled(view->width(), view->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     if (pixmapItem == nullptr)
     {
