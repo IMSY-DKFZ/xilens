@@ -19,19 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tool button to display and hide saturation overlay on graphics.
 - Logs camera temperature to images VLMetadata.
 - Button to check if new cameras have been connected to the system.
+- LCD displayer to show frames per second that are stored to file while recording.
 
 ### Changed
 
 - Bumped BLOSC2 version.
-- Bumped version of CLI11 to 2.4.2.
+- Bumped the version of CLI11 to 2.4.2.
+- Disallows automatic connections between slots and signals and creates connections explicitly.
+- Logger prints file path instead of just file name.
 
 ### Removed
 
--
+- Unused `RunNetwork` method.
 
 ### Fixed
 
-- Recording on existing file.
+- Recording on an existing file.
 - Potential overflow on multiplication operations.
 
 ## [0.2.0]
