@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent, std::shared_ptr<XiAPIWrapper> xiAPIWrapp
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
     m_imageContainer.Initialize(this->m_xiAPIWrapper);
+    m_updateFPSDisplayTimer = new QTimer(this);
     ui->setupUi(this);
     this->SetUpCustomUiComponents();
 
@@ -545,13 +546,24 @@ void MainWindow::RecordImage(bool ignoreSkipping)
             LOG_XILENS(error) << "Error while saving image: %s\n" << e.what();
         }
         this->DisplayRecordCount();
+        // register image recorded time and emit signal
+        RegisterTimeImageRecorded();
     }
     else
     {
         m_skippedCounter++;
     }
     lastImageID = image.acq_nframe;
-    emit NewImageRecorded();
+}
+
+void MainWindow::RegisterTimeImageRecorded()
+{
+    auto now = std::chrono::steady_clock::now();
+    m_recordedTimestamps.push_back(now);
+    if (m_recordedTimestamps.size() > MAX_FRAMES_TO_COMPUTE_FPS)
+    {
+        m_recordedTimestamps.pop_front();
+    }
 }
 
 bool MainWindow::ImageShouldBeRecorded(int nSkipFrames, long ImageID)
@@ -624,11 +636,12 @@ void MainWindow::StartRecording()
     {
         LOG_XILENS(error) << "Error while connecting update timer to new image signal";
     }
-    status = QObject::connect(this, &MainWindow::NewImageRecorded, this, &MainWindow::UpdateFPSLCDDisplay);
+    status = QObject::connect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay);
     if (!status)
     {
-        LOG_XILENS(error) << "Error while connecting update FPS to new image signal";
+        LOG_XILENS(error) << "Error while connecting update FPS to timer";
     }
+    m_updateFPSDisplayTimer->start(UPDATE_RATE_MS_FPS_TIMER);
 }
 
 void MainWindow::StopRecording()
@@ -636,7 +649,8 @@ void MainWindow::StopRecording()
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages);
     QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer);
-    QObject::disconnect(this, &MainWindow::NewImageRecorded, this, &MainWindow::UpdateFPSLCDDisplay);
+    QObject::disconnect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay);
+    QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, ""));
     this->stopTimer();
     this->m_IOWork.reset();
     this->m_IOWork = nullptr;
@@ -1008,11 +1022,15 @@ void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
 
 void MainWindow::UpdateFPSLCDDisplay()
 {
-    if (this->m_elapsedTime == 0)
+    using namespace std::chrono;
+    if (this->m_recordedTimestamps.size() < 2)
     {
         return;
     }
-    double fps = static_cast<double>(this->m_recordedCount.load()) / this->m_elapsedTime;
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(this->m_recordedTimestamps.back() -
+                                                                          this->m_recordedTimestamps.front())
+                        .count();
+    double fps = (static_cast<double>(this->m_recordedTimestamps.size()) - 1) * 1000.0 / static_cast<double>(duration);
     QString displayValue = QString::number(fps, 'f', 1);
     QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, displayValue));
 }

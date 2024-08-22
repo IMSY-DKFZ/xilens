@@ -192,4 +192,14 @@ constexpr const char *COLOR_FILTER_ARRAY_FORMAT_KEY = "color_filter_array";
  */
 constexpr const char *TIME_STAMP_KEY = "time_stamp";
 
+/**
+ * Maximum number of frames used to compute the frames per second at which recordings happen.
+ */
+const int MAX_FRAMES_TO_COMPUTE_FPS = 10;
+
+/**
+ * Rate in milliseconds at which the frames per second display in the UI is updated.
+ */
+const int UPDATE_RATE_MS_FPS_TIMER = 2000;
+
 #endif

@@ -346,12 +346,6 @@ class MainWindow : public QMainWindow
      */
     void on_subFolderExtrasLineEdit_returnPressed();
 
-  signals:
-    /**
-     * Signal indicating that an image was recorded to file.
-     */
-    void NewImageRecorded();
-
   private:
     Ui::MainWindow *ui;
 
@@ -694,6 +688,11 @@ class MainWindow : public QMainWindow
     std::atomic<unsigned long> m_skippedCounter;
 
     /**
+     * Container to store the time stamps when a new image is recorded. This is used to calculate the FPS.
+     */
+    std::deque<std::chrono::steady_clock::time_point> m_recordedTimestamps;
+
+    /**
      * Smart pointer to the RGB scene where the RGB images will be displayed
      */
     std::unique_ptr<QGraphicsScene> rgbScene = std::make_unique<QGraphicsScene>(this);
@@ -717,6 +716,16 @@ class MainWindow : public QMainWindow
      * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations
      */
     void SetGraphicsViewScene();
+
+    /**
+     * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second
+     */
+    void RegisterTimeImageRecorded();
+
+    /**
+     * Timer that sets the rate of updates for the FPS LCD Display in the UI.
+     */
+    QTimer *m_updateFPSDisplayTimer;
 };
 
 #endif // MAINWINDOW_H
