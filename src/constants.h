@@ -20,16 +20,6 @@ const int MAX_HEIGHT_DISPLAY_WINDOW = 544;
 ///@}
 
 /**
- *  \name OpenCV Window Names
- * @{
- */
-const std::string DISPLAY_WINDOW_NAME = "RAW image";
-const std::string VHB_WINDOW_NAME = "Blood volume fraction";
-const std::string SAO2_WINDOW_NAME = "Oxygenation";
-const std::string BGR_WINDOW_NAME = "RGB estimate";
-///@}
-
-/**
  *  \name Color Definitions for Saturation and Dark Pixels
  * @{
  */
@@ -68,16 +58,6 @@ const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 1
  * @{
  */
 const int FRAMERATE_MAX = 80;
-///@}
-
-/**
- *  \name Value Ranges for Blood Volume Fraction and Oxygenation
- * @{
- */
-const unsigned MAX_SAO2 = 100;
-const unsigned MAX_VHB = 30;
-const unsigned MIN_SAO2 = 0;
-const unsigned MIN_VHB = 0;
 ///@}
 
 /**

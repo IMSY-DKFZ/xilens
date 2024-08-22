@@ -153,6 +153,39 @@
                      </widget>
                     </item>
                     <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_4">
+                      <item>
+                       <widget class="QPushButton" name="baseFolderButton">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="toolTip">
+                         <string>Select folder where all data is organized</string>
+                        </property>
+                        <property name="text">
+                         <string>Save folder</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="baseFolderLineEdit">
+                        <property name="toolTip">
+                         <string>Folder where all data is organized</string>
+                        </property>
+                        <property name="readOnly">
+                         <bool>true</bool>
+                        </property>
+                        <property name="placeholderText">
+                         <string>Base folder where all recordings are saved</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_11">
                       <item>
                        <widget class="QLabel" name="filePrefixLabel">
@@ -196,10 +229,10 @@
                          </sizepolicy>
                         </property>
                         <property name="toolTip">
-                         <string>Folder where files will be stored (inside save folder)</string>
+                         <string>Folder where files will be stored (created inside save folder)</string>
                         </property>
                         <property name="text">
-                         <string>File Folder    </string>
+                         <string>File Folder Name</string>
                         </property>
                        </widget>
                       </item>
@@ -213,39 +246,6 @@
                         </property>
                         <property name="placeholderText">
                          <string>folder1, folder2, ...</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_4">
-                      <item>
-                       <widget class="QPushButton" name="baseFolderButton">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="toolTip">
-                         <string>Select folder where all data is organized</string>
-                        </property>
-                        <property name="text">
-                         <string>Save folder</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLineEdit" name="baseFolderLineEdit">
-                        <property name="toolTip">
-                         <string>Folder where all data is organized</string>
-                        </property>
-                        <property name="readOnly">
-                         <bool>true</bool>
-                        </property>
-                        <property name="placeholderText">
-                         <string>Base folder where all recordings are saved</string>
                         </property>
                        </widget>
                       </item>
@@ -296,7 +296,7 @@
                        <string>Record dark reference images</string>
                       </property>
                       <property name="text">
-                       <string>Dark correction</string>
+                       <string>Record dark reference</string>
                       </property>
                      </widget>
                     </item>
@@ -309,7 +309,7 @@
                        <string>Record white reference images</string>
                       </property>
                       <property name="text">
-                       <string>White balance</string>
+                       <string>Record white reference</string>
                       </property>
                      </widget>
                     </item>
