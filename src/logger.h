@@ -38,6 +38,8 @@ BOOST_LOG_GLOBAL_LOGGER(my_logger, XILENS_LOGGER)
  */
 #define LOG_XILENS(lvl)                                                                                                \
     BOOST_LOG_CHANNEL_SEV(my_logger::get(), "XILENS", logging::trivial::lvl)                                           \
-        << boost::filesystem::path(__FILE__).filename().string() << "@" << (__LINE__) << ":" << (__FUNCTION__) << "\t"
+        << __FILE__ << ":" << (__LINE__) << " @ " << (__FUNCTION__) << "\t"
+
+#define HANDLE_CONNECTION_RESULT(status) HandleConnectionResult(status, __FILE__, __LINE__, __FUNCTION__)
 
 #endif // XILENS_LOGGER_H

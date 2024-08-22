@@ -36,9 +36,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
   public:
-    explicit MainWindow(QWidget *parent = 0, const std::shared_ptr<XiAPIWrapper> &xiAPIWrapper = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr, const std::shared_ptr<XiAPIWrapper> &xiAPIWrapper = nullptr);
 
-    ~MainWindow();
+    ~MainWindow() override;
 
     /**
      * Queries if normalization should be applied to the displayed images
@@ -200,7 +200,7 @@ class MainWindow : public QMainWindow
      *
      * @param event A pointer to the event object representing the close event.
      */
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
   private slots:
 
@@ -208,64 +208,139 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when the snapshot button is pressed. Triggers the
      * recording of snapshot images or stops it when pressed a second time.
      */
-    void on_snapshotButton_clicked();
+    void handleSnapshotButtonClicked();
 
     /**
      * Qt slot triggered when the camera exposure slider is modified.
      */
-    void on_exposureSlider_valueChanged(int value);
+    void handleExposureSliderValueChanged(int value);
 
     /**
      * Qt slot triggered when the record button is pressed. Stars the continuous
      * recording of images to files and stops it when pressed a second time. This
      * is synchronized with the exposure time label.
      */
-    void on_recordButton_clicked(bool clicked);
+    void handleRecordButtonClicked(bool clicked);
 
     /**
      * Qt slot triggered when the button to choose a base folder is clicked. Opens
      * a dialog where a folder can be selected.
      */
-    void on_baseFolderButton_clicked();
+    void handleBaseFolderButtonClicked();
 
     /**
      * Qt slot triggered when the exposure time labels is modified manually. This
      * changes the appearance of the field but does not trigger the change in the
      * camera. Return key needs to be pressed for the change to be applied.
      */
-    void on_exposureLineEdit_textEdited(const QString &arg1);
+    void handleExposureLineEditTextEdited(const QString &arg1);
 
     /**
      * Qt slot triggered when return key is pressed after modifying the exposure
      * time. This is synchronized with the exposure time slider.
      */
-    void on_exposureLineEdit_returnPressed();
+    void handleExposureLineEditReturnPressed();
 
     /**
      * Qt slot triggered when return key is pressed on the field where the top
      * folder is defined in the UI. It updates the member variable that stores the
      * value.
      */
-    void on_subFolderLineEdit_returnPressed();
+    void handleSubFolderLineEditReturnPressed();
 
     /**
-     * Qt slot triggered when the return key is pressed on the field tha tdefines
+     * Qt slot triggered when editing the top folder name. It changes the
+     * appearance of the field in the UI. It does not change the value of hte
+     * member variable that contains the top folder name.
+     */
+    void handleSubFolderLineEditTextEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed on the field that defines
      * the file prefix in the UI. It updates the member variable that stores the
      * value.
      */
-    void on_filePrefixLineEdit_returnPressed();
+    void handleFilePrefixLineEditReturnPressed();
+
+    /**
+     * Qt slot triggered when the prefix file name is edited. It changes the
+     * appearance of the field in the UI. It does not change the value of the
+     * member variable that stores the file prefix name.
+     */
+    void handleFilePrefixLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
      * of the exposure time to camera.
      */
-    void on_autoexposureCheckbox_clicked(bool setAutoexposure);
+    void handleAutoexposureCheckboxClicked(bool setAutoexposure);
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
      * image and sets it in the network model.
      */
-    void on_whiteBalanceButton_clicked();
+    void handleWhiteBalanceButtonClicked();
+
+    /**
+     * Qt slot triggered when the dark correction button is pressed. Records a new
+     * dark image and sets it in the network model.
+     */
+    void handleDarkCorrectionButtonClicked();
+
+    /**
+     * Qt slot triggered when the trigger text is edited. It only changes the
+     * appearance of the UI element.
+     */
+    void handleLogTextLineEditTextEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed on the trigger text field.
+     * It logs the message to the log file and displays it on the UI.
+     */
+    void handleLogTextLineEditReturnPressed();
+
+    /**
+     * Qt slot triggered when the spin box containing the number of images to skip
+     * while recording is modified. It restyles the appearance of the field.
+     */
+    void handleSkipFramesSpinBoxValueChanged();
+
+    /**
+     * Qt slot triggered when a new camera is selected from the drop-down menu.
+     */
+    void handleCameraListComboBoxCurrentIndexChanged(int index);
+
+    /**
+     * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
+     */
+    void handleReloadCamerasPushButtonClicked();
+
+    /**
+     * Qt slot triggered when file name prefix for snapshots is edited on the UI.
+     */
+    void handleFilePrefixExtrasLineEditTextEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed on the file prefix field
+     * for snapshot images in the UI.
+     */
+    void handleFilePrefixExtrasLineEditReturnPressed();
+
+    /**
+     * Qt slot triggered when extras sub folder field is edited in the UI.
+     */
+    void handleSubFolderExtrasLineEditTextEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed on the sub folder field in
+     * the extras tab in the UI.
+     */
+    void handleSubFolderExtrasLineEditReturnPressed();
+
+  private:
+    void SetUpConnections();
+
+    static void HandleConnectionResult(bool status, const char *file, int line, const char *func);
 
     /**
      * Records the white reference to a folder called "white"
@@ -277,54 +352,6 @@ class MainWindow : public QMainWindow
      * dark)
      */
     void StopReferenceRecordingThread();
-
-    /**
-     * Qt slot triggered when the dark correction button is pressed. Records a new
-     * dark image and sets it in the network model.
-     */
-    void on_darkCorrectionButton_clicked();
-
-    /**
-     * Qt slot triggered when editing the top folder name. It changes the
-     * appearance of the field in the UI. It does not change the value of hte
-     * member variable that contains the top folder name.
-     */
-    void on_subFolderLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the prefix file name is edited. It changes the
-     * appearance of the field in the UI. It does not change the value of the
-     * member variable that stores the file prefix name.
-     */
-    void on_filePrefixLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the trigger text is edited. It only changes the
-     * appearance of the UI element.
-     */
-    void on_logTextLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the trigger text field.
-     * It logs the message to the log file and displays it on the UI.
-     */
-    void on_logTextLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when the spin box containing the number of images to skip
-     * while recording is modified. It restyles the appearance of the field.
-     */
-    void on_skipFramesSpinBox_valueChanged();
-
-    /**
-     * Qt slot triggered when a new camera is selected from the drop-down menu.
-     */
-    void on_cameraListComboBox_currentIndexChanged(int index);
-
-    /**
-     * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
-     */
-    void on_reloadCamerasPushButton_clicked();
 
     /**
      * Updates the stile of a Qt LineEdit component.
@@ -341,29 +368,6 @@ class MainWindow : public QMainWindow
      */
     static void RestoreLineEditStyle(QLineEdit *lineEdit);
 
-    /**
-     * Qt slot triggered when file name prefix for snapshots is edited on the UI.
-     */
-    void on_filePrefixExtrasLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the file prefix field
-     * for snapshot images in the UI.
-     */
-    void on_filePrefixExtrasLineEdit_returnPressed();
-
-    /**
-     * Qt slot triggered when extras sub folder field is edited in the UI.
-     */
-    void on_subFolderExtrasLineEdit_textEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the sub folder field in
-     * the extras tab in the UI.
-     */
-    void on_subFolderExtrasLineEdit_returnPressed();
-
-  private:
     /**
      * @brief Displays a new image
      */
@@ -453,19 +457,13 @@ class MainWindow : public QMainWindow
     void stopTimer();
 
     /**
-     *  Initializes the DL network in charge of estimating the functional
-     * properties.
-     */
-    void RunNetwork();
-
-    /**
      * @brief RecordSnapshots helper method to take snapshots, basically just
      * created to be able to thread the snapshot making :-)
      */
     void RecordSnapshots();
 
     /**
-     * @brief UpdateExposure Synchronizes the sliders and textedits displaying
+     * @brief UpdateExposure Synchronizes the sliders and text edits displaying
      * the current exposure setting
      */
     void UpdateExposure();
@@ -537,7 +535,7 @@ class MainWindow : public QMainWindow
     /**
      * file prefix to be appended to each image file name.
      */
-    QString m_recPrefixlineEdit;
+    QString m_recPrefixLineEdit;
 
     /**
      * Folder path where extra images are to be stored (e.g. snapshots). This is a
