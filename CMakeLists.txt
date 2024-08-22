@@ -201,6 +201,7 @@ add_executable(
         tests/bloscTest.cpp
         tests/mainWindowTest.cpp
         tests/constantsTest.cpp
+        ${XILENS_LIB_UI_MOC}
 )
 target_link_libraries(XILENS_TESTS GTest::gtest_main XILENS_LIB Blosc2::blosc2_shared)
 

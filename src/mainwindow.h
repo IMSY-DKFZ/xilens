@@ -181,6 +181,18 @@ class MainWindow : public QMainWindow
         return ui;
     }
 
+    /**
+     * Sets the number of images recorded.
+     *
+     * @param count number of recorded images
+     */
+    void SetRecordedCount(int count);
+
+    /**
+     * Displays the number of recorded images in the GUI
+     */
+    void DisplayRecordCount();
+
   protected:
     /**
      * Main access point to all Qt components in the user interface. All Qt components in the UI can be accessed through
@@ -425,11 +437,6 @@ class MainWindow : public QMainWindow
      * @param filePrefix file prefix used for the file name
      */
     void InitializeImageFileRecorder(std::string subFolder = "", std::string filePrefix = "");
-
-    /**
-     * Displays the number of recorded images in the GUI
-     */
-    void DisplayRecordCount();
 
     /**
      * Indicates if an image should be recorded to file or not depending on the

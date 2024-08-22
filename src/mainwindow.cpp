@@ -637,7 +637,7 @@ bool MainWindow::ImageShouldBeRecorded(int nSkipFrames, long ImageID)
 void MainWindow::DisplayRecordCount()
 {
     QMetaObject::invokeMethod(ui->recordedImagesLCDNumber, "display", Qt::QueuedConnection,
-                              Q_ARG(int, m_recordedCount));
+                              Q_ARG(int, static_cast<int>(m_recordedCount.load())));
 }
 
 void MainWindow::updateTimer()
@@ -1127,4 +1127,9 @@ void MainWindow::SetGraphicsViewScene()
 bool MainWindow::IsSaturationButtonChecked()
 {
     return this->ui->saturationToolButton->isChecked();
+}
+
+void MainWindow::SetRecordedCount(int count)
+{
+    m_recordedCount = count;
 }
