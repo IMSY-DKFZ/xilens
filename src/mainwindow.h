@@ -171,7 +171,23 @@ class MainWindow : public QMainWindow
      */
     bool IsSaturationButtonChecked();
 
+    /**
+     * Provides access to the applications user interface.
+     *
+     * @return pointer tot he `Ui::MainWindow` from which all Qt component in the user interface can be accessed.
+     */
+    Ui::MainWindow *GetUI() const
+    {
+        return ui;
+    }
+
   protected:
+    /**
+     * Main access point to all Qt components in the user interface. All Qt components in the UI can be accessed through
+     * this pointer.
+     */
+    Ui::MainWindow *ui;
+
     /**
      * @brief Event handler for the close event of the main window.
      *
@@ -348,8 +364,6 @@ class MainWindow : public QMainWindow
     void on_subFolderExtrasLineEdit_returnPressed();
 
   private:
-    Ui::MainWindow *ui;
-
     /**
      * @brief Displays a new image
      */
