@@ -38,6 +38,16 @@ Installing dependencies, building :code:`XiLens` and how to use :code:`XiLens` i
 
     developer_guidelines.rst
 
+Application details
+===================
+More details on the implementation and supported features of the application can be found in the following pages:
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Application details
+
+    supported_cameras.rst
+
 Development logic
 =================
 The :code:`XiLens` application relies at its core on many `Qt <https://www.qt.io/product/qt6>`_ components for the GUI, while
