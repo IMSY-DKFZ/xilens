@@ -1,3 +1,8 @@
+/*******************************************************
+ * Author: Intelligent Medical Systems
+ * License: see LICENSE.md file
+ *******************************************************/
+
 #include <m3api/xiApi.h>
 
 #include <algorithm>
