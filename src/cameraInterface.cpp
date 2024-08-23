@@ -162,7 +162,7 @@ QString CameraInterface::GetCameraIdentifier(HANDLE cameraHandle)
 
 CameraInterface::~CameraInterface()
 {
-    LOG_XILENS(debug) << "CameraInterface::~CameraInterface()";
+    LOG_XILENS(debug) << "Destroying camera interface";
     if (this->m_cameraHandle != INVALID_HANDLE_VALUE)
     {
         this->CloseDevice();

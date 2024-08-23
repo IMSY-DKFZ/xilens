@@ -8,6 +8,7 @@
 #include <opencv2/core/core.hpp>
 
 #include "mocks.h"
+#include "ui_mainwindow.h"
 
 class MockMainWindowTest : public ::testing::Test
 {
@@ -68,4 +69,32 @@ TEST_F(MockMainWindowTest, WriteLogHeaderTest)
     {
         ASSERT_TRUE(false);
     }
+}
+
+TEST_F(MockMainWindowTest, GivenValidImage_WhenUpdateSaturationPercentageLCDDisplays_ThenCorrectValuesAreDisplayed)
+{
+    // Create a valid image
+    cv::Mat image = cv::Mat::zeros(10, 10, CV_8UC1);
+    image(cv::Rect(0, 0, 10, 10)).setTo(255); // Set part of the image to a high value
+    // Execute
+    EXPECT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image));
+}
+
+TEST_F(MockMainWindowTest, GivenInvalidImage_WhenUpdateSaturationPercentageLCDDisplays_ThenExceptionIsThrown)
+{
+    // Create an invalid image
+    cv::Mat emptyImage;
+    // Expect an exception to be thrown
+    EXPECT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(emptyImage), std::invalid_argument);
+}
+
+TEST_F(MockMainWindowTest, DisplayRecordedImageCounter)
+{
+    int valueToDisplay = 10;
+    mockMainWindow->SetRecordedCount(valueToDisplay);
+    mockMainWindow->DisplayRecordCount();
+    qApp->processEvents(QEventLoop::AllEvents, 100);
+    auto ui = mockMainWindow->GetUI();
+    auto displayedValue = ui->recordedImagesLCDNumber->value();
+    ASSERT_TRUE(displayedValue == valueToDisplay);
 }
