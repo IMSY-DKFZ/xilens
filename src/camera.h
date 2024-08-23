@@ -169,6 +169,26 @@ class XiQFamily : public CameraFamily
 };
 
 /**
+ * XiB camera family
+ */
+using XiBFamily = XiCFamily;
+
+/**
+ * XiB64 camera family
+ */
+using XiB64Family = XiCFamily;
+
+/**
+ * XiRAY camera family
+ */
+using XiRAYFamily = XiCFamily;
+
+/**
+ * XiX camera family
+ */
+using XiXFamily = XiCFamily;
+
+/**
  * Base camera class
  */
 class Camera
