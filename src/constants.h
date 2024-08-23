@@ -89,6 +89,14 @@ const QString CAMERA_FAMILY_XISPEC = "xiSpec";
 const QString CAMERA_FAMILY_XIC = "xiC";
 /// Camera family: XiQ.
 const QString CAMERA_FAMILY_XIQ = "xiQ";
+/// Camera family: xiB.
+const QString CAMERA_FAMILY_XIB = "xiB";
+/// Camera family: xiB-64.
+const QString CAMERA_FAMILY_XIB64 = "xiB-64";
+/// Camera family: xiRAY.
+const QString CAMERA_FAMILY_XIRAY = "xiRAY";
+/// Camera family: xiX.
+const QString CAMERA_FAMILY_XIX = "xiX";
 ///@}
 
 /**
@@ -99,7 +107,9 @@ const std::vector<QString> SUPPORTED_CAMERA_TYPES = {CAMERA_TYPE_SPECTRAL, CAMER
 /**
  * Supported camera families
  */
-const std::vector<QString> SUPPORTED_CAMERA_FAMILIES = {CAMERA_FAMILY_XISPEC, CAMERA_FAMILY_XIC, CAMERA_FAMILY_XIQ};
+const std::vector<QString> SUPPORTED_CAMERA_FAMILIES = {CAMERA_FAMILY_XISPEC, CAMERA_FAMILY_XIC,   CAMERA_FAMILY_XIQ,
+                                                        CAMERA_FAMILY_XIB,    CAMERA_FAMILY_XIB64, CAMERA_FAMILY_XIRAY,
+                                                        CAMERA_FAMILY_XIX};
 
 /**
  *  \name Image Recording Constants
