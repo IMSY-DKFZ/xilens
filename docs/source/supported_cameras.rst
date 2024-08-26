@@ -20,3 +20,12 @@ After the script has finished, a JSON file is created on the current working dir
     `xiSpec` camera models are added to the database manually.
 
 The latest version of the database containing all supported cameras can be found in the `resources folder <https://github.com/IMSY-DKFZ/xilens/blob/develop/resources/XiLensCameraProperties.json>`_.
+
+Adding support for a new camera
+===============================
+
+Support for a new camera can be added by modifying the ``XiLensCameraProperties.json`` file with a new entry for a new
+camera model. The location of hte file depends on where ``XiLens`` was installed. If the installation was done in ``/usr``,
+then the file is located in ``/etc/xilens/XiLensCameraProperties.json``. If ``XiLens`` was only built but not installed in
+the system, then the file should be located in the same directory as the executable.
+The mosaic shape properties are only related to spectral cameras. ``RGB`` and ``Gray`` cameras should have a mosaic shape of ``0x0``.
