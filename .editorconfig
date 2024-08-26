@@ -19,5 +19,5 @@ trim_trailing_whitespace = false
 [*.{diff,patch}]
 trim_trailing_whitespace = false
 
-[*.{yaml,yml}]
+[*.{yaml,yml,json}]
 indent_size = 2

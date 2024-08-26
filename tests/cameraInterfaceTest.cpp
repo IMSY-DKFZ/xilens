@@ -21,6 +21,16 @@ TEST(CameraInterfaceTest, SetCameraTypeTest)
     ASSERT_EQ(cameraInterface.m_cameraType, CAMERA_TYPE_SPECTRAL);
 }
 
+TEST(CameraInterfaceTest, SetWrongCameraPropertiesTest)
+{
+    std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
+    CameraInterface cameraInterface;
+    cameraInterface.m_apiWrapper = apiWrapper;
+    QString cameraIdentifier = "FakeCameraModel";
+    cameraInterface.m_availableCameras[cameraIdentifier] = 0;
+    EXPECT_THROW(cameraInterface.SetCameraProperties(cameraIdentifier), std::runtime_error);
+}
+
 TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle)
 {
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();

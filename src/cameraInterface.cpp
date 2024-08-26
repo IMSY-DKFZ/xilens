@@ -171,25 +171,49 @@ CameraInterface::~CameraInterface()
 
 void CameraInterface::setCamera(QString cameraType, QString cameraFamily)
 {
+    // instantiate camera type
     if (cameraType == CAMERA_TYPE_SPECTRAL)
     {
-        this->m_cameraFamily = std::make_unique<XiSpecFamily>(&this->m_cameraHandle);
         this->m_camera = std::make_unique<SpectralCamera>(&m_cameraFamily, &this->m_cameraHandle);
-        this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
-        this->m_camera->m_apiWrapper = this->m_apiWrapper;
     }
     else if (cameraType == CAMERA_TYPE_GRAY)
     {
-        this->m_cameraFamily = std::make_unique<XiCFamily>(&this->m_cameraHandle);
         this->m_camera = std::make_unique<GrayCamera>(&m_cameraFamily, &this->m_cameraHandle);
-        this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
-        this->m_camera->m_apiWrapper = this->m_apiWrapper;
     }
     else if (cameraType == CAMERA_TYPE_RGB)
     {
-        this->m_cameraFamily = std::make_unique<XiQFamily>(&this->m_cameraHandle);
         this->m_camera = std::make_unique<RGBCamera>(&m_cameraFamily, &this->m_cameraHandle);
-        this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
-        this->m_camera->m_apiWrapper = this->m_apiWrapper;
     }
+    // instantiate camera family
+    if (cameraFamily == CAMERA_FAMILY_XISPEC)
+    {
+        this->m_cameraFamily = std::make_unique<XiSpecFamily>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIC)
+    {
+        this->m_cameraFamily = std::make_unique<XiCFamily>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIQ)
+    {
+        this->m_cameraFamily = std::make_unique<XiQFamily>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIB)
+    {
+        this->m_cameraFamily = std::make_unique<XiBFamily>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIB64)
+    {
+        this->m_cameraFamily = std::make_unique<XiB64Family>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIRAY)
+    {
+        this->m_cameraFamily = std::make_unique<XiRAYFamily>(&this->m_cameraHandle);
+    }
+    else if (cameraFamily == CAMERA_FAMILY_XIX)
+    {
+        this->m_cameraFamily = std::make_unique<XiXFamily>(&this->m_cameraHandle);
+    }
+    // instantiate API wrapper
+    this->m_cameraFamily->m_apiWrapper = this->m_apiWrapper;
+    this->m_camera->m_apiWrapper = this->m_apiWrapper;
 }
