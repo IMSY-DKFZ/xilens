@@ -77,7 +77,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Main recording controls</string>
+            <string/>
            </property>
            <attribute name="title">
             <string>Recording</string>
@@ -144,7 +144,7 @@
                    </layout>
                   </item>
                   <item>
-                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
+                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
                     <item>
                      <widget class="Line" name="fileNameSeparatorLine">
                       <property name="orientation">
@@ -173,13 +173,13 @@
                       <item>
                        <widget class="QLineEdit" name="baseFolderLineEdit">
                         <property name="toolTip">
-                         <string>Folder where all data is organized</string>
+                         <string>Folder where all data is stored</string>
                         </property>
                         <property name="readOnly">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="placeholderText">
-                         <string>Base folder where all recordings are saved</string>
+                         <string>Base folder where all data is stored</string>
                         </property>
                        </widget>
                       </item>
@@ -213,39 +213,6 @@
                         </property>
                         <property name="placeholderText">
                          <string>file1, file2, ...</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_2">
-                      <item>
-                       <widget class="QLabel" name="subFolderLabel">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="toolTip">
-                         <string>Folder where files will be stored (created inside save folder)</string>
-                        </property>
-                        <property name="text">
-                         <string>File Folder Name</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLineEdit" name="subFolderLineEdit">
-                        <property name="toolTip">
-                         <string>Folder where files will be stored (inside save folder)</string>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="placeholderText">
-                         <string>folder1, folder2, ...</string>
                         </property>
                        </widget>
                       </item>
@@ -486,7 +453,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QSlider" name="rgbNormSlider">
+                     <widget class="QSliderLabeled" name="rgbNormSlider">
                       <property name="toolTip">
                        <string>Select the normalizing factor for RGB noormalization</string>
                       </property>
@@ -508,6 +475,9 @@
                       <property name="tickPosition">
                        <enum>QSlider::TicksBelow</enum>
                       </property>
+                      <property name="tickInterval">
+                       <number>1</number>
+                      </property>
                      </widget>
                     </item>
                     <item>
@@ -524,7 +494,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QSlider" name="bandSlider">
+                     <widget class="QSliderLabeled" name="bandSlider">
                       <property name="toolTip">
                        <string>Select displayed spectral band</string>
                       </property>
@@ -575,7 +545,7 @@
                  </layout>
                 </item>
                 <item>
-                 <widget class="QSlider" name="exposureSlider">
+                 <widget class="QSliderLabeled" name="exposureSlider">
                   <property name="toolTip">
                    <string>Select exposure time</string>
                   </property>
@@ -1107,9 +1077,15 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QSliderLabeled</class>
+   <extends>QSlider</extends>
+   <header>widgets.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>filePrefixLineEdit</tabstop>
-  <tabstop>subFolderLineEdit</tabstop>
   <tabstop>baseFolderButton</tabstop>
   <tabstop>baseFolderLineEdit</tabstop>
   <tabstop>recordButton</tabstop>

@@ -149,6 +149,12 @@
     "mosaicWidth": 0,
     "mosaicHeight": 0
   },
+  "MC050MG-SY-UB": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
   "MC051CG-SY-PG4": {
     "cameraType": "rgb",
     "cameraFamily": "xiC",

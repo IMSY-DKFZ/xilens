@@ -92,10 +92,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::handleExposureLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::handleExposureLineEditReturnPressed));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleSubFolderLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleSubFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::handleFilePrefixLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::returnPressed, this,
@@ -120,8 +116,12 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::handleFilePrefixExtrasLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixExtrasLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::handleFilePrefixExtrasLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
+                                              &MainWindow::handleBaseFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::handleSubFolderExtrasLineEditTextEdited));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
+                                              &MainWindow::handleBaseFolderLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::handleSubFolderExtrasLineEditReturnPressed));
 }
@@ -261,10 +261,6 @@ void MainWindow::RecordSnapshots()
     {
         filePrefix = m_recPrefixLineEdit.toUtf8().constData();
     }
-    if (subFolder.empty())
-    {
-        subFolder = m_subFolder.toStdString();
-    }
     QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
     auto image = m_imageContainer.GetCurrentImage();
     FileImage snapshotsFile(filePath.toStdString().c_str(), image.height, image.width);
@@ -397,19 +393,6 @@ void MainWindow::UpdateExposure()
     ui->exposureSlider->setValue(exp_ms);
 }
 
-void MainWindow::handleExposureLineEditReturnPressed()
-{
-    m_labelExp = ui->exposureLineEdit->text();
-    m_cameraInterface.m_camera->SetExposureMs(m_labelExp.toInt());
-    UpdateExposure();
-    RestoreLineEditStyle(ui->exposureLineEdit);
-}
-
-void MainWindow::handleExposureLineEditTextEdited(const QString &arg1)
-{
-    UpdateComponentEditedStyle(ui->exposureLineEdit, arg1, m_labelExp);
-}
-
 void MainWindow::handleRecordButtonClicked(bool clicked)
 {
     static QString original_colour;
@@ -444,22 +427,22 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
     if (recordingInProgress)
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->baseFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
     else
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->baseFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -526,18 +509,6 @@ QString MainWindow::LogMessage(const QString &message, const QString &logFile, b
     return timestamp;
 }
 
-void MainWindow::handleSubFolderLineEditReturnPressed()
-{
-    m_subFolder = ui->subFolderLineEdit->text();
-    RestoreLineEditStyle(ui->subFolderLineEdit);
-}
-
-void MainWindow::handleFilePrefixLineEditReturnPressed()
-{
-    m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
-    RestoreLineEditStyle(ui->filePrefixLineEdit);
-}
-
 bool MainWindow::GetNormalize() const
 {
     return this->ui->normalizeCheckbox->isChecked();
@@ -581,10 +552,6 @@ void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string 
     if (filePrefix.empty())
     {
         filePrefix = m_recPrefixLineEdit.toUtf8().constData();
-    }
-    if (subFolder.empty())
-    {
-        subFolder = m_subFolder.toStdString();
     }
     QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
     this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
@@ -880,19 +847,18 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::handleSubFolderLineEditTextEdited(const QString &newText)
+void MainWindow::handleExposureLineEditReturnPressed()
 {
-    UpdateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
+    m_labelExp = ui->exposureLineEdit->text();
+    m_cameraInterface.m_camera->SetExposureMs(m_labelExp.toInt());
+    UpdateExposure();
+    RestoreLineEditStyle(ui->exposureLineEdit);
 }
 
-void MainWindow::handleFilePrefixLineEditTextEdited(const QString &newText)
+void MainWindow::handleFilePrefixLineEditReturnPressed()
 {
-    UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixLineEdit);
-}
-
-void MainWindow::handleSubFolderExtrasLineEditTextEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
+    m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
+    RestoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
 void MainWindow::handleSubFolderExtrasLineEditReturnPressed()
@@ -901,27 +867,16 @@ void MainWindow::handleSubFolderExtrasLineEditReturnPressed()
     RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
 }
 
-void MainWindow::handleFilePrefixExtrasLineEditTextEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
-}
-
 void MainWindow::handleFilePrefixExtrasLineEditReturnPressed()
 {
     m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
     RestoreLineEditStyle(ui->filePrefixExtrasLineEdit);
 }
 
-void MainWindow::handleLogTextLineEditTextEdited(const QString &newText)
+void MainWindow::handleBaseFolderLineEditReturnPressed()
 {
-    UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
-}
-
-QString MainWindow::FormatTimeStamp(const QString &timestamp)
-{
-    QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
-    QString formattedDate = dateTime.toString("hh:mm:ss AP");
-    return formattedDate;
+    m_baseFolderLoc = ui->baseFolderLineEdit->text();
+    RestoreLineEditStyle(ui->baseFolderLineEdit);
 }
 
 void MainWindow::handleLogTextLineEditReturnPressed()
@@ -943,6 +898,43 @@ void MainWindow::handleLogTextLineEditReturnPressed()
     ui->logTextEdit->append(m_triggerText);
     ui->logTextEdit->show();
     ui->logTextLineEdit->clear();
+}
+
+void MainWindow::handleFilePrefixLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixLineEdit);
+}
+
+void MainWindow::handleSubFolderExtrasLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
+}
+
+void MainWindow::handleExposureLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->exposureLineEdit, newText, m_labelExp);
+}
+
+void MainWindow::handleFilePrefixExtrasLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
+}
+
+void MainWindow::handleLogTextLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
+}
+
+void MainWindow::handleBaseFolderLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderLoc);
+}
+
+QString MainWindow::FormatTimeStamp(const QString &timestamp)
+{
+    QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
+    QString formattedDate = dateTime.toString("hh:mm:ss AP");
+    return formattedDate;
 }
 
 /*
