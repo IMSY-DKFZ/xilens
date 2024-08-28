@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logs camera temperature to images VLMetadata.
 - Button to check if new cameras have been connected to the system.
 - LCD displayer to show frames per second that are stored to file while recording.
+- Custom QSliderLabeled widget to paint text marks on the slider.
 
 ### Changed
 
@@ -27,10 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped the version of CLI11 to 2.4.2.
 - Disallows automatic connections between slots and signals and creates connections explicitly.
 - Logger prints file path instead of just file name.
+- Makes base folder line edit as editable such that base folder can be selected from dialog or by writing the path.
 
 ### Removed
 
 - Unused `RunNetwork` method.
+- Removes base folder from the UI.
 
 ### Fixed
 
