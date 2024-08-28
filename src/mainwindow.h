@@ -254,20 +254,6 @@ class MainWindow : public QMainWindow
     void handleExposureLineEditReturnPressed();
 
     /**
-     * Qt slot triggered when return key is pressed on the field where the top
-     * folder is defined in the UI. It updates the member variable that stores the
-     * value.
-     */
-    void handleSubFolderLineEditReturnPressed();
-
-    /**
-     * Qt slot triggered when editing the top folder name. It changes the
-     * appearance of the field in the UI. It does not change the value of hte
-     * member variable that contains the top folder name.
-     */
-    void handleSubFolderLineEditTextEdited(const QString &newText);
-
-    /**
      * Qt slot triggered when the return key is pressed on the field that defines
      * the file prefix in the UI. It updates the member variable that stores the
      * value.
@@ -532,12 +518,6 @@ class MainWindow : public QMainWindow
      * @return
      */
     static QString FormatTimeStamp(const QString &timestamp);
-
-    /**
-     * stores the folder name where images are to be stores. This is a folder
-     * inside of base folder.
-     */
-    QString m_subFolder;
 
     /**
      * file prefix to be appended to each image file name.

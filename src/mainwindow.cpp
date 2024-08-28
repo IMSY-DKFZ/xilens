@@ -92,10 +92,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::handleExposureLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::handleExposureLineEditReturnPressed));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleSubFolderLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleSubFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::handleFilePrefixLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::returnPressed, this,
@@ -260,10 +256,6 @@ void MainWindow::RecordSnapshots()
     if (filePrefix.empty())
     {
         filePrefix = m_recPrefixLineEdit.toUtf8().constData();
-    }
-    if (subFolder.empty())
-    {
-        subFolder = m_subFolder.toStdString();
     }
     QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
     auto image = m_imageContainer.GetCurrentImage();
@@ -444,7 +436,6 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
     if (recordingInProgress)
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -454,7 +445,6 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
     else
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->subFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -526,12 +516,6 @@ QString MainWindow::LogMessage(const QString &message, const QString &logFile, b
     return timestamp;
 }
 
-void MainWindow::handleSubFolderLineEditReturnPressed()
-{
-    m_subFolder = ui->subFolderLineEdit->text();
-    RestoreLineEditStyle(ui->subFolderLineEdit);
-}
-
 void MainWindow::handleFilePrefixLineEditReturnPressed()
 {
     m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
@@ -581,10 +565,6 @@ void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string 
     if (filePrefix.empty())
     {
         filePrefix = m_recPrefixLineEdit.toUtf8().constData();
-    }
-    if (subFolder.empty())
-    {
-        subFolder = m_subFolder.toStdString();
     }
     QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
     this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
@@ -878,11 +858,6 @@ void MainWindow::UpdateComponentEditedStyle(QLineEdit *lineEdit, const QString &
 void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
 {
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
-}
-
-void MainWindow::handleSubFolderLineEditTextEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->subFolderLineEdit, newText, m_subFolder);
 }
 
 void MainWindow::handleFilePrefixLineEditTextEdited(const QString &newText)
