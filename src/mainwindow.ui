@@ -486,7 +486,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QSlider" name="rgbNormSlider">
+                     <widget class="QSliderLabeled" name="rgbNormSlider">
                       <property name="toolTip">
                        <string>Select the normalizing factor for RGB noormalization</string>
                       </property>
@@ -508,6 +508,9 @@
                       <property name="tickPosition">
                        <enum>QSlider::TicksBelow</enum>
                       </property>
+                      <property name="tickInterval">
+                       <number>1</number>
+                      </property>
                      </widget>
                     </item>
                     <item>
@@ -524,7 +527,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QSlider" name="bandSlider">
+                     <widget class="QSliderLabeled" name="bandSlider">
                       <property name="toolTip">
                        <string>Select displayed spectral band</string>
                       </property>
@@ -575,7 +578,7 @@
                  </layout>
                 </item>
                 <item>
-                 <widget class="QSlider" name="exposureSlider">
+                 <widget class="QSliderLabeled" name="exposureSlider">
                   <property name="toolTip">
                    <string>Select exposure time</string>
                   </property>
@@ -1107,6 +1110,13 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QSliderLabeled</class>
+   <extends>QSlider</extends>
+   <header>widgets.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>filePrefixLineEdit</tabstop>
   <tabstop>subFolderLineEdit</tabstop>

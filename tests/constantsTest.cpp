@@ -2,8 +2,10 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
  *******************************************************/
-#include "src/constants.h"
+
 #include <gtest/gtest.h>
+
+#include "src/constants.h"
 
 TEST(CameraMapperTest, ReturnsNonEmptyMapper)
 {

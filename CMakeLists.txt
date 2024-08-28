@@ -119,6 +119,7 @@ set(XILENS_LIB_SRC src/mainwindow.cpp
         src/camera.cpp
         src/logger.cpp
         src/constants.cpp
+        src/widgets.cpp
 )
 set(XILENS_LIB_HDR src/mainwindow.h
         src/cameraInterface.h
@@ -130,6 +131,7 @@ set(XILENS_LIB_HDR src/mainwindow.h
         src/logger.h
         src/xiAPIWrapper.h
         src/constants.h
+        src/widgets.h
 )
 set(XILENS_LIB_UI src/mainwindow.ui)
 
@@ -137,6 +139,7 @@ qt6_wrap_cpp(XILENS_LIB_HDR_MOC ${XILENS_LIB_HDR})
 qt6_wrap_ui(XILENS_LIB_UI_MOC ${XILENS_LIB_UI})
 
 include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
 
 add_library(XILENS_LIB ${LIBTYPE}
