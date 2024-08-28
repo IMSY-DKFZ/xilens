@@ -173,13 +173,13 @@
                       <item>
                        <widget class="QLineEdit" name="baseFolderLineEdit">
                         <property name="toolTip">
-                         <string>Folder where all data is organized</string>
+                         <string>Folder where all data is stored</string>
                         </property>
                         <property name="readOnly">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="placeholderText">
-                         <string>Base folder where all recordings are saved</string>
+                         <string>Base folder where all data is stored</string>
                         </property>
                        </widget>
                       </item>
