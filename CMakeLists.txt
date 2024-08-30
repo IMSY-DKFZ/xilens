@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(xilens VERSION 0.2.1)
 
 #################################
-##### compiler fiddling     #####
+##### compiler flags        #####
 #################################
 
 set (CMAKE_CXX_STANDARD 11)
@@ -34,6 +34,15 @@ add_definitions("-DCMAKE_SYSTEM=\"${CMAKE_SYSTEM}\"")
 add_definitions("-DCMAKE_SYSTEM_PROCESSOR=\"${CMAKE_SYSTEM_PROCESSOR}\"")
 
 #################################
+##### Build type            #####
+#################################
+option(BUILD_STATIC "Build xilens as a static app" OFF)
+if(BUILD_STATIC)
+    set(LIBRARY_TYPE STATIC)
+else()
+    set(LIBRARY_TYPE SHARED)
+endif()
+#################################
 ##### coverage fiddling     #####
 #################################
 option(ENABLE_COVERAGE "Enable coverage" OFF)
@@ -46,63 +55,20 @@ endif()
 #################################
 ##### set external packages #####
 #################################
-
-# platform specific settings
-
-cmake_host_system_information(RESULT UBUNTU_VERSION QUERY OS_VERSION)
-message("Found OS_VERSION: ${UBUNTU_VERSION} in Ubuntu")
-
-IF (UBUNTU_VERSION MATCHES "20.04")
-    # needed when using ubuntu 20
-    message([STATUS] "UBUNTU version found ${UBUNTU_VERSION}")
-    set(CMAKE_CXX_FLAGS "-luuid")
-    # boost
-    find_package(Boost REQUIRED python system thread timer chrono log filesystem)
-    include_directories(${Boost_INCLUDE_DIRS})
-ELSE ()
-    # boost
-    find_package(Boost REQUIRED system thread timer chrono log filesystem)
-    include_directories(${Boost_INCLUDE_DIRS})
-ENDIF ()
-
-IF (WIN32)
-    # if on windows: enter the path to your qt here.
-    set(CMAKE_PREFIX_PATH "C:\\Qt\\5.6\\msvc2015_64\\")
-
-    set(Boost_USE_STATIC_LIBS ON)
-    set(Boost_USE_MULTITHREADED ON)
-    set(Boost_USE_STATIC_RUNTIME OFF)
-
-    # for some reason windows doesn't find the shared libaries
-    set(LIBTYPE STATIC)
-
-    # because of boost asio
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
-ELSE ()
-    set(LIBTYPE SHARED)
-    # apparently, the boost logging module needs the following.
-    # looks a little weird to me, shouldn't it be static?
-    # maybe, boost needs to be setup a little differently
-    add_definitions(-DBOOST_LOG_DYN_LINK)
-ENDIF ()
-
+# Boost
+find_package(Boost REQUIRED system thread timer chrono log filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
 # BLOSC2
 find_package(Blosc2 2.15.0 CONFIG REQUIRED)
-
 # Message pack for metadata serialization
 find_package(msgpack REQUIRED)
-
-# qt
+# Qt
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
-
-# opencv
+# OpenCV
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
 include_directories(${OpenCV_INCLUDE_DIRS})
-# boost
-find_package(Boost REQUIRED python system thread timer chrono log filesystem)
-include_directories(${Boost_INCLUDE_DIRS})
-# ximea (camera)
+# XIMEA API
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(Ximea REQUIRED)
 include_directories(${Ximea_INCLUDE_DIRS})

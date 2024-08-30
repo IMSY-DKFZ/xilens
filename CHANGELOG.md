@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Button to check if new cameras have been connected to the system.
 - LCD displayer to show frames per second that are stored to file while recording.
 - Custom QSliderLabeled widget to paint text marks on the slider.
+- Option to build xilens statically through cmake flag -DBUILD_STATIC.
 
 ### Changed
 

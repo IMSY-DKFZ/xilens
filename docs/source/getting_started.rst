@@ -6,6 +6,23 @@ Getting started
     In the future, you will need the ``CUDA`` library and drivers installed in your computer in order to use :code:`XiLens`.
     This is mainly because we are aiming at supporting the use of PyTorch models.
 
+Installing ``XiLens`` via ``apt``
+=================================
+You can install ``XiLens`` by downloading the corresponding ``.deb`` package from our `release page <https://github.com/IMSY-DKFZ/xilens/releases>`_.
+And then install it by doing:
+
+.. code::
+
+    sudo apt install ./xilens*.deb
+
+This will install ``XiLens`` and its dependencies that are available in ``apt``. ``XiLens`` still depends on ``BLOSC2``
+and XiAPI. Additional dependencies can be installed by running:
+
+.. code:: bash
+
+   chmod +x install_dependencies.sh
+   sudo ./install_dependencies.sh --user
+
 Build XiLens from source
 =========================
 
@@ -43,10 +60,14 @@ Finally, from the root directory of :code:`XiLens` do the following.
    ctest # to check that all tests pass
    sudo make install # installs the desktop app on the system and can be accessed from the app launcher
 
+.. note::
+
+    :code:`XiLens` can be built statically by adding a flag during configuration :code:`cmake -DBUILD_STATIC -DCMAKE_INSTALL_PREFIX=/usr ..`
+
 The application can be uninstalled from the system by doing :code:`sudo make uninstall` form the build directory
 
 Increase USB buffer limit
-=========================
+-------------------------
 .. important::
     After building ``XiLens``, you have to increase the buffer size for the
     data transfer via USB. This can be done every time you start your
@@ -88,11 +109,28 @@ Then you have to enable and start the service
 
 You should see that the service is marked as ``active``.
 
+Add user to :code:`pugdev` group
+--------------------------------
+After doing the following, you will have to log-out and log-in again for this tot ake effect.
+
+.. code:: bash
+
+   sudo usermod -aG plugdev $(whoami)
+
 Launching the application
 =========================
 After doing `sudo make install` from the build directory, the desktop app should be available through the app launcher
 of your system.
 Alternatively, you can run :code:`./xilens` from the build directory in a  terminal.
+
+Uninstalling :code:`XiLens`
+===========================
+If you installed `XiLens` with the `.deb` package, then you can uninstall it by doing :code:`sudo apt uninstall xilens`.
+If you build the app from source, you can uninstall it by doing the following from the directory where XiLens was built.
+
+.. code:: bash
+
+    sudo make uninstall
 
 Docker image
 ==================

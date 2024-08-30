@@ -26,7 +26,8 @@ that can be used to record data from all the **XIMEA** camera families.
 
 Getting started
 ===============
-Installing dependencies, building :code:`XiLens` and how to use :code:`XiLens` is all introduced in the getting started section:
+Installing ``XiLens`` and its dependencies, building :code:`XiLens` from source and launching it, is all introduced in
+the getting started section:
 
 .. toctree::
     :maxdepth: 1
