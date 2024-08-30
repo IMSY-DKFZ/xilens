@@ -105,20 +105,6 @@ class DisplayerFunctional : public Displayer
      */
     MainWindow *m_mainWindow;
 
-    /**
-     * @brief Creates windows where images are displayed
-     *
-     * @see DisplayerFunctional::DestroyWindows
-     */
-    void CreateWindows() override;
-
-    /**
-     * Destroys windows created by CreateWindows
-     *
-     * @see DisplayerFunctional::CreateWindows
-     */
-    void DestroyWindows() override;
-
   public slots:
 
     /**
@@ -147,14 +133,6 @@ class DisplayerFunctional : public Displayer
      * @param image Image to be run through the network
      */
     void RunNetwork(XI_IMG &image);
-
-    /**
-     * @brief Displays image on screen
-     *
-     * @param image the image to be displayed
-     * @param windowName the name of the window for displaying
-     */
-    void DisplayImage(cv::Mat &image, const std::string windowName);
 
     /**
      * explicit mutex declaration
@@ -212,25 +190,15 @@ class DisplayerFunctional : public Displayer
      * @param bgr_image The output BGR image.
      */
     void GetBGRImage(cv::Mat &image, cv::Mat &rgb_image);
-};
 
-/**
- * @brief Prepares a functional image for display.
- *
- * The PrepareFunctionalImage function prepares a functional image for display.
- * It performs scaling, clamping, rescaling, and applies a colormap to the
- * image.
- *
- * @param functional_image The functional image that needs to be prepared for
- * display.
- * @param displayImage The type of display image (RAW, RGB, VHB, OXY).
- * @param do_scaling A flag indicating whether scaling should be applied to the
- * image.
- * @param bounds The range of values for clamping and scaling the image.
- * @param colormap The colormap type to be applied to the image.
- */
-void PrepareFunctionalImage(cv::Mat &functional_image, DisplayImageType displayImage, bool do_scaling, cv::Range bounds,
-                            int colormap);
+    /**
+     * Initializes a channel image based on the raw image.
+     *
+     * @param image The raw image
+     * @return Image filled with 0's with a size capable of holding a band image after demosaic operation is applied
+     */
+    cv::Mat InitializeBandImage(cv::Mat &image);
+};
 
 /**
  * @brief Normalize and convert an input BGR image to 8-bit unsigned integer

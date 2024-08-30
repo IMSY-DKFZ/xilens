@@ -557,6 +557,8 @@ migrated
 **/*.blosc
 **/*.model
 **/*.png
+!resources/icon.png
+!resources/logo.png
 **/*.pkl
 **/*.pdf
 **/*.lprof

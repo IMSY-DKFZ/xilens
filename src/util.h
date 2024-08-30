@@ -8,6 +8,7 @@
 #include <b2nd.h>
 #include <xiApi.h>
 
+#include <QMap>
 #include <QString>
 #include <boost/log/trivial.hpp>
 #include <cstdio>
@@ -79,6 +80,12 @@ class FileImage
     std::vector<std::string> m_timeStamp;
 
     /**
+     * additional metadata to append to the NDArrays. Each vector will be appended to the vl metadata of the array
+     * using the key of the map as identifier.
+     */
+    QMap<QString, std::vector<float>> m_additionalMetadata;
+
+    /**
      * path to file location
      */
     char *filePath;
@@ -107,8 +114,9 @@ class FileImage
     /**
      * Writes the content of an image into a file in UINT16 format
      * @param image Ximea image where data is stored
+     * @param additionalMetadata Additional metadata to be stored in the array
      */
-    void write(XI_IMG image);
+    void write(XI_IMG image, QMap<QString, float> additionalMetadata);
 
     /**
      * Appends metadata to BLOSC ND array. This method should be called before
@@ -117,14 +125,6 @@ class FileImage
      */
     void AppendMetadata();
 };
-
-// variables where git repo variables are stored
-extern "C"
-{
-    extern const char *GIT_TAG;
-    extern const char *GIT_REV;
-    extern const char *GIT_BRANCH;
-}
 
 /**
  * Appends variable length metadata to a BLOSC n-dimensional array
@@ -152,24 +152,6 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
  * @return string representing the color filter array
  */
 std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
-
-/**
- * Queries Git tag
- * @return git tag
- */
-const char *libfiveGitVersion(void);
-
-/**
- * Queries Git revision number
- * @return git revision
- */
-const char *libfiveGitRevision(void);
-
-/**
- * Queries Git branch name
- * @return git branch name
- */
-const char *libfiveGitBranch(void);
 
 /**
  * Initializes the logging by setting a severity
@@ -215,6 +197,7 @@ struct CommandLineArguments
     std::string dark_file;
     std::string output_folder;
     bool test_mode;
+    bool version;
 };
 
 /**
@@ -226,7 +209,7 @@ struct CommandLineArguments
 void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
 
 /**
- * Generates a timestamp with the format :code:`yyyyMMdd_hh-mm-ss-zzz`
+ * Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`
  *
  * @return
  */

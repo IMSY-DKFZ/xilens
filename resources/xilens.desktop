@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=xilens
+GenericName=Surgical Spectral Imaging Camera
+Comment=Application to record spectral data
+Exec=xilens
+Icon=xilens.png
+Terminal=True
+Type=Application
+Categories=Qt;Utility;
+Keywords=Qt;xilens;
+StartupNotify=true

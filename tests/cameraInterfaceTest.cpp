@@ -14,10 +14,21 @@ TEST(CameraInterfaceTest, SetCameraTypeTest)
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
-    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
-    cameraInterface.SetCameraProperties(testCameraModel);
+    QString cameraIdentifier = "MQ022HG-IM-SM4X4-VIS3";
+    cameraInterface.m_availableCameras[cameraIdentifier] = 0;
+    cameraInterface.SetCameraProperties(cameraIdentifier);
 
     ASSERT_EQ(cameraInterface.m_cameraType, CAMERA_TYPE_SPECTRAL);
+}
+
+TEST(CameraInterfaceTest, SetWrongCameraPropertiesTest)
+{
+    std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
+    CameraInterface cameraInterface;
+    cameraInterface.m_apiWrapper = apiWrapper;
+    QString cameraIdentifier = "FakeCameraModel";
+    cameraInterface.m_availableCameras[cameraIdentifier] = 0;
+    EXPECT_THROW(cameraInterface.SetCameraProperties(cameraIdentifier), std::runtime_error);
 }
 
 TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle)
@@ -26,9 +37,10 @@ TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle)
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
     cameraInterface.setCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
-    QString testCameraModel = "MQ022HG-IM-SM4X4-VIS3";
+    QString cameraIdentifier = "MockDeviceModel@MockSensorSN";
+    cameraInterface.m_availableCameras[cameraIdentifier] = 0;
 
-    EXPECT_THROW(cameraInterface.StartAcquisition(testCameraModel), std::runtime_error);
+    EXPECT_THROW(cameraInterface.StartAcquisition(cameraIdentifier), std::runtime_error);
 }
 
 TEST(CameraInterfaceTest, StartAcquisition_StartSuccess)
@@ -39,7 +51,8 @@ TEST(CameraInterfaceTest, StartAcquisition_StartSuccess)
     cameraInterface.m_cameraHandle = cameraHandle;
     cameraInterface.m_apiWrapper = apiWrapper;
     cameraInterface.setCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
-    QString camera_identifier = "TestType";
+    QString cameraIdentifier = "MockDeviceModel@MockSensorSN";
+    cameraInterface.m_availableCameras[cameraIdentifier] = 0;
 
-    EXPECT_NO_THROW(cameraInterface.StartAcquisition(camera_identifier));
+    EXPECT_NO_THROW(cameraInterface.StartAcquisition(cameraIdentifier));
 }

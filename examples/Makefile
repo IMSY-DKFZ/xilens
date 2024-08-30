@@ -14,5 +14,9 @@ cameraSpeed:
 	$(CXX) -g -c cameraSpeed.cpp -o cameraSpeed.o
 	$(CXX) -g cameraSpeed.o -o cameraSpeed -lm3api
 
+accessManifest:
+	$(CXX) -g -c accessManifest.cpp -o accessManifest.o
+	$(CXX) -g accessManifest.o -o accessManifest -lm3api
+
 clean:
 	rm -f *.o $(PROGRAMS)

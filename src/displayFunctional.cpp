@@ -28,30 +28,10 @@ typedef cv::Point3_<uint8_t> Pixel;
 
 DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow)
 {
-    CreateWindows();
 }
 
 DisplayerFunctional::~DisplayerFunctional()
 {
-    DestroyWindows();
-}
-
-void PrepareFunctionalImage(cv::Mat &functional_image, [[maybe_unused]] DisplayImageType displayImage, bool do_scaling,
-                            cv::Range bounds, int colormap)
-{
-    if (do_scaling)
-    {
-        functional_image *= 100;
-        // set first and second pixel to extreme values so the colormap is always
-        // scaled the same
-        functional_image.at<float>(0, 0) = bounds.start;
-        functional_image.at<float>(0, 1) = bounds.end;
-        clamp(functional_image, bounds);
-    }
-
-    rescale(functional_image, 255.);
-    functional_image.convertTo(functional_image, CV_8UC1);
-    applyColorMap(functional_image, functional_image, colormap);
 }
 
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm)
@@ -87,11 +67,6 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
     cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
 }
 
-bool IsFunctional(DisplayImageType displayImageType)
-{
-    return (displayImageType == OXY || displayImageType == VHB);
-}
-
 void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist)
 {
     cv::Mat mask = raw_image.clone();
@@ -103,37 +78,32 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
     }
     cvtColor(raw_image, raw_image, cv::COLOR_GRAY2RGB);
 
-    // Parallel execution on each pixel using C++11 lambda.
-    raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
-        if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
-        {
-            p.x = SATURATION_COLOR[0];
-            p.y = SATURATION_COLOR[1];
-            p.z = SATURATION_COLOR[2];
-        }
-        else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
-        {
-            p.x = DARK_COLOR[0];
-            p.y = DARK_COLOR[1];
-            p.z = DARK_COLOR[2];
-        }
-    });
-}
-
-void DisplayerFunctional::DisplayImage(cv::Mat &image, const std::string windowName)
-{
-    if (image.channels() != 1 && image.channels() != 3)
+    if (m_mainWindow->IsSaturationButtonChecked())
     {
-        throw std::runtime_error("number of channels need to be either 1 or 3");
+        // Parallel execution on each pixel using C++11 lambda.
+        raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
+            if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
+            {
+                p.x = SATURATION_COLOR[0];
+                p.y = SATURATION_COLOR[1];
+                p.z = SATURATION_COLOR[2];
+            }
+            else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
+            {
+                p.x = DARK_COLOR[0];
+                p.y = DARK_COLOR[1];
+                p.z = DARK_COLOR[2];
+            }
+        });
     }
-
-    cv::Size newSize(image.size().width, image.size().height);
-    cv::resize(image, image, newSize);
-    cv::imshow(windowName.c_str(), image);
 }
 
 void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr)
 {
+    if (band_nr < 1 || band_nr > (this->m_mosaicShape[0] * this->m_mosaicShape[1]))
+    {
+        throw std::out_of_range("Band number is out of the expected range.");
+    }
     // compute location of first value
     int init_col = (band_nr - 1) % this->m_mosaicShape[0];
     int init_row = (band_nr - 1) / this->m_mosaicShape[1];
@@ -189,8 +159,7 @@ void DisplayerFunctional::Display(XI_IMG &image)
 
             if (m_cameraType == CAMERA_TYPE_SPECTRAL)
             {
-                rawImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
-                                          currentImage.cols / this->m_mosaicShape[1], CV_16UC1);
+                rawImage = InitializeBandImage(currentImage);
                 this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
                 bgrImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
                                           currentImage.cols / this->m_mosaicShape[1], CV_8UC3);
@@ -212,25 +181,23 @@ void DisplayerFunctional::Display(XI_IMG &image)
                 bgrImage = currentImage.clone();
                 if (image.color_filter_array == XI_CFA_BAYER_GBRG)
                 {
-                    cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2RGB);
+                    cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
                 }
                 else
                 {
-                    LOG_SUSICAM(error) << "Could not interpret filter array of type: " << image.color_filter_array;
+                    LOG_XILENS(error) << "Could not interpret filter array of type: " << image.color_filter_array;
                 }
 
                 bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
             }
             else
             {
-                LOG_SUSICAM(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+                LOG_XILENS(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
                 throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
             }
             cv::Mat raw_image_to_display = rawImage.clone();
             DownsampleImageIfNecessary(raw_image_to_display);
             this->PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
-            DisplayImage(raw_image_to_display, DISPLAY_WINDOW_NAME);
-
             // display BGR image
             DownsampleImageIfNecessary(bgrImage);
             if (m_mainWindow->GetNormalize())
@@ -241,9 +208,13 @@ void DisplayerFunctional::Display(XI_IMG &image)
             {
                 PrepareBGRImage(bgrImage, m_mainWindow->GetBGRNorm());
             }
-            DisplayImage(bgrImage, BGR_WINDOW_NAME);
             // update saturation displays
             m_mainWindow->UpdateSaturationPercentageLCDDisplays(rawImage);
+
+            // display images for RGB and Raw
+            m_mainWindow->UpdateRGBImage(bgrImage);
+
+            m_mainWindow->UpdateRawImage(raw_image_to_display);
         }
     }
 }
@@ -253,8 +224,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     std::vector<cv::Mat> channels;
     for (int i : m_bgr_channels)
     {
-        cv::Mat band_image =
-            cv::Mat::zeros(image.rows / this->m_mosaicShape[0], image.cols / this->m_mosaicShape[1], CV_16UC1);
+        cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
         channels.push_back(band_image);
     }
@@ -265,29 +235,25 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     }
     catch (const cv::Exception &e)
     {
-        LOG_SUSICAM(error) << "OpenCV error: " << e.what();
+        LOG_XILENS(error) << "OpenCV error: " << e.what();
     }
+}
+
+cv::Mat DisplayerFunctional::InitializeBandImage(cv::Mat &image)
+{
+    int band_rows = (image.rows + m_mosaicShape[0] - 1) / m_mosaicShape[0]; // Using ceiling division
+    int band_cols = (image.cols + m_mosaicShape[1] - 1) / m_mosaicShape[1]; // Using ceiling division
+    cv::Mat band_image = cv::Mat::zeros(band_rows, band_cols, CV_16UC1);
+    return band_image;
 }
 
 void DisplayerFunctional::SetCameraProperties(QString cameraModel)
 {
-    QString cameraType = CAMERA_MAPPER.value(cameraModel).cameraType;
-    this->m_cameraType = std::move(cameraType);
-    auto mosaicShape = CAMERA_MAPPER.value(cameraModel).mosaicShape;
-    this->m_mosaicShape = std::move(mosaicShape);
-}
-
-void DisplayerFunctional::CreateWindows()
-{
-    // create windows to display result
-    cv::namedWindow(DISPLAY_WINDOW_NAME, cv::WINDOW_NORMAL);
-    cv::namedWindow(BGR_WINDOW_NAME, cv::WINDOW_NORMAL);
-
-    cv::moveWindow(DISPLAY_WINDOW_NAME, 900, 10);
-    cv::moveWindow(BGR_WINDOW_NAME, 2024 + 11, 10);
-}
-
-void DisplayerFunctional::DestroyWindows()
-{
-    cv::destroyAllWindows();
+    if (!getCameraMapper().contains(cameraModel))
+    {
+        LOG_XILENS(error) << "Could not find camera model in Mapper: " << cameraModel.toStdString();
+        throw std::runtime_error("Could not find camera in Mapper");
+    }
+    this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
+    this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }

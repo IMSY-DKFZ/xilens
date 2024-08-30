@@ -3,8 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_CAMERA_H
-#define SUSICAM_CAMERA_H
+#ifndef XILENS_CAMERA_H
+#define XILENS_CAMERA_H
 
 #include <xiApi.h>
 
@@ -167,6 +167,26 @@ class XiQFamily : public CameraFamily
      */
     void UpdateCameraTemperature() override;
 };
+
+/**
+ * XiB camera family
+ */
+using XiBFamily = XiCFamily;
+
+/**
+ * XiB64 camera family
+ */
+using XiB64Family = XiCFamily;
+
+/**
+ * XiRAY camera family
+ */
+using XiRAYFamily = XiCFamily;
+
+/**
+ * XiX camera family
+ */
+using XiXFamily = XiCFamily;
 
 /**
  * Base camera class
@@ -339,4 +359,4 @@ class RGBCamera : public Camera
     int InitializeCamera() override;
 };
 
-#endif // SUSICAM_CAMERA_H
+#endif // XILENS_CAMERA_H

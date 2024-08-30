@@ -9,17 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- pre-commit hooks
-- Documentation build using sphinx and breath.
-- editorconfig
-- CMAKE script to find XIMEA API library automatically
-- install and uninstall targets
-- Creates simple examples in examples/
-
+-
 
 ### Changed
 
-- Bumped BLOSC2 version
+-
 
 ### Removed
 
@@ -28,6 +22,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -
+
+## [0.2.1]
+
+### Added
+
+- pre-commit hooks.
+- Documentation build using sphinx and breath.
+- editorconfig.
+- CMAKE script to find XIMEA API library automatically.
+- install and uninstall targets
+- Creates simple examples in `examples`.
+- --version flag to print version and build information.
+- Tool button to display and hide saturation overlay on graphics.
+- Logs camera temperature to images VLMetadata.
+- Button to check if new cameras have been connected to the system.
+- LCD displayer to show frames per second that are stored to file while recording.
+- Custom QSliderLabeled widget to paint text marks on the slider.
+- Option to build xilens statically through cmake flag -DBUILD_STATIC.
+
+### Changed
+
+- Bumped BLOSC2 version.
+- Bumped the version of CLI11 to 2.4.2.
+- Disallows automatic connections between slots and signals and creates connections explicitly.
+- Logger prints file path instead of just file name.
+- Makes base folder line edit as editable such that base folder can be selected from dialog or by writing the path.
+
+### Removed
+
+- Unused `RunNetwork` method.
+- Removes base folder from the UI.
+
+### Fixed
+
+- Recording on an existing file.
+- Potential overflow on multiplication operations.
 
 ## [0.2.0]
 

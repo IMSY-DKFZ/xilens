@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Ayala"
+  given-names: "Leonardo"
+  orcid: "https://orcid.org/0000-0002-3574-2085"
+- family-names: "Wirkert"
+  given-names: "Sebastian"
+- family-names: "Vemuri"
+  given-names: "Anant"
+- family-names: "Maier-Hein"
+  given-names: "Lena"
+title: "XiLens"
+version: 0.2.1
+url: "https://github.com/IMSY-DKFZ/xilens"
+doi: 10.5281/zenodo.13305567

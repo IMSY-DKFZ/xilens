@@ -1,0 +1,764 @@
+{
+   "CB120CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB120MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB200CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB200MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB500CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB500MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB013CG-LX-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB013MG-LX-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB019CG-LX-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB019MG-LX-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB120CG-CM-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB120MG-CM-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB160CG-LX-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB160MG-LX-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB262CG-GP-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB262MG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB262RG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB654CG-GP-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "CB654MG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiB-64",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC023CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC023MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC031CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC031MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC050CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC050MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC050MG-SY-UB": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC051CG-SY-PG4": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC051CG-SY-PG4-UB-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC051MG-SY-PG4": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC051MG-SY-PG4-UB-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC081CG-SY-PG4": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC081CG-SY-PG4-UB-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC081MG-SY-PG4": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC081MG-SY-PG4-UB-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC089CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC089MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124CG-SY-PG4": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124CG-SY-PG4-UB-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124MG-SY-PG4": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC124MG-SY-PG4-UB-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC161CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC161CG-SY-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC161MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC161MG-SY-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC203CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC203CG-SY-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC203MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC203MG-SY-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC245CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC245CG-SY-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC245MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MC245MG-SY-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiC",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ003CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ003MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013CG-E2-S7": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013CG-ON-S7": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013MG-E2-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013MG-ON-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013RG-E2-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ013RG-ON-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ022CG-CM-S7": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ022MG-CM-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ022RG-CM-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ042CG-CM-S7": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ042MG-CM-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ042RG-CM-S7": {
+    "cameraType": "gray",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX377XR-GP-F1-FA-CSI": {
+    "cameraType": "gray",
+    "cameraFamily": "xiRAY",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX610XR-SY-FA-GO": {
+    "cameraType": "gray",
+    "cameraFamily": "xiRAY",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX610XR-SY-TP2:1-GO": {
+    "cameraType": "gray",
+    "cameraFamily": "xiRAY",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX610XR-SY-X4G3-TP1.5:1-C": {
+    "cameraType": "gray",
+    "cameraFamily": "xiRAY",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MQ022HG-IM-SM4X4-VIS": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4
+  },
+  "MQ022HG-IM-SM5X5-NIR2": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5
+  },
+  "MQ022HG-IM-SM4X4-RN2": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4
+  },
+  "MQ022HG-IM-SM4X4-VIS3": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4
+  },
+  "MX022CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX022MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX022RG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX023CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX023MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX031CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX031MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX042CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX042MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX042RG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX050CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX050MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX051CG-SY-PG4-X2G2": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX051CG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX051MG-SY-PG4-X2G2": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX051MG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX081CG-SY-PG4-X2G2": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX081CG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX081MG-SY-PG4-X2G2": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX081MG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX089CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX089MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX120CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX120MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124CG-SY-PG4-X2G2": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124CG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124MG-SY-PG4-X2G2": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX124MG-SY-PG4-X2G2-FL-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX161CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX161CG-SY-X2G2-Fx-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX161MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX161MG-SY-X2G2-Fx-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX200CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX200MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX203CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX203CG-SY-X2G2-Fx-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX203MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX203MG-SY-X2G2-Fx-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX245CG-SY": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX245CG-SY-X2G2-Fx-HDR": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX245MG-SY": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX245MG-SY-X2G2-Fx-HDR": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX262CG-GP-X8G3": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX262MG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX262RG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX500CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX500MG-CM": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX654CG-GP-X8G3-FF": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
+  "MX654MG-GP-X8G3": {
+    "cameraType": "gray",
+    "cameraFamily": "xiX",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  }
+}

@@ -9,7 +9,6 @@
 
 #include "mocks.h"
 #include "src/displayFunctional.h"
-#include "src/displayRaw.h"
 
 /**
  * Test that creating the functional displayer and displaying a fake image does
@@ -28,25 +27,6 @@ TEST(DisplayerFunctional, DisplayImage)
     image->bp = new unsigned char[image->width * image->height * 2]();
 
     EXPECT_NO_THROW(df.Display(*image));
-    delete[] static_cast<unsigned char *>(image->bp);
-    delete image;
-}
-
-/**
- * Test that creating the functional displayer and displaying a fake image does
- * not fail
- */
-TEST(DisplayerRaw, DisplayImage)
-{
-    MockDisplayerRaw dr;
-    dr.m_cameraType = CAMERA_TYPE_GRAY;
-
-    auto *image = new XI_IMG;
-    image->width = 4 * 512;
-    image->height = 4 * 272;
-    image->bp = new unsigned char[image->width * image->height * 2]();
-
-    EXPECT_NO_THROW(dr.Display(*image));
     delete[] static_cast<unsigned char *>(image->bp);
     delete image;
 }

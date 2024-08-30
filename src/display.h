@@ -34,10 +34,6 @@ class Displayer : public QObject
     void StartDisplayer();
 
   protected:
-    virtual void CreateWindows() = 0;
-
-    virtual void DestroyWindows() = 0;
-
     bool m_stop = false;
 
   public slots:

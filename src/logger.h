@@ -2,8 +2,8 @@
  * Author: Intelligent Medical Systems
  * License: see LICENSE.md file
  *******************************************************/
-#ifndef SUSICAM_LOGGER_H
-#define SUSICAM_LOGGER_H
+#ifndef XILENS_LOGGER_H
+#define XILENS_LOGGER_H
 
 #include <boost/filesystem.hpp>
 #include <boost/log/attributes/constant.hpp>
@@ -29,15 +29,17 @@ enum my_severity_level
 
 namespace logging = boost::log;
 
-typedef logging::sources::severity_channel_logger_mt<logging::trivial::severity_level> SUSICAM_LOGGER;
+typedef logging::sources::severity_channel_logger_mt<logging::trivial::severity_level> XILENS_LOGGER;
 
-BOOST_LOG_GLOBAL_LOGGER(my_logger, SUSICAM_LOGGER)
+BOOST_LOG_GLOBAL_LOGGER(my_logger, XILENS_LOGGER)
 
 /**
  * Defines custom logger that includes filenames, functions and line numbers
  */
-#define LOG_SUSICAM(lvl)                                                                                               \
-    BOOST_LOG_CHANNEL_SEV(my_logger::get(), "SUSICAM", logging::trivial::lvl)                                          \
-        << boost::filesystem::path(__FILE__).filename().string() << "@" << (__LINE__) << ":" << (__FUNCTION__) << "\t"
+#define LOG_XILENS(lvl)                                                                                                \
+    BOOST_LOG_CHANNEL_SEV(my_logger::get(), "XILENS", logging::trivial::lvl)                                           \
+        << __FILE__ << ":" << (__LINE__) << " @ " << (__FUNCTION__) << "\t"
 
-#endif // SUSICAM_LOGGER_H
+#define HANDLE_CONNECTION_RESULT(status) HandleConnectionResult(status, __FILE__, __LINE__, __FUNCTION__)
+
+#endif // XILENS_LOGGER_H

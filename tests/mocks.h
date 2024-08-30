@@ -3,13 +3,12 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#ifndef SUSICAM_MOCKS_H
-#define SUSICAM_MOCKS_H
+#ifndef XILENS_MOCKS_H
+#define XILENS_MOCKS_H
 
 #include <xiApi.h>
 
 #include "src/displayFunctional.h"
-#include "src/displayRaw.h"
 #include "src/mainwindow.h"
 #include "src/xiAPIWrapper.h"
 
@@ -22,6 +21,20 @@ class MockXiAPIWrapper : public XiAPIWrapper
   public:
     int xiGetParamString(IN HANDLE hDevice, const char *prm, void *val, DWORD size) override
     {
+        const char *mockDeviceName = "MockDeviceModel";
+        const char *mockSensorSN = "MockSensorSN";
+        if (std::strcmp(prm, XI_PRM_DEVICE_NAME) == 0)
+        {
+            std::strncpy(static_cast<char *>(val), mockDeviceName, size - 1);
+            // Ensure null termination
+            static_cast<char *>(val)[size - 1] = '\0';
+        }
+        else if (std::strcmp(prm, XI_PRM_DEVICE_SENS_SN) == 0)
+        {
+            std::strncpy(static_cast<char *>(val), mockSensorSN, size - 1);
+            // Ensure null termination
+            static_cast<char *>(val)[size - 1] = '\0';
+        }
         return 0;
     }
 
@@ -108,19 +121,4 @@ class MockDisplayerFunctional : public DisplayerFunctional
     ~MockDisplayerFunctional() override = default;
 };
 
-/**
- * Mock of the Functional displayer class to be able to test it without needing
- * the camera
- */
-class MockDisplayerRaw : public DisplayerRaw
-{
-  public:
-    MockDisplayerRaw() : DisplayerRaw()
-    {
-        m_mainWindow = new MockMainWindow();
-    };
-
-    ~MockDisplayerRaw() override = default;
-};
-
-#endif // SUSICAM_MOCKS_H
+#endif // XILENS_MOCKS_H
