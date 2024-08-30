@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+## [0.2.1]
+
+### Added
+
 - pre-commit hooks.
 - Documentation build using sphinx and breath.
 - editorconfig.
