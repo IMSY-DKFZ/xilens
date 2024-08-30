@@ -1,17 +1,21 @@
+#-----------------------------------------------------------------------------------------------------------------------
+# Author: Intelligent Medical Systems
+# License: see LICENSE.md file
+#-----------------------------------------------------------------------------------------------------------------------
+# CMake project configuration
+#-----------------------------------------------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.5)
 project(xilens VERSION 0.2.1)
 
-#################################
-##### compiler flags        #####
-#################################
+#-----------------------------------------------------------------------------------------------------------------------
+# Language definitions
+#-----------------------------------------------------------------------------------------------------------------------
 
 set (CMAKE_CXX_STANDARD 11)
 
-#################################
-##### definitions           #####
-#################################
-
-# Add definitions for project build details
+#-----------------------------------------------------------------------------------------------------------------------
+# Package variable definitions
+#-----------------------------------------------------------------------------------------------------------------------
 # build date definitions
 string(TIMESTAMP CURRENT_DATETIME "%Y-%m-%d %H:%M:%S")
 add_definitions("-DBUILD_TIMESTAMP=\"${CURRENT_DATETIME}\"")
@@ -33,18 +37,19 @@ add_definitions("-DGIT_COMMIT=\"${GIT_COMMIT}\"")
 add_definitions("-DCMAKE_SYSTEM=\"${CMAKE_SYSTEM}\"")
 add_definitions("-DCMAKE_SYSTEM_PROCESSOR=\"${CMAKE_SYSTEM_PROCESSOR}\"")
 
-#################################
-##### Build type            #####
-#################################
+#-----------------------------------------------------------------------------------------------------------------------
+# Build type
+#-----------------------------------------------------------------------------------------------------------------------
 option(BUILD_STATIC "Build xilens as a static app" OFF)
 if(BUILD_STATIC)
     set(LIBRARY_TYPE STATIC)
 else()
     set(LIBRARY_TYPE SHARED)
 endif()
-#################################
-##### coverage fiddling     #####
-#################################
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Test coverage fiddling
+#-----------------------------------------------------------------------------------------------------------------------
 option(ENABLE_COVERAGE "Enable coverage" OFF)
 if(ENABLE_COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
@@ -52,14 +57,14 @@ if(ENABLE_COVERAGE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
 endif()
 
-#################################
-##### set external packages #####
-#################################
+#-----------------------------------------------------------------------------------------------------------------------
+# Find external packages
+#-----------------------------------------------------------------------------------------------------------------------
 # Boost
 find_package(Boost REQUIRED system thread timer chrono log filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 # BLOSC2
-find_package(Blosc2 2.15.0 CONFIG REQUIRED)
+find_package(Blosc2 2.15.1 CONFIG REQUIRED)
 # Message pack for metadata serialization
 find_package(msgpack REQUIRED)
 # Qt
@@ -73,9 +78,9 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(Ximea REQUIRED)
 include_directories(${Ximea_INCLUDE_DIRS})
 
-######################
-##### xilensLib #####
-######################
+#-----------------------------------------------------------------------------------------------------------------------
+# XiLens library build
+#-----------------------------------------------------------------------------------------------------------------------
 set(XILENS_LIB_SRC src/mainwindow.cpp
         src/cameraInterface.cpp
         src/display.cpp
@@ -120,9 +125,9 @@ target_link_libraries(XILENS_LIB ${Boost_LIBRARIES})
 target_link_libraries(XILENS_LIB ${Ximea_LIBRARIES})
 target_link_libraries(XILENS_LIB Blosc2::blosc2_shared)
 
-###################
-##### XiLens #####
-###################
+#-----------------------------------------------------------------------------------------------------------------------
+# XiLens executable
+#-----------------------------------------------------------------------------------------------------------------------
 set(XILENS_BIN_SRC src/CLI.cpp src/CLI11.h)
 qt6_add_resources(XILENS_BIN_SRC resources/resources.qrc)
 qt6_add_resources(XILENS_BIN_SRC resources/theme_resources.qrc)
@@ -130,9 +135,9 @@ add_executable(xilens ${XILENS_BIN_SRC})
 target_link_libraries(xilens XILENS_LIB)
 file(COPY resources/XiLensCameraProperties.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-#################################
-##### Install and uninstall #####
-#################################
+#-----------------------------------------------------------------------------------------------------------------------
+# Install and uninstall
+#-----------------------------------------------------------------------------------------------------------------------
 # Setup the installation target
 install(TARGETS xilens XILENS_LIB
         RUNTIME DESTINATION bin
@@ -150,15 +155,13 @@ configure_file(
 add_custom_target(uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-#####################
-### Google Tests ####
-#####################
+#-----------------------------------------------------------------------------------------------------------------------
+# Google Tests
+#-----------------------------------------------------------------------------------------------------------------------
 find_package(GTest REQUIRED)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
 enable_testing()
-
 add_executable(
         XILENS_TESTS
         tests/main.cpp
@@ -173,13 +176,12 @@ add_executable(
         ${XILENS_LIB_UI_MOC}
 )
 target_link_libraries(XILENS_TESTS GTest::gtest_main XILENS_LIB Blosc2::blosc2_shared)
-
 include(GoogleTest)
 gtest_discover_tests(XILENS_TESTS)
 
-#####################
-### DEB package  ####
-#####################
+#-----------------------------------------------------------------------------------------------------------------------
+# Packaging
+#-----------------------------------------------------------------------------------------------------------------------
 include(InstallRequiredSystemLibraries)
 file(STRINGS user-requirements.txt deps)
 string(REPLACE ";" ", " deps "${deps}")

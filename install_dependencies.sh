@@ -23,7 +23,7 @@ cd ..
 # install BLOSC2
 git clone https://github.com/Blosc/c-blosc2.git
 cd c-blosc2 || exit
-git checkout v2.15.0
+git checkout v2.15.1
 mkdir build
 cd build || exit
 cmake -DCMAKE_INSTALL_PREFIX=/usr .. && \
