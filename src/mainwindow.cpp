@@ -318,6 +318,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
         return;
     }
 
+    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
     this->DisplayCameraTemperature();
 
     // Reset timer
@@ -328,6 +329,8 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
 
 void MainWindow::StartTemperatureThread()
 {
+    // Initial temperature update to ensure that it is populated before recordings start.
+    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
     if (m_temperatureThread.joinable())
     {
         StopTemperatureThread();
@@ -459,7 +462,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::handleBaseFolderButtonClicked()
 {
     bool isValid = false;
-    this->StopTemperatureThread();
     while (!isValid)
     {
         QString baseFolderPath = QFileDialog::getExistingDirectory(
@@ -477,7 +479,6 @@ void MainWindow::handleBaseFolderButtonClicked()
             }
         }
     }
-    this->StartTemperatureThread();
 }
 
 void MainWindow::WriteLogHeader()
