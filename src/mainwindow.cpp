@@ -459,7 +459,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::handleBaseFolderButtonClicked()
 {
     bool isValid = false;
-    this->StopTemperatureThread();
     while (!isValid)
     {
         QString baseFolderPath = QFileDialog::getExistingDirectory(
@@ -477,7 +476,6 @@ void MainWindow::handleBaseFolderButtonClicked()
             }
         }
     }
-    this->StartTemperatureThread();
 }
 
 void MainWindow::WriteLogHeader()
