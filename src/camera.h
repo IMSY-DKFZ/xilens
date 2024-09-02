@@ -6,10 +6,10 @@
 #ifndef XILENS_CAMERA_H
 #define XILENS_CAMERA_H
 
-#include <xiApi.h>
-
 #include <QMap>
 #include <QString>
+#include <boost/thread.hpp>
+#include <xiApi.h>
 
 #include "constants.h"
 #include "xiAPIWrapper.h"
@@ -21,6 +21,12 @@ class CameraFamily
      * Camera identifier used by API to communicate with camera
      */
     HANDLE *m_cameraHandle;
+
+    /**
+     * Mutex used to lock access to variables like the camera temperature, this allows updating temperature from
+     * multiple threads.
+     */
+    boost::mutex mtx_;
 
   public:
     explicit CameraFamily(HANDLE *handle) : m_cameraHandle(handle)
