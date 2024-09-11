@@ -26,7 +26,7 @@ class CameraFamily
      * Mutex used to lock access to variables like the camera temperature, this allows updating temperature from
      * multiple threads.
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexCameraTemperature;
 
   public:
     explicit CameraFamily(HANDLE *handle) : m_cameraHandle(handle)
@@ -90,7 +90,7 @@ class CameraFamily
     /*
      * Queries camera temperature
      */
-    QMap<QString, float> getCameraTemperature();
+    QMap<QString, float> GetCameraTemperature();
 };
 
 /**
@@ -212,7 +212,7 @@ class Camera
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    Camera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : family(family), m_cameraHandle(handle)
+    Camera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : m_cameraFamily(family), m_cameraHandle(handle)
     {
     }
 
@@ -224,7 +224,7 @@ class Camera
     /**
      * Unique pointer to camera family
      */
-    std::unique_ptr<CameraFamily> *family;
+    std::unique_ptr<CameraFamily> *m_cameraFamily;
 
     /**
      * initializes camera by setting parameters such as framerate, binning mode,

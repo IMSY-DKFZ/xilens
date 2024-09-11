@@ -21,20 +21,6 @@
 class MainWindow;
 
 /**
- * @brief Enumerates the types of display images.
- *
- * The DisplayImageType enumerator represents the different types of display
- * images. It provides symbolic names for the supported image types.
- */
-enum DisplayImageType
-{
-    RAW = 0,
-    RGB = 1,
-    VHB = 2,
-    OXY = 3
-};
-
-/**
  * @brief The DisplayerFunctional class is responsible for displaying images.
  *
  * It inherits from the Displayer class and uses the MainWindow class for
@@ -120,7 +106,7 @@ class DisplayerFunctional : public Displayer
      * Vector with channel numbers that can be used to construct an approximate
      * RGB image
      */
-    std::vector<int> m_bgr_channels = {11, 15, 3};
+    std::vector<int> m_BGRChannels = {11, 15, 3};
 
     /**
      * Scaling factor used to convert image from 10bit to 8bit
@@ -128,21 +114,14 @@ class DisplayerFunctional : public Displayer
     int m_scaling_factor = 4;
 
     /**
-     * Dummy method, not yet implemented
-     *
-     * @param image Image to be run through the network
-     */
-    void RunNetwork(XI_IMG &image);
-
-    /**
      * explicit mutex declaration
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexImageDisplay;
 
     /**
      * Class to do histogram normalization with CLAHE
      */
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+    cv::Ptr<cv::CLAHE> m_clahe = cv::createCLAHE();
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
@@ -218,4 +197,4 @@ class DisplayerFunctional : public Displayer
  */
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
 
-#endif // DISPLAY_H
+#endif // DISPLAYFUNCTIONAL_H

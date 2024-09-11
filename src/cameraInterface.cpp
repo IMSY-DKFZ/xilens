@@ -93,7 +93,7 @@ int CameraInterface::OpenDevice(DWORD cameraDeviceID)
     stat = this->m_apiWrapper->xiOpenDevice(cameraDeviceID, &m_cameraHandle);
     HandleResult(stat, "xiOepnDevice");
 
-    this->setCamera(m_cameraType, m_cameraFamilyName);
+    this->SetCamera(m_cameraType, m_cameraFamilyName);
 
     stat = this->m_camera->InitializeCamera();
     if (stat != XI_OK)
@@ -169,7 +169,7 @@ CameraInterface::~CameraInterface()
     }
 }
 
-void CameraInterface::setCamera(QString cameraType, QString cameraFamily)
+void CameraInterface::SetCamera(QString cameraType, QString cameraFamily)
 {
     // instantiate camera type
     if (cameraType == CAMERA_TYPE_SPECTRAL)

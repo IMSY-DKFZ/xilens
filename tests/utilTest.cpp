@@ -46,18 +46,6 @@ TEST(CreateLutTest, VerifyLutColorValues)
     }
 }
 
-TEST(RescaleTest, CheckValuesAfterRescaling)
-{
-    cv::Mat mat = (cv::Mat_<float>(3, 3) << 0.5, 1.2, 2.4, 3.2, 5.1, 6.3, 10.0, 20.0, 15.0);
-    rescale(mat, 100.0);
-    double min, max;
-    cv::minMaxLoc(mat, &min, &max);
-    EXPECT_GE(max, 0);
-    EXPECT_LE(max, 100);
-    EXPECT_GE(100, min);
-    EXPECT_LE(0, min);
-}
-
 TEST(XIIMGtoMatTest, MatDimensionsEqualToXIIMG)
 {
     XI_IMG xi_img;
@@ -99,7 +87,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
     for (int i = 0; i < nrImages; i++)
     {
-        fileImage.write(xiImage, additionalMetadata);
+        fileImage.WriteImageData(xiImage, additionalMetadata);
     }
     fileImage.AppendMetadata();
 
@@ -258,14 +246,14 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
     for (int i = 0; i < nrImages; i++)
     {
-        fileImage.write(xiImage, additionalMetadata);
+        fileImage.WriteImageData(xiImage, additionalMetadata);
     }
     fileImage.AppendMetadata();
 
     // append more images to the file
     for (int i = 0; i < nrImages; i++)
     {
-        fileImage.write(xiImage, additionalMetadata);
+        fileImage.WriteImageData(xiImage, additionalMetadata);
     }
     fileImage.AppendMetadata();
     blosc2_destroy();

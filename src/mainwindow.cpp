@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 
     // populate available cameras
     ui->cameraListComboBox->addItem("select camera to enable UI...");
-    this->handleReloadCamerasPushButtonClicked();
+    this->HandleReloadCamerasPushButtonClicked();
     ui->cameraListComboBox->setCurrentIndex(0);
 
     // set the base folder loc
@@ -86,59 +86,59 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 void MainWindow::SetUpConnections()
 {
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(ui->snapshotButton, &QPushButton::clicked, this, &MainWindow::handleSnapshotButtonClicked));
+        QObject::connect(ui->snapshotButton, &QPushButton::clicked, this, &MainWindow::HandleSnapshotButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this,
-                                              &MainWindow::handleExposureSliderValueChanged));
+                                              &MainWindow::HandleExposureSliderValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerImageSlider, &QSlider::valueChanged, this,
-                                              &MainWindow::handleViewerImageSliderValueChanged));
+                                              &MainWindow::HandleViewerImageSliderValueChanged));
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(ui->recordButton, &QPushButton::clicked, this, &MainWindow::handleRecordButtonClicked));
+        QObject::connect(ui->recordButton, &QPushButton::clicked, this, &MainWindow::HandleRecordButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderButton, &QPushButton::clicked, this,
-                                              &MainWindow::handleBaseFolderButtonClicked));
+                                              &MainWindow::HandleBaseFolderButtonClicked));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(this, &MainWindow::ViewerImageProcessingComplete, this, &MainWindow::UpdateRawViewerImage));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileButton, &QPushButton::clicked, this,
-                                              &MainWindow::handleViewerFileButtonClicked));
+                                              &MainWindow::HandleViewerFileButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleExposureLineEditTextEdited));
+                                              &MainWindow::HandleExposureLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleExposureLineEditReturnPressed));
+                                              &MainWindow::HandleExposureLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleFilePrefixLineEditTextEdited));
+                                              &MainWindow::HandleFilePrefixLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleFilePrefixLineEditReturnPressed));
+                                              &MainWindow::HandleFilePrefixLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoexposureCheckbox, &QCheckBox::clicked, this,
-                                              &MainWindow::handleAutoexposureCheckboxClicked));
+                                              &MainWindow::HandleAutoexposureCheckboxClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
-                                              &MainWindow::handleWhiteBalanceButtonClicked));
+                                              &MainWindow::HandleWhiteBalanceButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->darkCorrectionButton, &QPushButton::clicked, this,
-                                              &MainWindow::handleDarkCorrectionButtonClicked));
+                                              &MainWindow::HandleDarkCorrectionButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->logTextLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleLogTextLineEditTextEdited));
+                                              &MainWindow::HandleLogTextLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->logTextLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleLogTextLineEditReturnPressed));
+                                              &MainWindow::HandleLogTextLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->skipFramesSpinBox, &QSpinBox::valueChanged, this,
-                                              &MainWindow::handleSkipFramesSpinBoxValueChanged));
+                                              &MainWindow::HandleSkipFramesSpinBoxValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->cameraListComboBox, &QComboBox::currentIndexChanged, this,
-                                              &MainWindow::handleCameraListComboBoxCurrentIndexChanged));
+                                              &MainWindow::HandleCameraListComboBoxCurrentIndexChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadCamerasPushButton, &QPushButton::clicked, this,
-                                              &MainWindow::handleReloadCamerasPushButtonClicked));
+                                              &MainWindow::HandleReloadCamerasPushButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixExtrasLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleFilePrefixExtrasLineEditTextEdited));
+                                              &MainWindow::HandleFilePrefixExtrasLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixExtrasLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleFilePrefixExtrasLineEditReturnPressed));
+                                              &MainWindow::HandleFilePrefixExtrasLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleBaseFolderLineEditReturnPressed));
+                                              &MainWindow::HandleBaseFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleSubFolderExtrasLineEditTextEdited));
+                                              &MainWindow::HandleSubFolderExtrasLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleBaseFolderLineEditTextEdited));
+                                              &MainWindow::HandleBaseFolderLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::handleViewerFileLineEditTextEdited));
+                                              &MainWindow::HandleViewerFileLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleSubFolderExtrasLineEditReturnPressed));
+                                              &MainWindow::HandleSubFolderExtrasLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::handleViewerFileLineEditReturnPressed));
+                                              &MainWindow::HandleViewerFileLineEditReturnPressed));
 }
 
 void MainWindow::HandleConnectionResult(bool status, const char *file, int line, const char *func)
@@ -295,9 +295,9 @@ void MainWindow::RecordSnapshots()
     {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         int waitTime = 2 * exp_time;
-        wait(waitTime);
+        WaitMilliseconds(waitTime);
         image = m_imageContainer.GetCurrentImage();
-        snapshotsFile.write(image, GetCameraTemperature());
+        snapshotsFile.WriteImageData(image, GetCameraTemperature());
         int progress = static_cast<int>((static_cast<float>(i + 1) / static_cast<float>(nr_images)) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
     }
@@ -309,21 +309,21 @@ void MainWindow::RecordSnapshots()
     QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
-void MainWindow::handleSnapshotButtonClicked()
+void MainWindow::HandleSnapshotButtonClicked()
 {
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
 QMap<QString, float> MainWindow::GetCameraTemperature() const
 {
-    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
-    auto cameraTemperature = m_cameraInterface.m_camera->family->get()->m_cameraTemperature;
+    m_cameraInterface.m_camera->m_cameraFamily->get()->UpdateCameraTemperature();
+    auto cameraTemperature = m_cameraInterface.m_camera->m_cameraFamily->get()->m_cameraTemperature;
     return cameraTemperature;
 }
 
 void MainWindow::DisplayCameraTemperature()
 {
-    double temp = m_cameraInterface.m_camera->family->get()->m_cameraTemperature.value(SENSOR_BOARD_TEMP);
+    double temp = m_cameraInterface.m_camera->m_cameraFamily->get()->m_cameraTemperature.value(SENSOR_BOARD_TEMP);
     QMetaObject::invokeMethod(ui->temperatureLCDNumber, "display", Qt::QueuedConnection, Q_ARG(double, temp));
 }
 
@@ -344,7 +344,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
         return;
     }
 
-    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
+    m_cameraInterface.m_camera->m_cameraFamily->get()->UpdateCameraTemperature();
     this->DisplayCameraTemperature();
 
     // Reset timer
@@ -356,7 +356,7 @@ void MainWindow::HandleTemperatureTimer(const boost::system::error_code &error)
 void MainWindow::StartTemperatureThread()
 {
     // Initial temperature update to ensure that it is populated before recordings start.
-    m_cameraInterface.m_camera->family->get()->UpdateCameraTemperature();
+    m_cameraInterface.m_camera->m_cameraFamily->get()->UpdateCameraTemperature();
     if (m_temperatureThread.joinable())
     {
         StopTemperatureThread();
@@ -401,13 +401,13 @@ void MainWindow::StopReferenceRecordingThread()
     }
 }
 
-void MainWindow::handleExposureSliderValueChanged(int value)
+void MainWindow::HandleExposureSliderValueChanged(int value)
 {
     m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
 }
 
-void MainWindow::handleViewerImageSliderValueChanged(int value)
+void MainWindow::HandleViewerImageSliderValueChanged(int value)
 {
     {
         boost::lock_guard<boost::mutex> lock(m_mutexImageViewer);
@@ -416,7 +416,7 @@ void MainWindow::handleViewerImageSliderValueChanged(int value)
     m_viewerQueueCondition.notify_one();
 }
 
-void MainWindow::processViewerImageSliderValueChanged(int value)
+void MainWindow::ProcessViewerImageSliderValueChanged(int value)
 {
     std::array<int64_t, B2ND_MAX_DIM> slice_start = {0};
     std::array<int64_t, B2ND_MAX_DIM> slice_stop = {0};
@@ -470,7 +470,7 @@ void MainWindow::ViewerWorkerThreadFunc()
 
         if (value != -1)
         {
-            processViewerImageSliderValueChanged(value);
+            ProcessViewerImageSliderValueChanged(value);
         }
     }
 }
@@ -490,7 +490,7 @@ void MainWindow::UpdateExposure()
     ui->exposureSlider->setValue(exp_ms);
 }
 
-void MainWindow::handleRecordButtonClicked(bool clicked)
+void MainWindow::HandleRecordButtonClicked(bool clicked)
 {
     static QString original_colour;
     static QString original_button_text;
@@ -547,13 +547,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (this->ui->recordButton->isChecked())
     {
-        handleRecordButtonClicked(false);
+        HandleRecordButtonClicked(false);
     }
     this->StopPollingThread();
     QMainWindow::closeEvent(event);
 }
 
-void MainWindow::handleBaseFolderButtonClicked()
+void MainWindow::HandleBaseFolderButtonClicked()
 {
     bool isValid = false;
     while (!isValid)
@@ -575,7 +575,7 @@ void MainWindow::handleBaseFolderButtonClicked()
     }
 }
 
-void MainWindow::handleViewerFileButtonClicked()
+void MainWindow::HandleViewerFileButtonClicked()
 {
     QString filePath = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("NDArrays (*.b2nd)"));
     if (QFile(filePath).exists())
@@ -585,7 +585,7 @@ void MainWindow::handleViewerFileButtonClicked()
             m_viewerFilePath = filePath;
             ui->viewerFileLineEdit->clear();
             ui->viewerFileLineEdit->insert(filePath);
-            this->handleViewerFileLineEditReturnPressed();
+            this->HandleViewerFileLineEditReturnPressed();
             OpenFileInViewer(m_viewerFilePath);
         }
     }
@@ -598,7 +598,7 @@ void MainWindow::OpenFileInViewer(const QString &filePath)
     this->ui->viewerImageSlider->setEnabled(true);
     auto n_images = static_cast<int>(this->m_viewerNDArray->shape[0] - 1);
     this->ui->viewerImageSlider->setMaximum(n_images);
-    this->handleViewerImageSliderValueChanged(this->ui->viewerImageSlider->value());
+    this->HandleViewerImageSliderValueChanged(this->ui->viewerImageSlider->value());
 }
 
 void MainWindow::WriteLogHeader()
@@ -676,7 +676,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
     {
         try
         {
-            this->m_imageContainer.m_imageFile->write(image, GetCameraTemperature());
+            this->m_imageContainer.m_imageFile->WriteImageData(image, GetCameraTemperature());
             m_recordedCount++;
         }
         catch (const std::runtime_error &e)
@@ -715,7 +715,7 @@ void MainWindow::DisplayRecordCount()
                               Q_ARG(int, static_cast<int>(m_recordedCount.load())));
 }
 
-void MainWindow::updateTimer()
+void MainWindow::UpdateTimer()
 {
     m_elapsedTime = static_cast<double>(m_elapsedTimer.elapsed()) / 1000.0;
     int totalSeconds = static_cast<int>(m_elapsedTime);
@@ -738,7 +738,7 @@ void MainWindow::updateTimer()
     ui->timerLCDNumber->display(m_elapsedTimeText);
 }
 
-void MainWindow::stopTimer()
+void MainWindow::StopTimer()
 {
     ui->timerLCDNumber->display(0);
 }
@@ -763,7 +763,7 @@ void MainWindow::StartRecording()
     HANDLE_CONNECTION_RESULT(
         QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages));
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer));
+        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay));
     m_updateFPSDisplayTimer->start(UPDATE_RATE_MS_FPS_TIMER);
@@ -776,11 +776,11 @@ void MainWindow::StopRecording()
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages));
     HANDLE_CONNECTION_RESULT(
-        QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::updateTimer));
+        QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay));
     QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, ""));
-    this->stopTimer();
+    this->StopTimer();
     this->m_IOWork.reset();
     this->m_IOWork = nullptr;
     this->m_IOService.stop();
@@ -850,7 +850,7 @@ void MainWindow::StopPollingThread()
     m_imageContainerThread.join();
 }
 
-void MainWindow::handleAutoexposureCheckboxClicked(bool setAutoexposure)
+void MainWindow::HandleAutoexposureCheckboxClicked(bool setAutoexposure)
 {
     this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
     ui->exposureSlider->setEnabled(!setAutoexposure);
@@ -858,7 +858,7 @@ void MainWindow::handleAutoexposureCheckboxClicked(bool setAutoexposure)
     UpdateExposure();
 }
 
-void MainWindow::handleWhiteBalanceButtonClicked()
+void MainWindow::HandleWhiteBalanceButtonClicked()
 {
     if (m_referenceRecordingThread.joinable())
     {
@@ -867,7 +867,7 @@ void MainWindow::handleWhiteBalanceButtonClicked()
     m_referenceRecordingThread = boost::thread(&MainWindow::RecordReferenceImages, this, "white");
 }
 
-void MainWindow::handleDarkCorrectionButtonClicked()
+void MainWindow::HandleDarkCorrectionButtonClicked()
 {
     if (m_referenceRecordingThread.joinable())
     {
@@ -919,7 +919,7 @@ void MainWindow::RecordReferenceImages(const QString &referenceType)
     {
         int exp_time = m_cameraInterface.m_camera->GetExposureMs();
         int waitTime = 2 * exp_time;
-        wait(waitTime);
+        WaitMilliseconds(waitTime);
         this->RecordImage(true);
         int progress = static_cast<int>((static_cast<float>(i + 1) / NR_REFERENCE_IMAGES_TO_RECORD) * 100);
         QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
@@ -955,7 +955,7 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::handleExposureLineEditReturnPressed()
+void MainWindow::HandleExposureLineEditReturnPressed()
 {
     m_labelExp = ui->exposureLineEdit->text();
     m_cameraInterface.m_camera->SetExposureMs(m_labelExp.toInt());
@@ -963,19 +963,19 @@ void MainWindow::handleExposureLineEditReturnPressed()
     RestoreLineEditStyle(ui->exposureLineEdit);
 }
 
-void MainWindow::handleFilePrefixLineEditReturnPressed()
+void MainWindow::HandleFilePrefixLineEditReturnPressed()
 {
     m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
     RestoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
-void MainWindow::handleSubFolderExtrasLineEditReturnPressed()
+void MainWindow::HandleSubFolderExtrasLineEditReturnPressed()
 {
     m_extrasSubFolder = ui->subFolderExtrasLineEdit->text();
     RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
 }
 
-void MainWindow::handleViewerFileLineEditReturnPressed()
+void MainWindow::HandleViewerFileLineEditReturnPressed()
 {
     auto file = QFile(ui->viewerFileLineEdit->text());
     if (file.exists())
@@ -990,19 +990,19 @@ void MainWindow::handleViewerFileLineEditReturnPressed()
     }
 }
 
-void MainWindow::handleFilePrefixExtrasLineEditReturnPressed()
+void MainWindow::HandleFilePrefixExtrasLineEditReturnPressed()
 {
     m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
     RestoreLineEditStyle(ui->filePrefixExtrasLineEdit);
 }
 
-void MainWindow::handleBaseFolderLineEditReturnPressed()
+void MainWindow::HandleBaseFolderLineEditReturnPressed()
 {
     m_baseFolderLoc = ui->baseFolderLineEdit->text();
     RestoreLineEditStyle(ui->baseFolderLineEdit);
 }
 
-void MainWindow::handleLogTextLineEditReturnPressed()
+void MainWindow::HandleLogTextLineEditReturnPressed()
 {
     QString timestamp;
     QString trigger_message = ui->logTextLineEdit->text();
@@ -1023,37 +1023,37 @@ void MainWindow::handleLogTextLineEditReturnPressed()
     ui->logTextLineEdit->clear();
 }
 
-void MainWindow::handleFilePrefixLineEditTextEdited(const QString &newText)
+void MainWindow::HandleFilePrefixLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixLineEdit);
 }
 
-void MainWindow::handleSubFolderExtrasLineEditTextEdited(const QString &newText)
+void MainWindow::HandleSubFolderExtrasLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
 }
 
-void MainWindow::handleExposureLineEditTextEdited(const QString &newText)
+void MainWindow::HandleExposureLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->exposureLineEdit, newText, m_labelExp);
 }
 
-void MainWindow::handleFilePrefixExtrasLineEditTextEdited(const QString &newText)
+void MainWindow::HandleFilePrefixExtrasLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
 }
 
-void MainWindow::handleLogTextLineEditTextEdited(const QString &newText)
+void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->logTextLineEdit, newText, m_triggerText);
 }
 
-void MainWindow::handleBaseFolderLineEditTextEdited(const QString &newText)
+void MainWindow::HandleBaseFolderLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderLoc);
 }
 
-void MainWindow::handleViewerFileLineEditTextEdited(const QString &newText)
+void MainWindow::HandleViewerFileLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->viewerFileLineEdit, newText, m_viewerFilePath);
 }
@@ -1069,7 +1069,7 @@ QString MainWindow::FormatTimeStamp(const QString &timestamp)
  * updates frames per second label in GUI when the number of skipped frames is
  * modified
  */
-void MainWindow::handleSkipFramesSpinBoxValueChanged()
+void MainWindow::HandleSkipFramesSpinBoxValueChanged()
 {
     // spin boxes do not have a returnPressed slot in Qt, which is why the value
     // is always updated upon changes
@@ -1079,7 +1079,7 @@ void MainWindow::handleSkipFramesSpinBoxValueChanged()
     ui->hzLabel->setText(QString::number((double)(1000.0 / (exp_ms * (nSkipFrames + 1))), 'g', 2));
 }
 
-void MainWindow::handleCameraListComboBoxCurrentIndexChanged(int index)
+void MainWindow::HandleCameraListComboBoxCurrentIndexChanged(int index)
 {
     boost::lock_guard<boost::mutex> guard(m_mutexImageRecording);
     // image acquisition should be stopped when index 0 (no camera) is selected
@@ -1144,7 +1144,7 @@ void MainWindow::handleCameraListComboBoxCurrentIndexChanged(int index)
     }
 }
 
-void MainWindow::handleReloadCamerasPushButtonClicked()
+void MainWindow::HandleReloadCamerasPushButtonClicked()
 {
     QStringList cameraList = m_cameraInterface.GetAvailableCameraIdentifiers();
     // Only add new camera models
@@ -1228,27 +1228,27 @@ void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsVie
 
 void MainWindow::UpdateRGBImage(cv::Mat &image)
 {
-    UpdateImage(image, QImage::Format_RGB888, this->ui->rgbImageGraphicsView, this->rgbPixMapItem,
-                this->rgbScene.get());
+    UpdateImage(image, QImage::Format_RGB888, this->ui->rgbImageGraphicsView, this->m_rgbPixMapItem,
+                this->m_rgbScene.get());
 }
 
 void MainWindow::UpdateRawImage(cv::Mat &image)
 {
-    UpdateImage(image, QImage::Format_BGR888, this->ui->rawImageGraphicsView, this->rawPixMapItem,
-                this->rawScene.get());
+    UpdateImage(image, QImage::Format_BGR888, this->ui->rawImageGraphicsView, this->m_rawPixMapItem,
+                this->m_rawScene.get());
 }
 
 void MainWindow::UpdateRawViewerImage(cv::Mat &image)
 {
-    UpdateImage(image, QImage::Format_Grayscale8, this->ui->viewerGraphicsView, this->rawViewerPixMapItem,
-                this->rawViewerScene.get());
+    UpdateImage(image, QImage::Format_Grayscale8, this->ui->viewerGraphicsView, this->m_rawViewerPixMapItem,
+                this->m_rawViewerScene.get());
 }
 
 void MainWindow::SetGraphicsViewScene()
 {
-    this->ui->rgbImageGraphicsView->setScene(this->rgbScene.get());
-    this->ui->rawImageGraphicsView->setScene(this->rawScene.get());
-    this->ui->viewerGraphicsView->setScene(this->rawViewerScene.get());
+    this->ui->rgbImageGraphicsView->setScene(this->m_rgbScene.get());
+    this->ui->rawImageGraphicsView->setScene(this->m_rawScene.get());
+    this->ui->viewerGraphicsView->setScene(this->m_rawViewerScene.get());
 }
 
 bool MainWindow::IsSaturationButtonChecked()

@@ -259,21 +259,21 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when the snapshot button is pressed. Triggers the
      * recording of snapshot images or stops it when pressed a second time.
      */
-    void handleSnapshotButtonClicked();
+    void HandleSnapshotButtonClicked();
 
     /**
      * Qt slot triggered when the camera exposure slider is modified.
      *
      * @param value exposure value.
      */
-    void handleExposureSliderValueChanged(int value);
+    void HandleExposureSliderValueChanged(int value);
 
     /**
      * Qt slot triggered when the image index slider in the Viewer tab of the application changes value.
      *
      * @param value The new value of the slider.
      */
-    void handleViewerImageSliderValueChanged(int value);
+    void HandleViewerImageSliderValueChanged(int value);
 
     /**
      * Qt slot triggered when the record button is pressed. Stars the continuous
@@ -282,19 +282,19 @@ class MainWindow : public QMainWindow
      *
      * @param clicked indicates if the button is clicked.
      */
-    void handleRecordButtonClicked(bool clicked);
+    void HandleRecordButtonClicked(bool clicked);
 
     /**
      * Qt slot triggered when the button to choose a base folder is clicked. Opens
      * a dialog where a folder can be selected.
      */
-    void handleBaseFolderButtonClicked();
+    void HandleBaseFolderButtonClicked();
 
     /**
      * Qt slot triggered when the file button in the viewer tab is clicked. Opens
      * a dialog where a file can be selected.
      */
-    void handleViewerFileButtonClicked();
+    void HandleViewerFileButtonClicked();
 
     /**
      * Qt slot triggered when the exposure time labels is modified manually. This
@@ -303,20 +303,20 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void handleExposureLineEditTextEdited(const QString &newText);
+    void HandleExposureLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when return key is pressed after modifying the exposure
      * time. This is synchronized with the exposure time slider.
      */
-    void handleExposureLineEditReturnPressed();
+    void HandleExposureLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the field that defines
      * the file prefix in the UI. It updates the member variable that stores the
      * value.
      */
-    void handleFilePrefixLineEditReturnPressed();
+    void HandleFilePrefixLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the prefix file name is edited. It changes the
@@ -325,25 +325,25 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void handleFilePrefixLineEditTextEdited(const QString &newText);
+    void HandleFilePrefixLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
      * of the exposure time to camera.
      */
-    void handleAutoexposureCheckboxClicked(bool setAutoexposure);
+    void HandleAutoexposureCheckboxClicked(bool setAutoexposure);
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
      * image and sets it in the network model.
      */
-    void handleWhiteBalanceButtonClicked();
+    void HandleWhiteBalanceButtonClicked();
 
     /**
      * Qt slot triggered when the dark correction button is pressed. Records a new
      * dark image and sets it in the network model.
      */
-    void handleDarkCorrectionButtonClicked();
+    void HandleDarkCorrectionButtonClicked();
 
     /**
      * Qt slot triggered when the trigger text is edited. It only changes the
@@ -351,81 +351,81 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void handleLogTextLineEditTextEdited(const QString &newText);
+    void HandleLogTextLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the return key is pressed on the trigger text field.
      * It logs the message to the log file and displays it on the UI.
      */
-    void handleLogTextLineEditReturnPressed();
+    void HandleLogTextLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the spin box containing the number of images to skip
      * while recording is modified. It restyles the appearance of the field.
      */
-    void handleSkipFramesSpinBoxValueChanged();
+    void HandleSkipFramesSpinBoxValueChanged();
 
     /**
      * Qt slot triggered when a new camera is selected from the drop-down menu.
      *
      * @param index index corresponding to the element selected from the combo box.
      */
-    void handleCameraListComboBoxCurrentIndexChanged(int index);
+    void HandleCameraListComboBoxCurrentIndexChanged(int index);
 
     /**
      * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
      */
-    void handleReloadCamerasPushButtonClicked();
+    void HandleReloadCamerasPushButtonClicked();
 
     /**
      * Qt slot triggered when file name prefix for snapshots is edited on the UI.
      *
      * @param newText edited text.
      */
-    void handleFilePrefixExtrasLineEditTextEdited(const QString &newText);
+    void HandleFilePrefixExtrasLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the return key is pressed on the file prefix field
      * for snapshot images in the UI.
      */
-    void handleFilePrefixExtrasLineEditReturnPressed();
+    void HandleFilePrefixExtrasLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
      */
-    void handleBaseFolderLineEditReturnPressed();
+    void HandleBaseFolderLineEditReturnPressed();
 
     /**
      * Qt slot triggered when extras sub folder field is edited in the UI.
      *
      * @param newText edited text.
      */
-    void handleSubFolderExtrasLineEditTextEdited(const QString &newText);
+    void HandleSubFolderExtrasLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.
      *
      * @param newText edited text.
      */
-    void handleBaseFolderLineEditTextEdited(const QString &newText);
+    void HandleBaseFolderLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the file path in the viewer tab is edited through the UI.
      *
      * @param newText edited text
      */
-    void handleViewerFileLineEditTextEdited(const QString &newText);
+    void HandleViewerFileLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the return key is pressed on the sub folder field in
      * the extras tab in the UI.
      */
-    void handleSubFolderExtrasLineEditReturnPressed();
+    void HandleSubFolderExtrasLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
      */
-    void handleViewerFileLineEditReturnPressed();
+    void HandleViewerFileLineEditReturnPressed();
 
   private:
     /**
@@ -545,12 +545,12 @@ class MainWindow : public QMainWindow
     /**
      * Updates timer displayed on the UI when recordings are started.
      */
-    void updateTimer();
+    void UpdateTimer();
 
     /**
      * Stops the timer that is displayed in the UI when recordings are started.
      */
-    void stopTimer();
+    void StopTimer();
 
     /**
      * @brief MEthod used to record singe snapshot images while recording.
@@ -637,7 +637,17 @@ class MainWindow : public QMainWindow
      *
      * @param value image index to load from file
      */
-    void processViewerImageSliderValueChanged(int value);
+    void ProcessViewerImageSliderValueChanged(int value);
+
+    /**
+     * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
+     */
+    void SetGraphicsViewScene();
+
+    /**
+     * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.
+     */
+    void RegisterTimeImageRecorded();
 
     /**
      * file prefix to be appended to each image file name.
@@ -845,42 +855,32 @@ class MainWindow : public QMainWindow
     /**
      * Smart pointer to the RGB scene where the RGB images will be displayed.
      */
-    std::unique_ptr<QGraphicsScene> rgbScene = std::make_unique<QGraphicsScene>(this);
+    std::unique_ptr<QGraphicsScene> m_rgbScene = std::make_unique<QGraphicsScene>(this);
 
     /**
      * Smart pointer to raw scene where the raw unprocessed images will be displayed.
      */
-    std::unique_ptr<QGraphicsScene> rawScene = std::make_unique<QGraphicsScene>(this);
+    std::unique_ptr<QGraphicsScene> m_rawScene = std::make_unique<QGraphicsScene>(this);
 
     /**
      * Smart pointer to a scene where the images for the Viewer tab are displayed.
      */
-    std::unique_ptr<QGraphicsScene> rawViewerScene = std::make_unique<QGraphicsScene>(this);
+    std::unique_ptr<QGraphicsScene> m_rawViewerScene = std::make_unique<QGraphicsScene>(this);
 
     /**
      * Smart pointer to pixmap used to display the RGB images.
      */
-    std::unique_ptr<QGraphicsPixmapItem> rgbPixMapItem;
+    std::unique_ptr<QGraphicsPixmapItem> m_rgbPixMapItem;
 
     /**
      * Smart pointer to pixmap where raw unprocessed images will be displayed.
      */
-    std::unique_ptr<QGraphicsPixmapItem> rawPixMapItem;
+    std::unique_ptr<QGraphicsPixmapItem> m_rawPixMapItem;
 
     /**
      * Smart Pointer to a pixmap used to display the images in the RawViewer.
      */
-    std::unique_ptr<QGraphicsPixmapItem> rawViewerPixMapItem;
-
-    /**
-     * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
-     */
-    void SetGraphicsViewScene();
-
-    /**
-     * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.
-     */
-    void RegisterTimeImageRecorded();
+    std::unique_ptr<QGraphicsPixmapItem> m_rawViewerPixMapItem;
 
     /**
      * Timer that sets the rate of updates for the FPS LCD Display in the UI.

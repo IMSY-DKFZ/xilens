@@ -54,10 +54,10 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
 
-    // apply clahe to the L channel and save it in lab_planes
+    // apply m_clahe to the L channel and save it in lab_planes
     cv::Mat dst;
-    this->clahe->setClipLimit(m_mainWindow->GetBGRNorm());
-    this->clahe->apply(lab_planes[0], dst);
+    this->m_clahe->setClipLimit(m_mainWindow->GetBGRNorm());
+    this->m_clahe->apply(lab_planes[0], dst);
     dst.copyTo(lab_planes[0]);
 
     // merge color planes back to bgr_image
@@ -74,7 +74,7 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
     cv::LUT(mask, m_lut, mask);
     if (equalize_hist)
     {
-        this->clahe->apply(raw_image, raw_image);
+        this->m_clahe->apply(raw_image, raw_image);
     }
     cvtColor(raw_image, raw_image, cv::COLOR_GRAY2RGB);
 
@@ -151,7 +151,7 @@ void DisplayerFunctional::Display(XI_IMG &image)
         // by skipping every 100th frame
         if (selected_display % 100 > 0)
         {
-            boost::lock_guard<boost::mutex> guard(mtx_);
+            boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
 
             cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
             cv::Mat rawImage;
@@ -222,7 +222,7 @@ void DisplayerFunctional::Display(XI_IMG &image)
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 {
     std::vector<cv::Mat> channels;
-    for (int i : m_bgr_channels)
+    for (int i : m_BGRChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
