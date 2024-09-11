@@ -22,7 +22,6 @@
 FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth)
 {
     this->filePath = strdup(filePath);
-    blosc2_init();
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.typesize = sizeof(uint16_t);
     cparams.compcode = BLOSC_ZSTD;
@@ -60,7 +59,6 @@ FileImage::~FileImage()
     // free BLOSC resources
     b2nd_free(this->src);
     b2nd_free_ctx(this->ctx);
-    blosc2_destroy();
 }
 
 void FileImage::AppendMetadata()

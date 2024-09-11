@@ -794,6 +794,55 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="viewerTab">
+           <attribute name="title">
+            <string>Viewer</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <layout class="QVBoxLayout" name="viewerVerticalLayout">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QPushButton" name="viewerFileButton">
+                  <property name="text">
+                   <string>Select File</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="viewerFileLineEdit">
+                  <property name="placeholderText">
+                   <string>Path to .b2nd file</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QSliderLabeled" name="viewerImageSlider">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGraphicsView" name="viewerGraphicsView">
+                <property name="minimumSize">
+                 <size>
+                  <width>512</width>
+                  <height>272</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
         <item>
@@ -1081,7 +1130,7 @@
   <customwidget>
    <class>QSliderLabeled</class>
    <extends>QSlider</extends>
-   <header>widgets.h</header>
+   <header location="global">widgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

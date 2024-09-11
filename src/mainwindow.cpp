@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QMessageBox>
 #include <QTextStream>
+#include <b2nd.h>
 #include <boost/chrono.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
@@ -39,7 +40,8 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     : QMainWindow(parent), ui(new Ui::MainWindow), m_IOService(), m_temperatureIOService(),
       m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)), m_cameraInterface(),
       m_recordedCount(0), m_testMode(g_commandLineArguments.test_mode), m_imageCounter(0), m_skippedCounter(0),
-      m_elapsedTimeTextStream(&m_elapsedTimeText), m_elapsedTime(0)
+      m_elapsedTimeTextStream(&m_elapsedTimeText), m_elapsedTime(0), m_viewerThreadRunning(true),
+      m_viewerThread(&MainWindow::ViewerWorkerThreadFunc, this)
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
@@ -48,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     ui->setupUi(this);
     this->SetUpConnections();
     this->SetUpCustomUiComponents();
+
+    // Initialize BLOSC2
+    blosc2_init();
 
     // Display needs to be instantiated before changing the camera list because
     // calling setCurrentIndex on the list.
@@ -84,10 +89,16 @@ void MainWindow::SetUpConnections()
         QObject::connect(ui->snapshotButton, &QPushButton::clicked, this, &MainWindow::handleSnapshotButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this,
                                               &MainWindow::handleExposureSliderValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerImageSlider, &QSlider::valueChanged, this,
+                                              &MainWindow::handleViewerImageSliderValueChanged));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(ui->recordButton, &QPushButton::clicked, this, &MainWindow::handleRecordButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderButton, &QPushButton::clicked, this,
                                               &MainWindow::handleBaseFolderButtonClicked));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(this, &MainWindow::ViewerImageProcessingComplete, this, &MainWindow::UpdateRawViewerImage));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileButton, &QPushButton::clicked, this,
+                                              &MainWindow::handleViewerFileButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::handleExposureLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::returnPressed, this,
@@ -122,8 +133,12 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::handleSubFolderExtrasLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::handleBaseFolderLineEditTextEdited));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::textEdited, this,
+                                              &MainWindow::handleViewerFileLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::handleSubFolderExtrasLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::returnPressed, this,
+                                              &MainWindow::handleViewerFileLineEditReturnPressed));
 }
 
 void MainWindow::HandleConnectionResult(bool status, const char *file, int line, const char *func)
@@ -237,6 +252,16 @@ MainWindow::~MainWindow()
     m_temperatureIOService.stop();
     m_threadGroup.join_all();
 
+    {
+        boost::lock_guard<boost::mutex> lock(m_mutexImageViewer);
+        m_viewerThreadRunning = false;
+    }
+    m_viewerQueueCondition.notify_all();
+    if (m_viewerThread.joinable())
+    {
+        m_viewerThread.join();
+    }
+
     this->StopTemperatureThread();
     this->StopSnapshotsThread();
     this->StopReferenceRecordingThread();
@@ -244,6 +269,7 @@ MainWindow::~MainWindow()
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display));
 
+    blosc2_destroy();
     delete ui;
 }
 
@@ -381,6 +407,74 @@ void MainWindow::handleExposureSliderValueChanged(int value)
     UpdateExposure();
 }
 
+void MainWindow::handleViewerImageSliderValueChanged(int value)
+{
+    {
+        boost::lock_guard<boost::mutex> lock(m_mutexImageViewer);
+        m_viewerSliderQueue.push(value);
+    }
+    m_viewerQueueCondition.notify_one();
+}
+
+void MainWindow::processViewerImageSliderValueChanged(int value)
+{
+    std::array<int64_t, B2ND_MAX_DIM> slice_start = {0};
+    std::array<int64_t, B2ND_MAX_DIM> slice_stop = {0};
+    std::array<int64_t, B2ND_MAX_DIM> slice_shape = {0};
+    for (int i = 0; i < this->m_viewerNDArray->ndim; i++)
+    {
+        slice_start[i] = i == 0 ? value : 0;
+        slice_stop[i] = i == 0 ? value + 1 : this->m_viewerNDArray->shape[i];
+        slice_shape[i] = slice_stop[i] - slice_start[i];
+    }
+    auto buffer_size =
+        static_cast<int64_t>(this->m_viewerNDArray->shape[1] * this->m_viewerNDArray->shape[2] * sizeof(uint16_t));
+    std::vector<uint16_t> buffer(this->m_viewerNDArray->shape[1] * this->m_viewerNDArray->shape[2]);
+    b2nd_get_slice_cbuffer(this->m_viewerNDArray, slice_start.data(), slice_stop.data(), buffer.data(),
+                           slice_shape.data(), buffer_size);
+
+    // Get image dimensions, dimensions are transposed compared to what OpenCv expects.
+    auto width = static_cast<int>(slice_shape[1]);
+    auto height = static_cast<int>(slice_shape[2]);
+    cv::Mat mat(width, height, CV_16UC1, buffer.data());
+    mat /= 4;
+    mat.convertTo(mat, CV_8UC1);
+
+    // Indicate that processing is finished.
+    emit ViewerImageProcessingComplete(mat);
+}
+
+void MainWindow::ViewerWorkerThreadFunc()
+{
+    // This function is running in a separate thread
+    while (true)
+    {
+        int value = -1; // Default invalid value
+
+        {
+            boost::unique_lock<boost::mutex> lock(m_mutexImageViewer);
+            m_viewerQueueCondition.wait(lock,
+                                        [this]() { return !m_viewerSliderQueue.empty() || !m_viewerThreadRunning; });
+
+            if (!m_viewerThreadRunning && m_viewerSliderQueue.empty())
+            {
+                break; // Exit condition to shut down the thread
+            }
+
+            if (!m_viewerSliderQueue.empty())
+            {
+                value = m_viewerSliderQueue.front();
+                m_viewerSliderQueue.pop();
+            }
+        }
+
+        if (value != -1)
+        {
+            processViewerImageSliderValueChanged(value);
+        }
+    }
+}
+
 void MainWindow::UpdateExposure()
 {
     int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
@@ -472,13 +566,39 @@ void MainWindow::handleBaseFolderButtonClicked()
             isValid = true;
             if (!baseFolderPath.isEmpty())
             {
-                this->SetBaseFolder(baseFolderPath);
+                m_baseFolderLoc = baseFolderPath;
                 ui->baseFolderLineEdit->clear();
                 ui->baseFolderLineEdit->insert(this->GetBaseFolder());
                 this->WriteLogHeader();
             }
         }
     }
+}
+
+void MainWindow::handleViewerFileButtonClicked()
+{
+    QString filePath = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("NDArrays (*.b2nd)"));
+    if (QFile(filePath).exists())
+    {
+        if (!filePath.isEmpty())
+        {
+            m_viewerFilePath = filePath;
+            ui->viewerFileLineEdit->clear();
+            ui->viewerFileLineEdit->insert(filePath);
+            this->handleViewerFileLineEditReturnPressed();
+            OpenFileInViewer(m_viewerFilePath);
+        }
+    }
+}
+
+void MainWindow::OpenFileInViewer(const QString &filePath)
+{
+    char *path = strdup(filePath.toUtf8().constData());
+    b2nd_open(path, &this->m_viewerNDArray);
+    this->ui->viewerImageSlider->setEnabled(true);
+    auto n_images = static_cast<int>(this->m_viewerNDArray->shape[0] - 1);
+    this->ui->viewerImageSlider->setMaximum(n_images);
+    this->handleViewerImageSliderValueChanged(this->ui->viewerImageSlider->value());
 }
 
 void MainWindow::WriteLogHeader()
@@ -525,19 +645,6 @@ unsigned MainWindow::GetBGRNorm() const
     return this->ui->rgbNormSlider->value();
 }
 
-bool MainWindow::SetBaseFolder(const QString &baseFolderPath)
-{
-    if (QDir(baseFolderPath).exists())
-    {
-        m_baseFolderLoc = baseFolderPath;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 QString MainWindow::GetBaseFolder() const
 {
     return m_baseFolderLoc;
@@ -562,7 +669,7 @@ void MainWindow::RecordImage(bool ignoreSkipping)
 {
     boost::this_thread::interruption_point();
     XI_IMG image = m_imageContainer.GetCurrentImage();
-    boost::lock_guard<boost::mutex> guard(this->mtx_);
+    boost::lock_guard<boost::mutex> guard(this->m_mutexImageRecording);
     static long lastImageID = image.acq_nframe;
     int nSkipFrames = ui->skipFramesSpinBox->value();
     if (MainWindow::ImageShouldBeRecorded(nSkipFrames, image.acq_nframe) || ignoreSkipping)
@@ -868,6 +975,21 @@ void MainWindow::handleSubFolderExtrasLineEditReturnPressed()
     RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
 }
 
+void MainWindow::handleViewerFileLineEditReturnPressed()
+{
+    auto file = QFile(ui->viewerFileLineEdit->text());
+    if (file.exists())
+    {
+        m_viewerFilePath = ui->viewerFileLineEdit->text();
+        OpenFileInViewer(m_viewerFilePath);
+        RestoreLineEditStyle(ui->viewerFileLineEdit);
+    }
+    else
+    {
+        LOG_XILENS(error) << "Viewer file path does not exist.";
+    }
+}
+
 void MainWindow::handleFilePrefixExtrasLineEditReturnPressed()
 {
     m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
@@ -931,6 +1053,11 @@ void MainWindow::handleBaseFolderLineEditTextEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderLoc);
 }
 
+void MainWindow::handleViewerFileLineEditTextEdited(const QString &newText)
+{
+    UpdateComponentEditedStyle(ui->viewerFileLineEdit, newText, m_viewerFilePath);
+}
+
 QString MainWindow::FormatTimeStamp(const QString &timestamp)
 {
     QDateTime dateTime = QDateTime::fromString(timestamp, "yyyyMMdd_HH-mm-ss-zzz");
@@ -954,7 +1081,7 @@ void MainWindow::handleSkipFramesSpinBoxValueChanged()
 
 void MainWindow::handleCameraListComboBoxCurrentIndexChanged(int index)
 {
-    boost::lock_guard<boost::mutex> guard(mtx_);
+    boost::lock_guard<boost::mutex> guard(m_mutexImageRecording);
     // image acquisition should be stopped when index 0 (no camera) is selected
     // from the dropdown menu
     try
@@ -1111,10 +1238,17 @@ void MainWindow::UpdateRawImage(cv::Mat &image)
                 this->rawScene.get());
 }
 
+void MainWindow::UpdateRawViewerImage(cv::Mat &image)
+{
+    UpdateImage(image, QImage::Format_Grayscale8, this->ui->viewerGraphicsView, this->rawViewerPixMapItem,
+                this->rawViewerScene.get());
+}
+
 void MainWindow::SetGraphicsViewScene()
 {
     this->ui->rgbImageGraphicsView->setScene(this->rgbScene.get());
     this->ui->rawImageGraphicsView->setScene(this->rawScene.get());
+    this->ui->viewerGraphicsView->setScene(this->rawViewerScene.get());
 }
 
 bool MainWindow::IsSaturationButtonChecked()

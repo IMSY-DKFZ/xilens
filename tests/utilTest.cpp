@@ -91,6 +91,8 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
     const char *urlpath = strdup("test_image.b2nd");
+
+    blosc2_init();
     blosc2_remove_urlpath(urlpath);
 
     FileImage fileImage(urlpath, xiImage.height, xiImage.width);
@@ -235,6 +237,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     }
     free(names);
     blosc2_remove_urlpath(urlpath);
+    blosc2_destroy();
 }
 
 TEST_F(FileImageWriteTest, AppendMetadataTwice)
@@ -247,6 +250,8 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
     const char *urlpath = strdup("test_image.b2nd");
+
+    blosc2_init();
     blosc2_remove_urlpath(urlpath);
 
     FileImage fileImage(urlpath, xiImage.height, xiImage.width);
@@ -263,4 +268,5 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
         fileImage.write(xiImage, additionalMetadata);
     }
     fileImage.AppendMetadata();
+    blosc2_destroy();
 }

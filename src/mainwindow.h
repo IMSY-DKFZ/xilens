@@ -165,6 +165,19 @@ class MainWindow : public QMainWindow
     void UpdateRawImage(cv::Mat &image);
 
     /**
+     * Updates the raw image displayed in the viewer tab.
+     *
+     * @param image OpenCV patrix to display.
+     */
+    void UpdateRawViewerImage(cv::Mat &image);
+
+    /**
+     * Waits for the viewer thread to be running and for new values to be available in the queue. It emits a
+     * signal indicating that a new value can be processed.
+     */
+    void ViewerWorkerThreadFunc();
+
+    /**
      * Takes an image, and scales it to the available width in the QtGraphicsView element before displaying it in the
      * provided scene.
      *
@@ -214,6 +227,11 @@ class MainWindow : public QMainWindow
     Ui::MainWindow *ui;
 
     /**
+     * This is the NDArray structure that holds the connection to the data viewed in the Viewer tab of the application.
+     */
+    b2nd_array_t *m_viewerNDArray = nullptr;
+
+    /**
      * @brief Event handler for the close event of the main window.
      *
      * This method is called when the user attempts to close the main window
@@ -226,6 +244,14 @@ class MainWindow : public QMainWindow
      * @param event A pointer to the event object representing the close event.
      */
     void closeEvent(QCloseEvent *event) override;
+
+  signals:
+    /**
+     * Qt signal that is emitted when reading an processing of the image to display in viewer tab is finished.
+     *
+     * @param mat OpenCV matrix containing the image to display. This should be a one channel image.
+     */
+    void ViewerImageProcessingComplete(cv::Mat &mat);
 
   private slots:
 
@@ -243,6 +269,13 @@ class MainWindow : public QMainWindow
     void handleExposureSliderValueChanged(int value);
 
     /**
+     * Qt slot triggered when the image index slider in the Viewer tab of the application changes value.
+     *
+     * @param value The new value of the slider.
+     */
+    void handleViewerImageSliderValueChanged(int value);
+
+    /**
      * Qt slot triggered when the record button is pressed. Stars the continuous
      * recording of images to files and stops it when pressed a second time. This
      * is synchronized with the exposure time label.
@@ -256,6 +289,12 @@ class MainWindow : public QMainWindow
      * a dialog where a folder can be selected.
      */
     void handleBaseFolderButtonClicked();
+
+    /**
+     * Qt slot triggered when the file button in the viewer tab is clicked. Opens
+     * a dialog where a file can be selected.
+     */
+    void handleViewerFileButtonClicked();
 
     /**
      * Qt slot triggered when the exposure time labels is modified manually. This
@@ -371,12 +410,27 @@ class MainWindow : public QMainWindow
     void handleBaseFolderLineEditTextEdited(const QString &newText);
 
     /**
+     * Qt slot triggered when the file path in the viewer tab is edited through the UI.
+     *
+     * @param newText edited text
+     */
+    void handleViewerFileLineEditTextEdited(const QString &newText);
+
+    /**
      * Qt slot triggered when the return key is pressed on the sub folder field in
      * the extras tab in the UI.
      */
     void handleSubFolderExtrasLineEditReturnPressed();
 
+    /**
+     * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
+     */
+    void handleViewerFileLineEditReturnPressed();
+
   private:
+    /**
+     * Setups all UI Qt connections to handle all user interactions with the UI.
+     */
     void SetUpConnections();
 
     /**
@@ -442,13 +496,6 @@ class MainWindow : public QMainWindow
      * Stops the thread in charge of polling the images from the camera.
      */
     void StopPollingThread();
-
-    /**
-     * Sets the base folder path where the data is to be stored.
-     *
-     * @param baseFolderPath path of base folder where data will be stored.
-     */
-    bool SetBaseFolder(const QString &baseFolderPath);
 
     /**
      * Creates a folder if it does not exist.
@@ -575,6 +622,24 @@ class MainWindow : public QMainWindow
     static QString FormatTimeStamp(const QString &timestamp);
 
     /**
+     * Opens the N-dimensional array and adjusts UI components based on the contents of the file:
+     *
+     * - Adjusts range of viewer image slider.
+     * - Triggers the display of the first image in the file.
+     *
+     * @param filePath path to the file to open.
+     */
+    void OpenFileInViewer(const QString &filePath);
+
+    /**
+     * Reads a single image slice from file and creates an OpenCv matrix containing the data of the image.
+     * It emits a signal indicating that the processing finished and provides the processed image through the signal.
+     *
+     * @param value image index to load from file
+     */
+    void processViewerImageSliderValueChanged(int value);
+
+    /**
      * file prefix to be appended to each image file name.
      */
     QString m_recPrefixLineEdit;
@@ -594,6 +659,11 @@ class MainWindow : public QMainWindow
      * Folder path where all data is to be stored.
      */
     QString m_baseFolderLoc;
+
+    /**
+     * Path to a .b2nd file to be displayed in the viewer tab.
+     */
+    QString m_viewerFilePath;
 
     /**
      * Value of exposure time for the camera.
@@ -677,6 +747,31 @@ class MainWindow : public QMainWindow
     boost::thread m_imageContainerThread;
 
     /**
+     * Thread in charge of handling the image viewer processing before displaying it in the UI.
+     */
+    boost::thread m_viewerThread;
+
+    /**
+     * Queue used to store image indices that are then processed to load the corresponding images.
+     */
+    std::queue<int> m_viewerSliderQueue;
+
+    /**
+     * Mutex used as a locking mechanism to avoid raises when processing images for the Viewer tab.
+     */
+    boost::mutex m_mutexImageViewer;
+
+    /**
+     * Primitive used to lock viewer thread execution until the que is not empty and when the thread has to stop.
+     */
+    boost::condition_variable m_viewerQueueCondition;
+
+    /**
+     * Indicates if the thread in charge of processing and displaying images in the viewer tab is running.
+     */
+    bool m_viewerThreadRunning;
+
+    /**
      * IO service in charge of recording images to files.
      */
     boost::asio::io_service m_IOService;
@@ -705,7 +800,7 @@ class MainWindow : public QMainWindow
     /**
      * Mutual exclusion mechanism in charge of synchronization.
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexImageRecording;
 
     /**
      * Camera temperature recording thread.
@@ -753,12 +848,17 @@ class MainWindow : public QMainWindow
     std::unique_ptr<QGraphicsScene> rgbScene = std::make_unique<QGraphicsScene>(this);
 
     /**
-     * smart pointer to raw scene where the raw unprocessed images will be displayed.
+     * Smart pointer to raw scene where the raw unprocessed images will be displayed.
      */
     std::unique_ptr<QGraphicsScene> rawScene = std::make_unique<QGraphicsScene>(this);
 
     /**
-     * smart pointer to pixmap used to display the RGB images.
+     * Smart pointer to a scene where the images for the Viewer tab are displayed.
+     */
+    std::unique_ptr<QGraphicsScene> rawViewerScene = std::make_unique<QGraphicsScene>(this);
+
+    /**
+     * Smart pointer to pixmap used to display the RGB images.
      */
     std::unique_ptr<QGraphicsPixmapItem> rgbPixMapItem;
 
@@ -766,6 +866,11 @@ class MainWindow : public QMainWindow
      * Smart pointer to pixmap where raw unprocessed images will be displayed.
      */
     std::unique_ptr<QGraphicsPixmapItem> rawPixMapItem;
+
+    /**
+     * Smart Pointer to a pixmap used to display the images in the RawViewer.
+     */
+    std::unique_ptr<QGraphicsPixmapItem> rawViewerPixMapItem;
 
     /**
      * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
