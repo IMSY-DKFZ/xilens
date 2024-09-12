@@ -1115,6 +1115,10 @@ void MainWindow::HandleCameraListComboBoxCurrentIndexChanged(int index)
 
 void MainWindow::HandleReloadCamerasPushButtonClicked()
 {
+    // set button style as pressed down, and process event loop before continuing
+    ui->reloadCamerasPushButton->setDown(true);
+    QCoreApplication::processEvents();
+
     QStringList cameraList = m_cameraInterface.GetAvailableCameraIdentifiers();
     // Only add new camera models
     for (const QString &camera : cameraList)
@@ -1138,6 +1142,9 @@ void MainWindow::HandleReloadCamerasPushButtonClicked()
             ui->cameraListComboBox->removeItem(i);
         }
     }
+
+    // restore button style
+    ui->reloadCamerasPushButton->setDown(false);
 }
 
 void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
