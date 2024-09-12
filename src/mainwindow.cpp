@@ -63,20 +63,15 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     this->HandleReloadCamerasPushButtonClicked();
     ui->cameraListComboBox->setCurrentIndex(0);
 
-    // set the base folder loc
-    m_baseFolderLoc = QDir::cleanPath(QDir::homePath());
-
+    // set the base folder path
+    m_baseFolderPath = QDir::cleanPath(QDir::homePath());
     ui->baseFolderLineEdit->insert(this->GetBaseFolder());
 
-    // synchronize slider and exposure checkbox
-    QSlider *slider = ui->exposureSlider;
-    QLineEdit *expEdit = ui->exposureLineEdit;
+    // synchronize expSlider and exposure checkbox
+    QSlider *expSlider = ui->exposureSlider;
+    QSpinBox *expSpinBox = ui->exposureSpinBox;
     // set default values and ranges
-    int slider_min = slider->minimum();
-    int slider_max = slider->maximum();
-    expEdit->setValidator(new QIntValidator(slider_min, slider_max, this));
-    QString initialExpString = QString::number(slider->value());
-    expEdit->setText(initialExpString);
+    expSpinBox->setValue(expSlider->value());
 
     LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
 
@@ -87,8 +82,10 @@ void MainWindow::SetUpConnections()
 {
     HANDLE_CONNECTION_RESULT(
         QObject::connect(ui->snapshotButton, &QPushButton::clicked, this, &MainWindow::HandleSnapshotButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this,
-                                              &MainWindow::HandleExposureSliderValueChanged));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this, &MainWindow::HandleExposureValueChanged));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(ui->exposureSpinBox, &QSpinBox::valueChanged, this, &MainWindow::HandleExposureValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerImageSlider, &QSlider::valueChanged, this,
                                               &MainWindow::HandleViewerImageSliderValueChanged));
     HANDLE_CONNECTION_RESULT(
@@ -99,10 +96,6 @@ void MainWindow::SetUpConnections()
         QObject::connect(this, &MainWindow::ViewerImageProcessingComplete, this, &MainWindow::UpdateRawViewerImage));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleViewerFileButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::HandleExposureLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->exposureLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleExposureLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFilePrefixLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::returnPressed, this,
@@ -401,7 +394,7 @@ void MainWindow::StopReferenceRecordingThread()
     }
 }
 
-void MainWindow::HandleExposureSliderValueChanged(int value)
+void MainWindow::HandleExposureValueChanged(int value)
 {
     m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
@@ -477,16 +470,15 @@ void MainWindow::ViewerWorkerThreadFunc()
 
 void MainWindow::UpdateExposure()
 {
+    // lock ui elements before updating them
+    const QSignalBlocker exposureSliderLock(ui->exposureSlider);
+    const QSignalBlocker exposureSpinBoxLock(ui->exposureSpinBox);
     int exp_ms = m_cameraInterface.m_camera->GetExposureMs();
+    // update the estimated framerate
     int n_skip_frames = ui->skipFramesSpinBox->value();
-    ui->exposureLineEdit->setText(QString::number((int)exp_ms));
     ui->hzLabel->setText(QString::number((double)(1000.0 / (exp_ms * (n_skip_frames + 1))), 'g', 2));
-
-    // need to block the signals to make sure the event is not immediately
-    // thrown back to label_exp.
-    // could be done with a QSignalBlocker from Qt5.3 on for exception safe
-    // treatment. see: http://doc.qt.io/qt-5/qsignalblocker.html
-    const QSignalBlocker blocker_slider(ui->exposureSlider);
+    // set exposure values to bot spinbox and slider
+    ui->exposureSpinBox->setValue(exp_ms);
     ui->exposureSlider->setValue(exp_ms);
 }
 
@@ -566,7 +558,7 @@ void MainWindow::HandleBaseFolderButtonClicked()
             isValid = true;
             if (!baseFolderPath.isEmpty())
             {
-                m_baseFolderLoc = baseFolderPath;
+                m_baseFolderPath = baseFolderPath;
                 ui->baseFolderLineEdit->clear();
                 ui->baseFolderLineEdit->insert(this->GetBaseFolder());
                 this->WriteLogHeader();
@@ -647,7 +639,7 @@ unsigned MainWindow::GetBGRNorm() const
 
 QString MainWindow::GetBaseFolder() const
 {
-    return m_baseFolderLoc;
+    return m_baseFolderPath;
 }
 
 void MainWindow::ThreadedRecordImage()
@@ -854,7 +846,7 @@ void MainWindow::HandleAutoexposureCheckboxClicked(bool setAutoexposure)
 {
     this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
     ui->exposureSlider->setEnabled(!setAutoexposure);
-    ui->exposureLineEdit->setEnabled(!setAutoexposure);
+    ui->exposureSpinBox->setEnabled(!setAutoexposure);
     UpdateExposure();
 }
 
@@ -955,14 +947,6 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::HandleExposureLineEditReturnPressed()
-{
-    m_labelExp = ui->exposureLineEdit->text();
-    m_cameraInterface.m_camera->SetExposureMs(m_labelExp.toInt());
-    UpdateExposure();
-    RestoreLineEditStyle(ui->exposureLineEdit);
-}
-
 void MainWindow::HandleFilePrefixLineEditReturnPressed()
 {
     m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
@@ -998,7 +982,7 @@ void MainWindow::HandleFilePrefixExtrasLineEditReturnPressed()
 
 void MainWindow::HandleBaseFolderLineEditReturnPressed()
 {
-    m_baseFolderLoc = ui->baseFolderLineEdit->text();
+    m_baseFolderPath = ui->baseFolderLineEdit->text();
     RestoreLineEditStyle(ui->baseFolderLineEdit);
 }
 
@@ -1033,11 +1017,6 @@ void MainWindow::HandleSubFolderExtrasLineEditTextEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
 }
 
-void MainWindow::HandleExposureLineEditTextEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->exposureLineEdit, newText, m_labelExp);
-}
-
 void MainWindow::HandleFilePrefixExtrasLineEditTextEdited(const QString &newText)
 {
     UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
@@ -1050,7 +1029,7 @@ void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
 
 void MainWindow::HandleBaseFolderLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderLoc);
+    UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderPath);
 }
 
 void MainWindow::HandleViewerFileLineEditTextEdited(const QString &newText)

@@ -262,11 +262,11 @@ class MainWindow : public QMainWindow
     void HandleSnapshotButtonClicked();
 
     /**
-     * Qt slot triggered when the camera exposure slider is modified.
+     * Qt slot triggered when the camera exposure value is modified either from the slider or the spinbox.
      *
      * @param value exposure value.
      */
-    void HandleExposureSliderValueChanged(int value);
+    void HandleExposureValueChanged(int value);
 
     /**
      * Qt slot triggered when the image index slider in the Viewer tab of the application changes value.
@@ -295,21 +295,6 @@ class MainWindow : public QMainWindow
      * a dialog where a file can be selected.
      */
     void HandleViewerFileButtonClicked();
-
-    /**
-     * Qt slot triggered when the exposure time labels is modified manually. This
-     * changes the appearance of the field but does not trigger the change in the
-     * camera. Return key needs to be pressed for the change to be applied.
-     *
-     * @param newText edited text.
-     */
-    void HandleExposureLineEditTextEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when return key is pressed after modifying the exposure
-     * time. This is synchronized with the exposure time slider.
-     */
-    void HandleExposureLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the field that defines
@@ -668,7 +653,7 @@ class MainWindow : public QMainWindow
     /**
      * Folder path where all data is to be stored.
      */
-    QString m_baseFolderLoc;
+    QString m_baseFolderPath;
 
     /**
      * Path to a .b2nd file to be displayed in the viewer tab.

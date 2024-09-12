@@ -814,15 +814,22 @@ QMenuBar::item:pressed {
 
 QToolBox::tab {
   background-color: #232629;
-  color: #ffffff;
+  color: #ffd740;
   text-transform: uppercase;
   border-radius: 4px;
   padding-left: 15px;
+  font-weight: bold;
 }
 
 QToolBox::tab:selected,
 QToolBox::tab:hover {
   background-color: rgba(255, 215, 64, 0.2);
+}
+
+QToolBox::tab:disabled {
+  color: rgba(79, 91, 98, 0.75);
+  background-color: rgba(35, 38, 41, 0.3);
+  border-color:  #4f5b62;
 }
 
 /*  ------------------------------------------------------------------------  */
