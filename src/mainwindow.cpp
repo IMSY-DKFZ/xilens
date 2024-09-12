@@ -116,20 +116,16 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleCameraListComboBoxCurrentIndexChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadCamerasPushButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleReloadCamerasPushButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixExtrasLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::HandleFilePrefixExtrasLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixExtrasLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFilePrefixExtrasLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixSnapshotsLineEdit, &QLineEdit::textEdited, this,
+                                              &MainWindow::HandleFilePrefixSnapshotsLineEditTextEdited));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixSnapshotsLineEdit, &QLineEdit::returnPressed, this,
+                                              &MainWindow::HandleFilePrefixSnapshotsLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::HandleBaseFolderLineEditReturnPressed));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::HandleSubFolderExtrasLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleBaseFolderLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleViewerFileLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->subFolderExtrasLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleSubFolderExtrasLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::HandleViewerFileLineEditReturnPressed));
 }
@@ -202,8 +198,6 @@ void MainWindow::EnableUi(bool enable)
     SetGraphicsViewScene();
     this->ui->exposureSlider->setEnabled(enable);
     this->ui->logTextLineEdit->setEnabled(enable);
-    QLayout *layoutExtras = ui->extrasVerticalLayout->layout();
-    EnableWidgetsInLayout(layoutExtras, enable);
 }
 
 void MainWindow::SetUpCustomUiComponents()
@@ -270,17 +264,15 @@ void MainWindow::RecordSnapshots()
 {
     int nr_images = ui->nSnapshotsSpinBox->value();
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->filePrefixSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
 
-    std::string filePrefix = ui->filePrefixExtrasLineEdit->text().toUtf8().constData();
-    std::string subFolder = ui->subFolderExtrasLineEdit->text().toUtf8().constData();
+    std::string filePrefix = ui->filePrefixSnapshotsLineEdit->text().toUtf8().constData();
 
     if (filePrefix.empty())
     {
         filePrefix = m_recPrefixLineEdit.toUtf8().constData();
     }
-    QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
+    QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", "");
     auto image = m_imageContainer.GetCurrentImage();
     FileImage snapshotsFile(filePath.toStdString().c_str(), image.height, image.width);
 
@@ -298,8 +290,7 @@ void MainWindow::RecordSnapshots()
     LOG_XILENS(info) << "Closed snapshot recording file";
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->filePrefixExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->subFolderExtrasLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->filePrefixSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
 void MainWindow::HandleSnapshotButtonClicked()
@@ -953,12 +944,6 @@ void MainWindow::HandleFilePrefixLineEditReturnPressed()
     RestoreLineEditStyle(ui->filePrefixLineEdit);
 }
 
-void MainWindow::HandleSubFolderExtrasLineEditReturnPressed()
-{
-    m_extrasSubFolder = ui->subFolderExtrasLineEdit->text();
-    RestoreLineEditStyle(ui->subFolderExtrasLineEdit);
-}
-
 void MainWindow::HandleViewerFileLineEditReturnPressed()
 {
     auto file = QFile(ui->viewerFileLineEdit->text());
@@ -974,10 +959,10 @@ void MainWindow::HandleViewerFileLineEditReturnPressed()
     }
 }
 
-void MainWindow::HandleFilePrefixExtrasLineEditReturnPressed()
+void MainWindow::HandleFilePrefixSnapshotsLineEditReturnPressed()
 {
-    m_extrasFilePrefix = ui->filePrefixExtrasLineEdit->text();
-    RestoreLineEditStyle(ui->filePrefixExtrasLineEdit);
+    m_snapshotsFilePrefix = ui->filePrefixSnapshotsLineEdit->text();
+    RestoreLineEditStyle(ui->filePrefixSnapshotsLineEdit);
 }
 
 void MainWindow::HandleBaseFolderLineEditReturnPressed()
@@ -1012,14 +997,9 @@ void MainWindow::HandleFilePrefixLineEditTextEdited(const QString &newText)
     UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixLineEdit);
 }
 
-void MainWindow::HandleSubFolderExtrasLineEditTextEdited(const QString &newText)
+void MainWindow::HandleFilePrefixSnapshotsLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->subFolderExtrasLineEdit, newText, m_extrasSubFolder);
-}
-
-void MainWindow::HandleFilePrefixExtrasLineEditTextEdited(const QString &newText)
-{
-    UpdateComponentEditedStyle(ui->filePrefixExtrasLineEdit, newText, m_extrasFilePrefix);
+    UpdateComponentEditedStyle(ui->filePrefixSnapshotsLineEdit, newText, m_snapshotsFilePrefix);
 }
 
 void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)

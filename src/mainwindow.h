@@ -367,25 +367,18 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void HandleFilePrefixExtrasLineEditTextEdited(const QString &newText);
+    void HandleFilePrefixSnapshotsLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the return key is pressed on the file prefix field
      * for snapshot images in the UI.
      */
-    void HandleFilePrefixExtrasLineEditReturnPressed();
+    void HandleFilePrefixSnapshotsLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
      */
     void HandleBaseFolderLineEditReturnPressed();
-
-    /**
-     * Qt slot triggered when extras sub folder field is edited in the UI.
-     *
-     * @param newText edited text.
-     */
-    void HandleSubFolderExtrasLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.
@@ -400,12 +393,6 @@ class MainWindow : public QMainWindow
      * @param newText edited text
      */
     void HandleViewerFileLineEditTextEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the sub folder field in
-     * the extras tab in the UI.
-     */
-    void HandleSubFolderExtrasLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
@@ -640,12 +627,6 @@ class MainWindow : public QMainWindow
     QString m_recPrefixLineEdit;
 
     /**
-     * Folder path where extra images are to be stored (e.g. snapshots). This is a
-     * folder inside the base folder.
-     */
-    QString m_extrasSubFolder;
-
-    /**
      * Trigger text entered to the log function of the UI.
      */
     QString m_triggerText;
@@ -668,7 +649,7 @@ class MainWindow : public QMainWindow
     /**
      * File prefix used for snapshot images.
      */
-    QString m_extrasFilePrefix;
+    QString m_snapshotsFilePrefix;
 
     /**
      * Elapsed timer used for the timer displayed in the UI.
