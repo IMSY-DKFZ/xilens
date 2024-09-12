@@ -96,10 +96,10 @@ void MainWindow::SetUpConnections()
         QObject::connect(this, &MainWindow::ViewerImageProcessingComplete, this, &MainWindow::UpdateRawViewerImage));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleViewerFileButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::HandleFilePrefixLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFilePrefixLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::textEdited, this,
+                                              &MainWindow::HandleFileNameLineEditTextEdited));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::returnPressed, this,
+                                              &MainWindow::HandleFileNameLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoexposureCheckbox, &QCheckBox::clicked, this,
                                               &MainWindow::HandleAutoexposureCheckboxClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
@@ -116,10 +116,10 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleCameraListComboBoxCurrentIndexChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadCamerasPushButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleReloadCamerasPushButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixSnapshotsLineEdit, &QLineEdit::textEdited, this,
-                                              &MainWindow::HandleFilePrefixSnapshotsLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->filePrefixSnapshotsLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFilePrefixSnapshotsLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::textEdited, this,
+                                              &MainWindow::HandleFileNameSnapshotsLineEditTextEdited));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::returnPressed, this,
+                                              &MainWindow::HandleFileNameSnapshotsLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::HandleBaseFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
@@ -264,15 +264,15 @@ void MainWindow::RecordSnapshots()
 {
     int nr_images = ui->nSnapshotsSpinBox->value();
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->filePrefixSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
 
-    std::string filePrefix = ui->filePrefixSnapshotsLineEdit->text().toUtf8().constData();
+    std::string fileName = ui->fileNameSnapshotsLineEdit->text().toUtf8().constData();
 
-    if (filePrefix.empty())
+    if (fileName.empty())
     {
-        filePrefix = m_recPrefixLineEdit.toUtf8().constData();
+        fileName = m_fileName.toUtf8().constData();
     }
-    QString filePath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", "");
+    QString filePath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", "");
     auto image = m_imageContainer.GetCurrentImage();
     FileImage snapshotsFile(filePath.toStdString().c_str(), image.height, image.width);
 
@@ -290,7 +290,7 @@ void MainWindow::RecordSnapshots()
     LOG_XILENS(info) << "Closed snapshot recording file";
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
     QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->filePrefixSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
 }
 
 void MainWindow::HandleSnapshotButtonClicked()
@@ -507,7 +507,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
     if (recordingInProgress)
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->fileNameLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
@@ -517,7 +517,7 @@ void MainWindow::HandleElementsWhileRecording(bool recordingInProgress)
     else
     {
         QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->filePrefixLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->fileNameLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
         QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
@@ -638,13 +638,13 @@ void MainWindow::ThreadedRecordImage()
     this->m_IOService.post([this] { RecordImage(false); });
 }
 
-void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string filePrefix)
+void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string fileName)
 {
-    if (filePrefix.empty())
+    if (fileName.empty())
     {
-        filePrefix = m_recPrefixLineEdit.toUtf8().constData();
+        fileName = m_fileName.toUtf8().constData();
     }
-    QString fullPath = GetFullFilenameStandardFormat(std::move(filePrefix), ".b2nd", std::move(subFolder));
+    QString fullPath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", std::move(subFolder));
     this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
 }
 
@@ -795,7 +795,7 @@ void MainWindow::CreateFolderIfNecessary(const QString &folder)
     }
 }
 
-QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
+QString MainWindow::GetFullFilenameStandardFormat(std::string &&fileName, const std::string &extension,
                                                   std::string &&subFolder)
 {
     QString writingFolder = GetWritingFolder() + QDir::separator() + QString::fromStdString(subFolder);
@@ -805,18 +805,18 @@ QString MainWindow::GetFullFilenameStandardFormat(std::string &&filePrefix, cons
     }
     MainWindow::CreateFolderIfNecessary(writingFolder);
 
-    QString fileName;
+    QString fullFileName;
     if (!m_testMode)
     {
-        fileName = QString::fromStdString(filePrefix);
+        fullFileName = QString::fromStdString(fileName);
     }
     else
     {
-        fileName = QString("test");
+        fullFileName = QString("test");
     }
-    fileName += QString::fromStdString(extension);
+    fullFileName += QString::fromStdString(extension);
 
-    return QDir::cleanPath(writingFolder + fileName);
+    return QDir::cleanPath(writingFolder + fullFileName);
 }
 
 void MainWindow::StartPollingThread()
@@ -938,10 +938,10 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::HandleFilePrefixLineEditReturnPressed()
+void MainWindow::HandleFileNameLineEditReturnPressed()
 {
-    m_recPrefixLineEdit = ui->filePrefixLineEdit->text();
-    RestoreLineEditStyle(ui->filePrefixLineEdit);
+    m_fileName = ui->fileNameLineEdit->text();
+    RestoreLineEditStyle(ui->fileNameLineEdit);
 }
 
 void MainWindow::HandleViewerFileLineEditReturnPressed()
@@ -959,10 +959,20 @@ void MainWindow::HandleViewerFileLineEditReturnPressed()
     }
 }
 
-void MainWindow::HandleFilePrefixSnapshotsLineEditReturnPressed()
+void MainWindow::HandleFileNameSnapshotsLineEditReturnPressed()
 {
-    m_snapshotsFilePrefix = ui->filePrefixSnapshotsLineEdit->text();
-    RestoreLineEditStyle(ui->filePrefixSnapshotsLineEdit);
+    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setWindowTitle("Error");
+        msgBox.setText("<b>Invalid file name.</b>");
+        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
+        msgBox.exec();
+        return;
+    }
+    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
+    RestoreLineEditStyle(ui->fileNameSnapshotsLineEdit);
 }
 
 void MainWindow::HandleBaseFolderLineEditReturnPressed()
@@ -992,14 +1002,14 @@ void MainWindow::HandleLogTextLineEditReturnPressed()
     ui->logTextLineEdit->clear();
 }
 
-void MainWindow::HandleFilePrefixLineEditTextEdited(const QString &newText)
+void MainWindow::HandleFileNameLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->filePrefixLineEdit, newText, m_recPrefixLineEdit);
+    UpdateComponentEditedStyle(ui->fileNameLineEdit, newText, m_fileName);
 }
 
-void MainWindow::HandleFilePrefixSnapshotsLineEditTextEdited(const QString &newText)
+void MainWindow::HandleFileNameSnapshotsLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->filePrefixSnapshotsLineEdit, newText, m_snapshotsFilePrefix);
+    UpdateComponentEditedStyle(ui->fileNameSnapshotsLineEdit, newText, m_snapshotsFileName);
 }
 
 void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)

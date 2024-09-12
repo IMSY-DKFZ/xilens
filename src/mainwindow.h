@@ -298,19 +298,19 @@ class MainWindow : public QMainWindow
 
     /**
      * Qt slot triggered when the return key is pressed on the field that defines
-     * the file prefix in the UI. It updates the member variable that stores the
+     * the file name in the UI. It updates the member variable that stores the
      * value.
      */
-    void HandleFilePrefixLineEditReturnPressed();
+    void HandleFileNameLineEditReturnPressed();
 
     /**
-     * Qt slot triggered when the prefix file name is edited. It changes the
+     * Qt slot triggered when the file name is edited. It changes the
      * appearance of the field in the UI. It does not change the value of the
-     * member variable that stores the file prefix name.
+     * member variable that stores the file name.
      *
      * @param newText edited text.
      */
-    void HandleFilePrefixLineEditTextEdited(const QString &newText);
+    void HandleFileNameLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
@@ -363,17 +363,19 @@ class MainWindow : public QMainWindow
     void HandleReloadCamerasPushButtonClicked();
 
     /**
-     * Qt slot triggered when file name prefix for snapshots is edited on the UI.
+     * Qt slot triggered when file name for snapshots is edited on the UI.
      *
      * @param newText edited text.
      */
-    void HandleFilePrefixSnapshotsLineEditTextEdited(const QString &newText);
+    void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the file prefix field
+     * Qt slot triggered when the return key is pressed on the file name field
      * for snapshot images in the UI.
+     * This method will show a en error message box when the name of the snapshot file is the same as the file
+     * where the video is to be recorded.
      */
-    void HandleFilePrefixSnapshotsLineEditReturnPressed();
+    void HandleFileNameSnapshotsLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
@@ -477,8 +479,7 @@ class MainWindow : public QMainWindow
     static void CreateFolderIfNecessary(const QString &folder);
 
     /**
-     * Records image to specified sub folder and using specified file prefix to
-     * name the file.
+     * Records image to specified sub folder and using specified file name.
      *
      * @param ignoreSkipping ignores the number of frames to skip and stores the
      * image anyways.
@@ -495,9 +496,9 @@ class MainWindow : public QMainWindow
      * to store all images while recording to a single file.
      *
      * @param subFolder folder where data will be stored.
-     * @param filePrefix file prefix used for the file name.
+     * @param fileName file name.
      */
-    void InitializeImageFileRecorder(std::string subFolder = "", std::string filePrefix = "");
+    void InitializeImageFileRecorder(std::string subFolder = "", std::string fileName = "");
 
     /**
      * Indicates if an image should be recorded to file or not depending on the
@@ -558,14 +559,14 @@ class MainWindow : public QMainWindow
      * It automatically add the current write path and puts the name in a standard
      * format including timestamp etc.
      *
-     * @param filePrefix the name of the file (snapshot, recording, liver_image, ...).
+     * @param fileName the name of the file (snapshot, recording, liver_image, ...).
      * @param frameNumber the acquisition frame number provided by ximea.
      * @param extension file extension (.b2nd).
      * @param subFolder sometimes we want to add an additional layer of subfolder.
      * specifically when saving white/dark balance images.
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
+    QString GetFullFilenameStandardFormat(std::string &&fileName, const std::string &extension,
                                           std::string &&subFolder);
 
     /**
@@ -622,9 +623,9 @@ class MainWindow : public QMainWindow
     void RegisterTimeImageRecorded();
 
     /**
-     * file prefix to be appended to each image file name.
+     * The file name where videos are to be stored.
      */
-    QString m_recPrefixLineEdit;
+    QString m_fileName;
 
     /**
      * Trigger text entered to the log function of the UI.
@@ -647,9 +648,9 @@ class MainWindow : public QMainWindow
     QString m_labelExp;
 
     /**
-     * File prefix used for snapshot images.
+     * File name used for snapshot images.
      */
-    QString m_snapshotsFilePrefix;
+    QString m_snapshotsFileName;
 
     /**
      * Elapsed timer used for the timer displayed in the UI.
