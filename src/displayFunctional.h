@@ -8,6 +8,7 @@
 #include <xiApi.h>
 
 #include <QObject>
+#include <QTimer>
 #include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -66,7 +67,7 @@ class DisplayerFunctional : public Displayer
      *
      * @param image image to be downsampled
      */
-    void DownsampleImageIfNecessary(cv::Mat &image);
+    static void DownsampleImageIfNecessary(cv::Mat &image);
 
     /**
      * type of camera being used: spectral, gray, etc.
@@ -89,19 +90,45 @@ class DisplayerFunctional : public Displayer
      * reference to main window, necessary to detect if normalization is turned on
      * / which band to display
      */
-    MainWindow *m_mainWindow;
+    MainWindow *m_mainWindow{};
 
   public slots:
 
     /**
      * Qt slot used to display images whenever a new image is queried from the
-     * camera
+     * camera. When a new image arrives, it is stored in the a member variable and it sets a flag to indicate that
+     * a new image is ready for processing.
      *
      * @param image image to be displayed
      */
     void Display(XI_IMG &image) override;
 
+    /**
+     * Qt slot that triggers the process to display image once the timer has run out.
+     */
+    void OnDisplayTimeout();
+
   private:
+    /**
+     * Indicates if an image has to be displayed.
+     */
+    bool m_hasPendingImage = false;
+
+    /**
+     * Timer to control when an image is displayed.
+     */
+    QTimer m_displayTimer;
+
+    /**
+     * Interval in milliseconds indicating how often a new image should be displayed.
+     */
+    int m_displayIntervalMilliseconds = 40;
+
+    /**
+     * Variable containing the data for the new image to be displayed.
+     */
+    XI_IMG m_nextImage{};
+
     /**
      * Vector with channel numbers that can be used to construct an approximate
      * RGB image
@@ -122,6 +149,13 @@ class DisplayerFunctional : public Displayer
      * Class to do histogram normalization with CLAHE
      */
     cv::Ptr<cv::CLAHE> m_clahe = cv::createCLAHE();
+
+    /**
+     * Processes a XIMEA image to display a Raw and RGB representation of the image in the main UI.
+     *
+     * @param image XIMEA image to be processed and displayed through the main UI.
+     */
+    void ProcessImage(XI_IMG &image);
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
