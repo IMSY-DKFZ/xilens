@@ -9,15 +9,16 @@
 
 #include <QObject>
 #include <QString>
+#include <boost/thread.hpp>
 
 class Displayer : public QObject
 {
     Q_OBJECT
 
   public:
-    explicit Displayer();
+    explicit Displayer(QObject *parent = nullptr);
 
-    ~Displayer();
+    ~Displayer() override;
 
     QString m_cameraType;
 
@@ -34,10 +35,22 @@ class Displayer : public QObject
     void StartDisplayer();
 
   protected:
+    /**
+     * Indicate that process should stop displaying images.
+     */
     bool m_stop = false;
+
+    /**
+     * condition variable used to wait until a new image is available to be processed.
+     */
+    boost::condition_variable m_displayCondition;
 
   public slots:
 
+    /**
+     * Qt slot in charge of displaying images.
+     * @param image
+     */
     virtual void Display(XI_IMG &image) = 0;
 };
 

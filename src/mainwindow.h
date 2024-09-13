@@ -138,31 +138,9 @@ class MainWindow : public QMainWindow
     void StopSnapshotsThread();
 
     /**
-     * @brief Updates the saturation percentage on the LCD displays.
-     *
-     * @param image The input image of type CV_8UC1. It must be non-empty.
-     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
-     */
-    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
-
-    /**
      * Updates the frames per second that are stored to file on the UI.
      */
     void UpdateFPSLCDDisplay();
-
-    /**
-     * Updates the RGB image displayed in the GUI.
-     *
-     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed.
-     */
-    void UpdateRGBImage(cv::Mat &image);
-
-    /**
-     * Updates the raw image displayed in the GUI.
-     *
-     * @param image OpenCV matrix containing an 8bit single channel image to be displayed.
-     */
-    void UpdateRawImage(cv::Mat &image);
 
     /**
      * Updates the raw image displayed in the viewer tab.
@@ -252,6 +230,29 @@ class MainWindow : public QMainWindow
      * @param mat OpenCV matrix containing the image to display. This should be a one channel image.
      */
     void ViewerImageProcessingComplete(cv::Mat &mat);
+
+  public slots:
+    /**
+     * Qt slot that updates the RGB image displayed in the GUI.
+     *
+     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed.
+     */
+    void UpdateRGBImage(cv::Mat &image);
+
+    /**
+     * Qt slot that updates the raw image displayed in the GUI.
+     *
+     * @param image OpenCV matrix containing an 8bit single channel image to be displayed.
+     */
+    void UpdateRawImage(cv::Mat &image);
+
+    /**
+     * Qt slot that updates the saturation percentage on the LCD displays.
+     *
+     * @param image The input image of type CV_8UC1. It must be non-empty.
+     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+     */
+    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
 
   private slots:
 

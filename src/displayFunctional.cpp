@@ -35,6 +35,7 @@ DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), 
     }
     m_displayTimer.setInterval(m_displayIntervalMilliseconds);
     m_displayTimer.start();
+    m_displayThread = boost::thread(&DisplayerFunctional::ProcessImageOnThread, this);
 }
 
 DisplayerFunctional::~DisplayerFunctional()
@@ -42,6 +43,16 @@ DisplayerFunctional::~DisplayerFunctional()
     if (m_displayTimer.isActive())
     {
         m_displayTimer.stop();
+    }
+    {
+        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        m_stop = true;
+    }
+    m_displayCondition.notify_all();
+    m_displayThread.interrupt();
+    if (m_displayThread.joinable())
+    {
+        m_displayThread.join();
     }
     QObject::disconnect();
     m_clahe.release();
@@ -63,7 +74,7 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
-    // ectract L channel
+    // extract L channel
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
 
@@ -162,8 +173,27 @@ void DisplayerFunctional::OnDisplayTimeout()
 {
     if (m_hasPendingImage)
     {
-        ProcessImage(m_nextImage);
-        m_hasPendingImage = false;
+        m_displayCondition.notify_one();
+    }
+}
+
+[[noreturn]] void DisplayerFunctional::ProcessImageOnThread()
+{
+    while (true)
+    {
+        XI_IMG image;
+        {
+            boost::unique_lock<boost::mutex> lock(m_mutexImageDisplay);
+            boost::this_thread::interruption_point();
+            m_displayCondition.wait(lock, [this] { return m_hasPendingImage; });
+
+            if (m_hasPendingImage)
+            {
+                image = m_nextImage;
+                m_hasPendingImage = false;
+            }
+        }
+        ProcessImage(image);
     }
 }
 
@@ -173,9 +203,14 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     {
         return;
     }
-    boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
-
-    cv::Mat currentImage(static_cast<int>(image.height), static_cast<int>(image.width), CV_16UC1, image.bp);
+    cv::Mat currentImage;
+    int filterArrayType;
+    {
+        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        currentImage =
+            cv::Mat(static_cast<int>(image.height), static_cast<int>(image.width), CV_16UC1, image.bp).clone();
+        filterArrayType = image.color_filter_array;
+    }
     cv::Mat rawImage;
     static cv::Mat bgrImage;
 
@@ -201,13 +236,13 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
         rawImage.convertTo(rawImage, CV_8UC3);
 
         bgrImage = currentImage.clone();
-        if (image.color_filter_array == XI_CFA_BAYER_GBRG)
+        if (filterArrayType == XI_CFA_BAYER_GBRG)
         {
             cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
         }
         else
         {
-            LOG_XILENS(error) << "Could not interpret filter array of type: " << image.color_filter_array;
+            LOG_XILENS(error) << "Could not interpret filter array of type: " << filterArrayType;
         }
 
         bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
@@ -230,13 +265,12 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     {
         PrepareBGRImage(bgrImage, static_cast<int>(m_mainWindow->GetBGRNorm()));
     }
-    // update saturation displays
-    m_mainWindow->UpdateSaturationPercentageLCDDisplays(rawImage);
-
-    // display images for RGB and Raw
-    m_mainWindow->UpdateRGBImage(bgrImage);
-
-    m_mainWindow->UpdateRawImage(rawImageToDisplay);
+    // Update saturation display and display images through the main thread
+    QMetaObject::invokeMethod(m_mainWindow, "UpdateSaturationPercentageLCDDisplays", Qt::QueuedConnection,
+                              Q_ARG(cv::Mat &, rawImage));
+    QMetaObject::invokeMethod(m_mainWindow, "UpdateRGBImage", Qt::QueuedConnection, Q_ARG(cv::Mat &, bgrImage));
+    QMetaObject::invokeMethod(m_mainWindow, "UpdateRawImage", Qt::QueuedConnection,
+                              Q_ARG(cv::Mat &, rawImageToDisplay));
 }
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)

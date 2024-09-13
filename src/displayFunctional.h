@@ -110,6 +110,11 @@ class DisplayerFunctional : public Displayer
 
   private:
     /**
+     * Thread where the image processing before displaying them should run.
+     */
+    boost::thread m_displayThread;
+
+    /**
      * Indicates if an image has to be displayed.
      */
     bool m_hasPendingImage = false;
@@ -156,6 +161,12 @@ class DisplayerFunctional : public Displayer
      * @param image XIMEA image to be processed and displayed through the main UI.
      */
     void ProcessImage(XI_IMG &image);
+
+    /**
+     * Waits for an image to be available for processing and calls `ProcessImage` once an image is available.
+     * This method itself is triggered when the display timer runs out.
+     */
+    [[noreturn]] void ProcessImageOnThread();
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does

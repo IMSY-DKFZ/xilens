@@ -3,10 +3,15 @@
  * License: see LICENSE.md file
  *******************************************************/
 #include <QApplication>
+#include <QMetaType>
+#include <opencv2/core.hpp>
 
 #include "CLI11.h"
 #include "mainwindow.h"
 #include "util.h"
+
+Q_DECLARE_METATYPE(cv::Mat)
+Q_DECLARE_METATYPE(cv::Mat &)
 
 /**
  * @brief Application entry point and command line interface setup.
@@ -42,6 +47,8 @@ int main(int argc, char **argv)
 
     // instantiate application
     QApplication a(argc, argv);
+    qRegisterMetaType<cv::Mat>("cv::Mat");
+    qRegisterMetaType<cv::Mat &>("cv::Mat&");
     QFile themeFile(":/resources/dark_amber.css");
     if (themeFile.open(QFile::ReadOnly | QFile::Text))
     {
