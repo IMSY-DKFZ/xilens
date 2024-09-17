@@ -8,6 +8,7 @@
 #include <xiApi.h>
 
 #include <QObject>
+#include <QTimer>
 #include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -19,20 +20,6 @@
 #include "util.h"
 
 class MainWindow;
-
-/**
- * @brief Enumerates the types of display images.
- *
- * The DisplayImageType enumerator represents the different types of display
- * images. It provides symbolic names for the supported image types.
- */
-enum DisplayImageType
-{
-    RAW = 0,
-    RGB = 1,
-    VHB = 2,
-    OXY = 3
-};
 
 /**
  * @brief The DisplayerFunctional class is responsible for displaying images.
@@ -80,7 +67,7 @@ class DisplayerFunctional : public Displayer
      *
      * @param image image to be downsampled
      */
-    void DownsampleImageIfNecessary(cv::Mat &image);
+    static void DownsampleImageIfNecessary(cv::Mat &image);
 
     /**
      * type of camera being used: spectral, gray, etc.
@@ -103,24 +90,55 @@ class DisplayerFunctional : public Displayer
      * reference to main window, necessary to detect if normalization is turned on
      * / which band to display
      */
-    MainWindow *m_mainWindow;
+    MainWindow *m_mainWindow{};
 
   public slots:
 
     /**
      * Qt slot used to display images whenever a new image is queried from the
-     * camera
+     * camera. When a new image arrives, it is stored in the a member variable and it sets a flag to indicate that
+     * a new image is ready for processing.
      *
      * @param image image to be displayed
      */
     void Display(XI_IMG &image) override;
 
+    /**
+     * Qt slot that triggers the process to display image once the timer has run out.
+     */
+    void OnDisplayTimeout();
+
   private:
+    /**
+     * Thread where the image processing before displaying them should run.
+     */
+    boost::thread m_displayThread;
+
+    /**
+     * Indicates if an image has to be displayed.
+     */
+    bool m_hasPendingImage = false;
+
+    /**
+     * Timer to control when an image is displayed.
+     */
+    QTimer m_displayTimer;
+
+    /**
+     * Interval in milliseconds indicating how often a new image should be displayed.
+     */
+    int m_displayIntervalMilliseconds = 40;
+
+    /**
+     * Variable containing the data for the new image to be displayed.
+     */
+    XI_IMG m_nextImage{};
+
     /**
      * Vector with channel numbers that can be used to construct an approximate
      * RGB image
      */
-    std::vector<int> m_bgr_channels = {11, 15, 3};
+    std::vector<int> m_BGRChannels = {11, 15, 3};
 
     /**
      * Scaling factor used to convert image from 10bit to 8bit
@@ -128,21 +146,27 @@ class DisplayerFunctional : public Displayer
     int m_scaling_factor = 4;
 
     /**
-     * Dummy method, not yet implemented
-     *
-     * @param image Image to be run through the network
-     */
-    void RunNetwork(XI_IMG &image);
-
-    /**
      * explicit mutex declaration
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexImageDisplay;
 
     /**
      * Class to do histogram normalization with CLAHE
      */
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+    cv::Ptr<cv::CLAHE> m_clahe = cv::createCLAHE();
+
+    /**
+     * Processes a XIMEA image to display a Raw and RGB representation of the image in the main UI.
+     *
+     * @param image XIMEA image to be processed and displayed through the main UI.
+     */
+    void ProcessImage(XI_IMG &image);
+
+    /**
+     * Waits for an image to be available for processing and calls `ProcessImage` once an image is available.
+     * This method itself is triggered when the display timer runs out.
+     */
+    [[noreturn]] void ProcessImageOnThread();
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
@@ -218,4 +242,4 @@ class DisplayerFunctional : public Displayer
  */
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
 
-#endif // DISPLAY_H
+#endif // DISPLAYFUNCTIONAL_H

@@ -17,7 +17,7 @@ QSliderLabeled::QSliderLabeled(QWidget *parent) : QSlider(parent)
 {
 }
 
-void QSliderLabeled::applyStyleSheet()
+void QSliderLabeled::ApplyStyleSheet()
 {
     QFontMetrics fm(font());
     QString maxLabel = QString::number(maximum());
@@ -106,23 +106,23 @@ void QSliderLabeled::mouseMoveEvent(QMouseEvent *event)
     QSlider::mouseMoveEvent(event);
 }
 
-void QSliderLabeled::updatePainterPen()
+void QSliderLabeled::UpdatePainterPen()
 {
     QColor penColor = isEnabled() ? QColor(255, 215, 64) : QColor(79, 91, 98);
     m_penColor = penColor;
 }
 
-void QSliderLabeled::setGrooveMargin(int value)
+void QSliderLabeled::SetGrooveMargin(int value)
 {
     m_grooveMargin = value;
 }
 
-void QSliderLabeled::setMaxNumberOfLabels(int value)
+void QSliderLabeled::SetMaxNumberOfLabels(int value)
 {
     m_maxNumberOfLabels = value;
 }
 
-void QSliderLabeled::setSliderSpread(int value)
+void QSliderLabeled::SetSliderSpread(int value)
 {
     m_sliderSpread = value;
 }

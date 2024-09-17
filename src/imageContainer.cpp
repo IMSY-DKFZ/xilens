@@ -51,7 +51,7 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
     while (m_PollImage)
     {
         {
-            boost::lock_guard<boost::mutex> guard(mtx_);
+            boost::lock_guard<boost::mutex> guard(m_mutexImageAccess);
             boost::this_thread::interruption_point();
             if (cameraHandle != INVALID_HANDLE_VALUE)
             {
@@ -74,7 +74,7 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
                 lastImageId = m_Image.acq_nframe;
             }
         }
-        wait(pollingRate);
+        WaitMilliseconds(pollingRate);
     }
 }
 
@@ -90,6 +90,6 @@ void ImageContainer::StartPolling()
 
 XI_IMG ImageContainer::GetCurrentImage()
 {
-    boost::lock_guard<boost::mutex> guard(mtx_);
+    boost::lock_guard<boost::mutex> guard(m_mutexImageAccess);
     return m_Image;
 }

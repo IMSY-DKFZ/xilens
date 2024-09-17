@@ -36,7 +36,7 @@ TEST(CameraInterfaceTest, StartAcquisition_InvalidHandle)
     std::shared_ptr<MockXiAPIWrapper> apiWrapper = std::make_shared<MockXiAPIWrapper>();
     CameraInterface cameraInterface;
     cameraInterface.m_apiWrapper = apiWrapper;
-    cameraInterface.setCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
+    cameraInterface.SetCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
     QString cameraIdentifier = "MockDeviceModel@MockSensorSN";
     cameraInterface.m_availableCameras[cameraIdentifier] = 0;
 
@@ -50,7 +50,7 @@ TEST(CameraInterfaceTest, StartAcquisition_StartSuccess)
     HANDLE cameraHandle;
     cameraInterface.m_cameraHandle = cameraHandle;
     cameraInterface.m_apiWrapper = apiWrapper;
-    cameraInterface.setCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
+    cameraInterface.SetCamera(CAMERA_TYPE_SPECTRAL, CAMERA_FAMILY_XISPEC);
     QString cameraIdentifier = "MockDeviceModel@MockSensorSN";
     cameraInterface.m_availableCameras[cameraIdentifier] = 0;
 

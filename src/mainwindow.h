@@ -138,31 +138,22 @@ class MainWindow : public QMainWindow
     void StopSnapshotsThread();
 
     /**
-     * @brief Updates the saturation percentage on the LCD displays.
-     *
-     * @param image The input image of type CV_8UC1. It must be non-empty.
-     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
-     */
-    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
-
-    /**
      * Updates the frames per second that are stored to file on the UI.
      */
     void UpdateFPSLCDDisplay();
 
     /**
-     * Updates the RGB image displayed in the GUI.
+     * Updates the raw image displayed in the viewer tab.
      *
-     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed.
+     * @param image OpenCV patrix to display.
      */
-    void UpdateRGBImage(cv::Mat &image);
+    void UpdateRawViewerImage(cv::Mat &image);
 
     /**
-     * Updates the raw image displayed in the GUI.
-     *
-     * @param image OpenCV matrix containing an 8bit single channel image to be displayed.
+     * Waits for the viewer thread to be running and for new values to be available in the queue. It emits a
+     * signal indicating that a new value can be processed.
      */
-    void UpdateRawImage(cv::Mat &image);
+    void ViewerWorkerThreadFunc();
 
     /**
      * Takes an image, and scales it to the available width in the QtGraphicsView element before displaying it in the
@@ -214,6 +205,11 @@ class MainWindow : public QMainWindow
     Ui::MainWindow *ui;
 
     /**
+     * This is the NDArray structure that holds the connection to the data viewed in the Viewer tab of the application.
+     */
+    b2nd_array_t *m_viewerNDArray = nullptr;
+
+    /**
      * @brief Event handler for the close event of the main window.
      *
      * This method is called when the user attempts to close the main window
@@ -227,20 +223,58 @@ class MainWindow : public QMainWindow
      */
     void closeEvent(QCloseEvent *event) override;
 
+  signals:
+    /**
+     * Qt signal that is emitted when reading an processing of the image to display in viewer tab is finished.
+     *
+     * @param mat OpenCV matrix containing the image to display. This should be a one channel image.
+     */
+    void ViewerImageProcessingComplete(cv::Mat &mat);
+
+  public slots:
+    /**
+     * Qt slot that updates the RGB image displayed in the GUI.
+     *
+     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed.
+     */
+    void UpdateRGBImage(cv::Mat &image);
+
+    /**
+     * Qt slot that updates the raw image displayed in the GUI.
+     *
+     * @param image OpenCV matrix containing an 8bit single channel image to be displayed.
+     */
+    void UpdateRawImage(cv::Mat &image);
+
+    /**
+     * Qt slot that updates the saturation percentage on the LCD displays.
+     *
+     * @param image The input image of type CV_8UC1. It must be non-empty.
+     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+     */
+    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
+
   private slots:
 
     /**
      * Qt slot triggered when the snapshot button is pressed. Triggers the
      * recording of snapshot images or stops it when pressed a second time.
      */
-    void handleSnapshotButtonClicked();
+    void HandleSnapshotButtonClicked();
 
     /**
-     * Qt slot triggered when the camera exposure slider is modified.
+     * Qt slot triggered when the camera exposure value is modified either from the slider or the spinbox.
      *
      * @param value exposure value.
      */
-    void handleExposureSliderValueChanged(int value);
+    void HandleExposureValueChanged(int value);
+
+    /**
+     * Qt slot triggered when the image index slider in the Viewer tab of the application changes value.
+     *
+     * @param value The new value of the slider.
+     */
+    void HandleViewerImageSliderValueChanged(int value);
 
     /**
      * Qt slot triggered when the record button is pressed. Stars the continuous
@@ -249,62 +283,53 @@ class MainWindow : public QMainWindow
      *
      * @param clicked indicates if the button is clicked.
      */
-    void handleRecordButtonClicked(bool clicked);
+    void HandleRecordButtonClicked(bool clicked);
 
     /**
      * Qt slot triggered when the button to choose a base folder is clicked. Opens
      * a dialog where a folder can be selected.
      */
-    void handleBaseFolderButtonClicked();
+    void HandleBaseFolderButtonClicked();
 
     /**
-     * Qt slot triggered when the exposure time labels is modified manually. This
-     * changes the appearance of the field but does not trigger the change in the
-     * camera. Return key needs to be pressed for the change to be applied.
-     *
-     * @param newText edited text.
+     * Qt slot triggered when the file button in the viewer tab is clicked. Opens
+     * a dialog where a file can be selected.
      */
-    void handleExposureLineEditTextEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when return key is pressed after modifying the exposure
-     * time. This is synchronized with the exposure time slider.
-     */
-    void handleExposureLineEditReturnPressed();
+    void HandleViewerFileButtonClicked();
 
     /**
      * Qt slot triggered when the return key is pressed on the field that defines
-     * the file prefix in the UI. It updates the member variable that stores the
+     * the file name in the UI. It updates the member variable that stores the
      * value.
      */
-    void handleFilePrefixLineEditReturnPressed();
+    void HandleFileNameLineEditReturnPressed();
 
     /**
-     * Qt slot triggered when the prefix file name is edited. It changes the
+     * Qt slot triggered when the file name is edited. It changes the
      * appearance of the field in the UI. It does not change the value of the
-     * member variable that stores the file prefix name.
+     * member variable that stores the file name.
      *
      * @param newText edited text.
      */
-    void handleFilePrefixLineEditTextEdited(const QString &newText);
+    void HandleFileNameLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
      * of the exposure time to camera.
      */
-    void handleAutoexposureCheckboxClicked(bool setAutoexposure);
+    void HandleAutoexposureCheckboxClicked(bool setAutoexposure);
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
      * image and sets it in the network model.
      */
-    void handleWhiteBalanceButtonClicked();
+    void HandleWhiteBalanceButtonClicked();
 
     /**
      * Qt slot triggered when the dark correction button is pressed. Records a new
      * dark image and sets it in the network model.
      */
-    void handleDarkCorrectionButtonClicked();
+    void HandleDarkCorrectionButtonClicked();
 
     /**
      * Qt slot triggered when the trigger text is edited. It only changes the
@@ -312,71 +337,75 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void handleLogTextLineEditTextEdited(const QString &newText);
+    void HandleLogTextLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when the return key is pressed on the trigger text field.
      * It logs the message to the log file and displays it on the UI.
      */
-    void handleLogTextLineEditReturnPressed();
+    void HandleLogTextLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the spin box containing the number of images to skip
      * while recording is modified. It restyles the appearance of the field.
      */
-    void handleSkipFramesSpinBoxValueChanged();
+    void HandleSkipFramesSpinBoxValueChanged();
 
     /**
      * Qt slot triggered when a new camera is selected from the drop-down menu.
      *
      * @param index index corresponding to the element selected from the combo box.
      */
-    void handleCameraListComboBoxCurrentIndexChanged(int index);
+    void HandleCameraListComboBoxCurrentIndexChanged(int index);
 
     /**
      * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
      */
-    void handleReloadCamerasPushButtonClicked();
+    void HandleReloadCamerasPushButtonClicked();
 
     /**
-     * Qt slot triggered when file name prefix for snapshots is edited on the UI.
+     * Qt slot triggered when file name for snapshots is edited on the UI.
      *
      * @param newText edited text.
      */
-    void handleFilePrefixExtrasLineEditTextEdited(const QString &newText);
+    void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the file prefix field
+     * Qt slot triggered when the return key is pressed on the file name field
      * for snapshot images in the UI.
+     * This method will show a en error message box when the name of the snapshot file is the same as the file
+     * where the video is to be recorded.
      */
-    void handleFilePrefixExtrasLineEditReturnPressed();
+    void HandleFileNameSnapshotsLineEditReturnPressed();
 
     /**
      * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
      */
-    void handleBaseFolderLineEditReturnPressed();
-
-    /**
-     * Qt slot triggered when extras sub folder field is edited in the UI.
-     *
-     * @param newText edited text.
-     */
-    void handleSubFolderExtrasLineEditTextEdited(const QString &newText);
+    void HandleBaseFolderLineEditReturnPressed();
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.
      *
      * @param newText edited text.
      */
-    void handleBaseFolderLineEditTextEdited(const QString &newText);
+    void HandleBaseFolderLineEditTextEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when the return key is pressed on the sub folder field in
-     * the extras tab in the UI.
+     * Qt slot triggered when the file path in the viewer tab is edited through the UI.
+     *
+     * @param newText edited text
      */
-    void handleSubFolderExtrasLineEditReturnPressed();
+    void HandleViewerFileLineEditTextEdited(const QString &newText);
+
+    /**
+     * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
+     */
+    void HandleViewerFileLineEditReturnPressed();
 
   private:
+    /**
+     * Setups all UI Qt connections to handle all user interactions with the UI.
+     */
     void SetUpConnections();
 
     /**
@@ -444,13 +473,6 @@ class MainWindow : public QMainWindow
     void StopPollingThread();
 
     /**
-     * Sets the base folder path where the data is to be stored.
-     *
-     * @param baseFolderPath path of base folder where data will be stored.
-     */
-    bool SetBaseFolder(const QString &baseFolderPath);
-
-    /**
      * Creates a folder if it does not exist.
      *
      * @param folder the path to folder that needs to be created.
@@ -458,8 +480,7 @@ class MainWindow : public QMainWindow
     static void CreateFolderIfNecessary(const QString &folder);
 
     /**
-     * Records image to specified sub folder and using specified file prefix to
-     * name the file.
+     * Records image to specified sub folder and using specified file name.
      *
      * @param ignoreSkipping ignores the number of frames to skip and stores the
      * image anyways.
@@ -476,9 +497,9 @@ class MainWindow : public QMainWindow
      * to store all images while recording to a single file.
      *
      * @param subFolder folder where data will be stored.
-     * @param filePrefix file prefix used for the file name.
+     * @param fileName file name.
      */
-    void InitializeImageFileRecorder(std::string subFolder = "", std::string filePrefix = "");
+    void InitializeImageFileRecorder(std::string subFolder = "", std::string fileName = "");
 
     /**
      * Indicates if an image should be recorded to file or not depending on the
@@ -498,12 +519,12 @@ class MainWindow : public QMainWindow
     /**
      * Updates timer displayed on the UI when recordings are started.
      */
-    void updateTimer();
+    void UpdateTimer();
 
     /**
      * Stops the timer that is displayed in the UI when recordings are started.
      */
-    void stopTimer();
+    void StopTimer();
 
     /**
      * @brief MEthod used to record singe snapshot images while recording.
@@ -539,14 +560,14 @@ class MainWindow : public QMainWindow
      * It automatically add the current write path and puts the name in a standard
      * format including timestamp etc.
      *
-     * @param filePrefix the name of the file (snapshot, recording, liver_image, ...).
+     * @param fileName the name of the file (snapshot, recording, liver_image, ...).
      * @param frameNumber the acquisition frame number provided by ximea.
      * @param extension file extension (.b2nd).
      * @param subFolder sometimes we want to add an additional layer of subfolder.
      * specifically when saving white/dark balance images.
      * @return
      */
-    QString GetFullFilenameStandardFormat(std::string &&filePrefix, const std::string &extension,
+    QString GetFullFilenameStandardFormat(std::string &&fileName, const std::string &extension,
                                           std::string &&subFolder);
 
     /**
@@ -575,15 +596,37 @@ class MainWindow : public QMainWindow
     static QString FormatTimeStamp(const QString &timestamp);
 
     /**
-     * file prefix to be appended to each image file name.
+     * Opens the N-dimensional array and adjusts UI components based on the contents of the file:
+     *
+     * - Adjusts range of viewer image slider.
+     * - Triggers the display of the first image in the file.
+     *
+     * @param filePath path to the file to open.
      */
-    QString m_recPrefixLineEdit;
+    void OpenFileInViewer(const QString &filePath);
 
     /**
-     * Folder path where extra images are to be stored (e.g. snapshots). This is a
-     * folder inside the base folder.
+     * Reads a single image slice from file and creates an OpenCv matrix containing the data of the image.
+     * It emits a signal indicating that the processing finished and provides the processed image through the signal.
+     *
+     * @param value image index to load from file
      */
-    QString m_extrasSubFolder;
+    void ProcessViewerImageSliderValueChanged(int value);
+
+    /**
+     * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
+     */
+    void SetGraphicsViewScene();
+
+    /**
+     * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.
+     */
+    void RegisterTimeImageRecorded();
+
+    /**
+     * The file name where videos are to be stored.
+     */
+    QString m_fileName;
 
     /**
      * Trigger text entered to the log function of the UI.
@@ -593,7 +636,12 @@ class MainWindow : public QMainWindow
     /**
      * Folder path where all data is to be stored.
      */
-    QString m_baseFolderLoc;
+    QString m_baseFolderPath;
+
+    /**
+     * Path to a .b2nd file to be displayed in the viewer tab.
+     */
+    QString m_viewerFilePath;
 
     /**
      * Value of exposure time for the camera.
@@ -601,9 +649,9 @@ class MainWindow : public QMainWindow
     QString m_labelExp;
 
     /**
-     * File prefix used for snapshot images.
+     * File name used for snapshot images.
      */
-    QString m_extrasFilePrefix;
+    QString m_snapshotsFileName;
 
     /**
      * Elapsed timer used for the timer displayed in the UI.
@@ -677,6 +725,31 @@ class MainWindow : public QMainWindow
     boost::thread m_imageContainerThread;
 
     /**
+     * Thread in charge of handling the image viewer processing before displaying it in the UI.
+     */
+    boost::thread m_viewerThread;
+
+    /**
+     * Queue used to store image indices that are then processed to load the corresponding images.
+     */
+    std::queue<int> m_viewerSliderQueue;
+
+    /**
+     * Mutex used as a locking mechanism to avoid raises when processing images for the Viewer tab.
+     */
+    boost::mutex m_mutexImageViewer;
+
+    /**
+     * Primitive used to lock viewer thread execution until the que is not empty and when the thread has to stop.
+     */
+    boost::condition_variable m_viewerQueueCondition;
+
+    /**
+     * Indicates if the thread in charge of processing and displaying images in the viewer tab is running.
+     */
+    bool m_viewerThreadRunning;
+
+    /**
      * IO service in charge of recording images to files.
      */
     boost::asio::io_service m_IOService;
@@ -705,7 +778,7 @@ class MainWindow : public QMainWindow
     /**
      * Mutual exclusion mechanism in charge of synchronization.
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexImageRecording;
 
     /**
      * Camera temperature recording thread.
@@ -750,32 +823,32 @@ class MainWindow : public QMainWindow
     /**
      * Smart pointer to the RGB scene where the RGB images will be displayed.
      */
-    std::unique_ptr<QGraphicsScene> rgbScene = std::make_unique<QGraphicsScene>(this);
+    std::unique_ptr<QGraphicsScene> m_rgbScene = std::make_unique<QGraphicsScene>(this);
 
     /**
-     * smart pointer to raw scene where the raw unprocessed images will be displayed.
+     * Smart pointer to raw scene where the raw unprocessed images will be displayed.
      */
-    std::unique_ptr<QGraphicsScene> rawScene = std::make_unique<QGraphicsScene>(this);
+    std::unique_ptr<QGraphicsScene> m_rawScene = std::make_unique<QGraphicsScene>(this);
 
     /**
-     * smart pointer to pixmap used to display the RGB images.
+     * Smart pointer to a scene where the images for the Viewer tab are displayed.
      */
-    std::unique_ptr<QGraphicsPixmapItem> rgbPixMapItem;
+    std::unique_ptr<QGraphicsScene> m_rawViewerScene = std::make_unique<QGraphicsScene>(this);
+
+    /**
+     * Smart pointer to pixmap used to display the RGB images.
+     */
+    std::unique_ptr<QGraphicsPixmapItem> m_rgbPixMapItem;
 
     /**
      * Smart pointer to pixmap where raw unprocessed images will be displayed.
      */
-    std::unique_ptr<QGraphicsPixmapItem> rawPixMapItem;
+    std::unique_ptr<QGraphicsPixmapItem> m_rawPixMapItem;
 
     /**
-     * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
+     * Smart Pointer to a pixmap used to display the images in the RawViewer.
      */
-    void SetGraphicsViewScene();
-
-    /**
-     * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.
-     */
-    void RegisterTimeImageRecorded();
+    std::unique_ptr<QGraphicsPixmapItem> m_rawViewerPixMapItem;
 
     /**
      * Timer that sets the rate of updates for the FPS LCD Display in the UI.

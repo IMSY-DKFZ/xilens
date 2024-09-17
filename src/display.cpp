@@ -1,12 +1,10 @@
 #include "display.h"
 
-Displayer::Displayer()
+Displayer::Displayer(QObject *parent) : QObject(parent)
 {
 }
 
-Displayer::~Displayer()
-{
-}
+Displayer::~Displayer() = default;
 
 void Displayer::StopDisplayer()
 {
@@ -16,4 +14,5 @@ void Displayer::StopDisplayer()
 void Displayer::StartDisplayer()
 {
     this->m_stop = false;
+    this->m_displayCondition.notify_one();
 }

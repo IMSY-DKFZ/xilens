@@ -54,7 +54,7 @@ class CameraInterface : public QObject
      */
     ~CameraInterface();
 
-    void setCamera(QString cameraType, QString cameraFamily);
+    void SetCamera(QString cameraType, QString cameraFamily);
 
     /**
      * @brief Initializes a device with the specified camera ID.

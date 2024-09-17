@@ -114,7 +114,7 @@ class ImageContainer : public QObject
     /**
      * mutex declaration used to lock guard the current image in the container
      */
-    boost::mutex mtx_;
+    boost::mutex m_mutexImageAccess;
 };
 
 #endif // IMAGE_CONTAINER_H

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -26,7 +26,7 @@
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
      <layout class="QVBoxLayout" name="mainVerticalLayout">
       <item>
@@ -42,14 +42,20 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>450</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="maximumSize">
            <size>
-            <width>800</width>
+            <width>600</width>
             <height>16777215</height>
            </size>
           </property>
           <property name="toolTip">
-           <string>Extra recording controls e.g. snapshots</string>
+           <string/>
           </property>
           <property name="tabPosition">
            <enum>QTabWidget::West</enum>
@@ -80,20 +86,23 @@
             <string/>
            </property>
            <attribute name="title">
-            <string>Recording</string>
+            <string>Video</string>
            </attribute>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <layout class="QHBoxLayout" name="mainUiHorizontalLayout" stretch="0,1,0">
+               <layout class="QHBoxLayout" name="mainUiHorizontalLayout" stretch="3,1">
                 <item>
-                 <layout class="QVBoxLayout" name="mainControlsVerticalLayout" stretch="0,12">
+                 <layout class="QVBoxLayout" name="mainControlsVerticalLayout" stretch="0,0">
                   <property name="sizeConstraint">
                    <enum>QLayout::SetDefaultConstraint</enum>
                   </property>
+                  <property name="rightMargin">
+                   <number>5</number>
+                  </property>
                   <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="1,8">
                     <property name="topMargin">
                      <number>0</number>
                     </property>
@@ -103,7 +112,7 @@
                        <bool>true</bool>
                       </property>
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -112,6 +121,12 @@
                        <size>
                         <width>20</width>
                         <height>20</height>
+                       </size>
+                      </property>
+                      <property name="sizeIncrement">
+                       <size>
+                        <width>1</width>
+                        <height>1</height>
                        </size>
                       </property>
                       <property name="toolTip">
@@ -144,388 +159,540 @@
                    </layout>
                   </item>
                   <item>
-                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
+                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0">
                     <item>
-                     <widget class="Line" name="fileNameSeparatorLine">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_4">
-                      <item>
-                       <widget class="QPushButton" name="baseFolderButton">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="toolTip">
-                         <string>Select folder where all data is organized</string>
-                        </property>
-                        <property name="text">
-                         <string>Save folder</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLineEdit" name="baseFolderLineEdit">
-                        <property name="toolTip">
-                         <string>Folder where all data is stored</string>
-                        </property>
-                        <property name="readOnly">
-                         <bool>false</bool>
-                        </property>
-                        <property name="placeholderText">
-                         <string>Base folder where all data is stored</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_11">
-                      <item>
-                       <widget class="QLabel" name="filePrefixLabel">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="toolTip">
-                         <string>File name</string>
-                        </property>
-                        <property name="text">
-                         <string>File Name</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLineEdit" name="filePrefixLineEdit">
-                        <property name="toolTip">
-                         <string>Prefix appended to the beginning each file stored</string>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="placeholderText">
-                         <string>file1, file2, ...</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="recordButton">
+                     <widget class="QToolBox" name="videoToolBox">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
-                      <property name="toolTip">
-                       <string>Press to start / stop recording</string>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
                       </property>
-                      <property name="autoFillBackground">
-                       <bool>false</bool>
+                      <property name="frameShape">
+                       <enum>QFrame::NoFrame</enum>
                       </property>
-                      <property name="styleSheet">
-                       <string notr="true"/>
+                      <property name="currentIndex">
+                       <number>0</number>
                       </property>
-                      <property name="text">
-                       <string>Record video</string>
-                      </property>
-                      <property name="icon">
-                       <iconset>
-                        <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
-                      </property>
-                      <property name="checkable">
-                       <bool>true</bool>
-                      </property>
+                      <widget class="QWidget" name="page">
+                       <property name="geometry">
+                        <rect>
+                         <x>0</x>
+                         <y>0</y>
+                         <width>513</width>
+                         <height>247</height>
+                        </rect>
+                       </property>
+                       <attribute name="label">
+                        <string>Video file management</string>
+                       </attribute>
+                       <layout class="QVBoxLayout" name="verticalLayout_5">
+                        <item>
+                         <layout class="QFormLayout" name="formLayout">
+                          <property name="sizeConstraint">
+                           <enum>QLayout::SetDefaultConstraint</enum>
+                          </property>
+                          <property name="labelAlignment">
+                           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                          </property>
+                          <property name="formAlignment">
+                           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                          </property>
+                          <item row="0" column="0">
+                           <widget class="QPushButton" name="baseFolderButton">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="toolTip">
+                             <string>Select folder where all data is organized</string>
+                            </property>
+                            <property name="text">
+                             <string>Save folder</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="0" column="1">
+                           <widget class="QLineEdit" name="baseFolderLineEdit">
+                            <property name="toolTip">
+                             <string>Folder where all data is stored</string>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true"/>
+                            </property>
+                            <property name="readOnly">
+                             <bool>false</bool>
+                            </property>
+                            <property name="placeholderText">
+                             <string/>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="1" column="0">
+                           <widget class="QLabel" name="fileNameLabel">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="toolTip">
+                             <string>File name</string>
+                            </property>
+                            <property name="text">
+                             <string>File Name</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="1" column="1">
+                           <widget class="QLineEdit" name="fileNameLineEdit">
+                            <property name="toolTip">
+                             <string>File name used to store the video data</string>
+                            </property>
+                            <property name="text">
+                             <string/>
+                            </property>
+                            <property name="placeholderText">
+                             <string/>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="0">
+                           <widget class="QLabel" name="skipFramesLabel">
+                            <property name="text">
+                             <string>Skip frames</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="1">
+                           <widget class="QSpinBox" name="skipFramesSpinBox">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="toolTip">
+                             <string>Time to wait between consecutive recording frames</string>
+                            </property>
+                            <property name="toolTipDuration">
+                             <number>5</number>
+                            </property>
+                            <property name="maximum">
+                             <number>1000</number>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="recordButton">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="toolTip">
+                           <string>Press to start / stop recording</string>
+                          </property>
+                          <property name="autoFillBackground">
+                           <bool>false</bool>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true"/>
+                          </property>
+                          <property name="text">
+                           <string>Record video</string>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
+                          </property>
+                          <property name="checkable">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="darkCorrectionButton">
+                          <property name="enabled">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolTip">
+                           <string>Record dark reference images</string>
+                          </property>
+                          <property name="text">
+                           <string>Record dark reference</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="whiteBalanceButton">
+                          <property name="enabled">
+                           <bool>true</bool>
+                          </property>
+                          <property name="toolTip">
+                           <string>Record white reference images</string>
+                          </property>
+                          <property name="text">
+                           <string>Record white reference</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="verticalSpacer_5">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                      <widget class="QWidget" name="page_2">
+                       <property name="geometry">
+                        <rect>
+                         <x>0</x>
+                         <y>0</y>
+                         <width>513</width>
+                         <height>121</height>
+                        </rect>
+                       </property>
+                       <attribute name="label">
+                        <string>Exposure</string>
+                       </attribute>
+                       <layout class="QVBoxLayout" name="verticalLayout_6">
+                        <item>
+                         <layout class="QHBoxLayout" name="horizontalLayout">
+                          <item>
+                           <widget class="QLabel" name="exposureLabel">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="text">
+                             <string>Exposure [ms]:</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="hzLabel">
+                            <property name="text">
+                             <string>25</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="hzPlaceholderLabel">
+                            <property name="text">
+                             <string>Hz</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer name="horizontalSpacer_2">
+                            <property name="orientation">
+                             <enum>Qt::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>40</width>
+                              <height>20</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QSpinBox" name="exposureSpinBox">
+                            <property name="minimum">
+                             <number>5</number>
+                            </property>
+                            <property name="maximum">
+                             <number>500</number>
+                            </property>
+                            <property name="value">
+                             <number>40</number>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <widget class="QCheckBox" name="autoexposureCheckbox">
+                          <property name="toolTip">
+                           <string>Select to adjust exposure automatically</string>
+                          </property>
+                          <property name="text">
+                           <string>Autoexposure</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="verticalSpacer_4">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                      <widget class="QWidget" name="page_3">
+                       <property name="geometry">
+                        <rect>
+                         <x>0</x>
+                         <y>0</y>
+                         <width>513</width>
+                         <height>185</height>
+                        </rect>
+                       </property>
+                       <attribute name="label">
+                        <string>Display</string>
+                       </attribute>
+                       <layout class="QVBoxLayout" name="verticalLayout_7">
+                        <item>
+                         <widget class="QCheckBox" name="normalizeCheckbox">
+                          <property name="toolTip">
+                           <string>Select to normalize displayed images</string>
+                          </property>
+                          <property name="text">
+                           <string>Histogram normalization</string>
+                          </property>
+                          <property name="checked">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="displayedBandLabel">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Image channel</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSliderLabeled" name="bandSlider">
+                          <property name="toolTip">
+                           <string>Select displayed spectral band</string>
+                          </property>
+                          <property name="autoFillBackground">
+                           <bool>false</bool>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>16</number>
+                          </property>
+                          <property name="pageStep">
+                           <number>1</number>
+                          </property>
+                          <property name="value">
+                           <number>10</number>
+                          </property>
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="invertedAppearance">
+                           <bool>false</bool>
+                          </property>
+                          <property name="tickPosition">
+                           <enum>QSlider::TicksBelow</enum>
+                          </property>
+                          <property name="tickInterval">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="rgbNormLabel">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>RGB norm factor</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QSliderLabeled" name="rgbNormSlider">
+                          <property name="toolTip">
+                           <string>Select the normalizing factor for RGB noormalization</string>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>30</number>
+                          </property>
+                          <property name="pageStep">
+                           <number>1</number>
+                          </property>
+                          <property name="value">
+                           <number>5</number>
+                          </property>
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="tickPosition">
+                           <enum>QSlider::TicksBelow</enum>
+                          </property>
+                          <property name="tickInterval">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="verticalSpacer_3">
+                          <property name="orientation">
+                           <enum>Qt::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                      <widget class="QWidget" name="page_4">
+                       <property name="geometry">
+                        <rect>
+                         <x>0</x>
+                         <y>0</y>
+                         <width>513</width>
+                         <height>127</height>
+                        </rect>
+                       </property>
+                       <attribute name="label">
+                        <string>Snapshots</string>
+                       </attribute>
+                       <layout class="QVBoxLayout" name="verticalLayout_8">
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_10">
+                          <item>
+                           <layout class="QHBoxLayout" name="horizontalLayout_2">
+                            <item>
+                             <widget class="QLabel" name="snapshotLabel_3">
+                              <property name="text">
+                               <string>File name</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="fileNameSnapshotsLineEdit">
+                              <property name="toolTip">
+                               <string>File name used to store snapshot images</string>
+                              </property>
+                              <property name="text">
+                               <string/>
+                              </property>
+                              <property name="placeholderText">
+                               <string/>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QHBoxLayout" name="horizontalLayout_4">
+                            <item>
+                             <widget class="QPushButton" name="snapshotButton">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="toolTip">
+                               <string>Record specified number of individual images on base folder</string>
+                              </property>
+                              <property name="styleSheet">
+                               <string notr="true"/>
+                              </property>
+                              <property name="text">
+                               <string>Record snapshots</string>
+                              </property>
+                              <property name="icon">
+                               <iconset>
+                                <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
+                              </property>
+                              <property name="checkable">
+                               <bool>false</bool>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QSpinBox" name="nSnapshotsSpinBox">
+                              <property name="toolTip">
+                               <string>Number of snapshots to record</string>
+                              </property>
+                              <property name="maximum">
+                               <number>100</number>
+                              </property>
+                              <property name="value">
+                               <number>1</number>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <spacer name="verticalSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Vertical</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>20</width>
+                              <height>40</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </widget>
                      </widget>
                     </item>
                     <item>
-                     <widget class="Line" name="referenceButtonsSeparatorLine">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="darkCorrectionButton">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Record dark reference images</string>
-                      </property>
-                      <property name="text">
-                       <string>Record dark reference</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="whiteBalanceButton">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Record white reference images</string>
-                      </property>
-                      <property name="text">
-                       <string>Record white reference</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="Line" name="exposureSeparatorLine">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout">
-                      <item>
-                       <widget class="QLabel" name="exposureLabel">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="text">
-                         <string>Exposure [ms]:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLineEdit" name="exposureLineEdit">
-                        <property name="toolTip">
-                         <string>Integration time in milliseconds used for each image</string>
-                        </property>
-                        <property name="text">
-                         <string>40</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="hzLabel">
-                        <property name="text">
-                         <string>25</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="hzPlaceholderLabel">
-                        <property name="text">
-                         <string>Hz</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="Line" name="skipFramesSeparatorLine">
-                        <property name="orientation">
-                         <enum>Qt::Vertical</enum>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="skipFramesLabel">
-                        <property name="text">
-                         <string>Skip frames:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QSpinBox" name="skipFramesSpinBox">
-                        <property name="toolTip">
-                         <string>Time to wait between consecutive recording frames</string>
-                        </property>
-                        <property name="toolTipDuration">
-                         <number>5</number>
-                        </property>
-                        <property name="maximum">
-                         <number>10000</number>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_8">
-                      <item>
-                       <widget class="QCheckBox" name="normalizeCheckbox">
-                        <property name="toolTip">
-                         <string>Select to normalize displayed images</string>
-                        </property>
-                        <property name="text">
-                         <string>Normalize</string>
-                        </property>
-                        <property name="checked">
-                         <bool>false</bool>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QCheckBox" name="autoexposureCheckbox">
-                        <property name="toolTip">
-                         <string>Select to adjust exposure automatically</string>
-                        </property>
-                        <property name="text">
-                         <string>Autoexposure</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="Line" name="timeSeparatorLine">
-                        <property name="orientation">
-                         <enum>Qt::Vertical</enum>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="timeLabel">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="text">
-                         <string>Time recording:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLCDNumber" name="timerLCDNumber">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="minimumSize">
-                         <size>
-                          <width>0</width>
-                          <height>60</height>
-                         </size>
-                        </property>
-                        <property name="toolTip">
-                         <string>Time elapsed while recording</string>
-                        </property>
-                        <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
-                        </property>
-                        <property name="smallDecimalPoint">
-                         <bool>false</bool>
-                        </property>
-                        <property name="digitCount">
-                         <number>8</number>
-                        </property>
-                        <property name="mode">
-                         <enum>QLCDNumber::Dec</enum>
-                        </property>
-                        <property name="segmentStyle">
-                         <enum>QLCDNumber::Flat</enum>
-                        </property>
-                        <property name="value" stdset="0">
-                         <double>0.000000000000000</double>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="rgbNormLabel">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Select RGB norm:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSliderLabeled" name="rgbNormSlider">
-                      <property name="toolTip">
-                       <string>Select the normalizing factor for RGB noormalization</string>
-                      </property>
-                      <property name="minimum">
-                       <number>1</number>
-                      </property>
-                      <property name="maximum">
-                       <number>30</number>
-                      </property>
-                      <property name="pageStep">
-                       <number>1</number>
-                      </property>
-                      <property name="value">
-                       <number>5</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="tickPosition">
-                       <enum>QSlider::TicksBelow</enum>
-                      </property>
-                      <property name="tickInterval">
-                       <number>1</number>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="displayedBandLabel">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Select channel:</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSliderLabeled" name="bandSlider">
-                      <property name="toolTip">
-                       <string>Select displayed spectral band</string>
-                      </property>
-                      <property name="autoFillBackground">
-                       <bool>false</bool>
-                      </property>
-                      <property name="minimum">
-                       <number>1</number>
-                      </property>
-                      <property name="maximum">
-                       <number>16</number>
-                      </property>
-                      <property name="pageStep">
-                       <number>1</number>
-                      </property>
-                      <property name="value">
-                       <number>10</number>
-                      </property>
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="invertedAppearance">
-                       <bool>false</bool>
-                      </property>
-                      <property name="tickPosition">
-                       <enum>QSlider::TicksBelow</enum>
-                      </property>
-                      <property name="tickInterval">
-                       <number>1</number>
-                      </property>
-                     </widget>
+                     <layout class="QHBoxLayout" name="horizontalLayout_8"/>
                     </item>
                     <item>
                      <spacer name="verticalSpacer_2">
@@ -539,6 +706,63 @@
                        </size>
                       </property>
                      </spacer>
+                    </item>
+                    <item>
+                     <widget class="QTextEdit" name="logTextEdit">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>200</width>
+                        <height>200</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="toolTip">
+                       <string>Logged messages</string>
+                      </property>
+                      <property name="sizeAdjustPolicy">
+                       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+                      </property>
+                      <property name="readOnly">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="messageLogLabel">
+                      <property name="text">
+                       <string>Message log </string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="logTextLineEdit">
+                      <property name="toolTip">
+                       <string>Write mesage to be logged and hit return key</string>
+                      </property>
+                      <property name="inputMask">
+                       <string/>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="placeholderText">
+                       <string/>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
@@ -575,220 +799,62 @@
                   </property>
                  </widget>
                 </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_3" stretch="2,0,0">
-                  <property name="spacing">
-                   <number>6</number>
-                  </property>
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetDefaultConstraint</enum>
-                  </property>
-                  <item>
-                   <widget class="QTextEdit" name="logTextEdit">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="minimumSize">
-                     <size>
-                      <width>200</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>16777215</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>Logged messages</string>
-                    </property>
-                    <property name="sizeAdjustPolicy">
-                     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
-                    </property>
-                    <property name="readOnly">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="messageLogLabel">
-                    <property name="text">
-                     <string>Message log </string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="logTextLineEdit">
-                    <property name="toolTip">
-                     <string/>
-                    </property>
-                    <property name="inputMask">
-                     <string/>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="placeholderText">
-                     <string>Write message to be logged</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
                </layout>
               </item>
              </layout>
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="extrasTab">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>Extra controls like snapshots recordings</string>
-           </property>
+          <widget class="QWidget" name="viewerTab">
            <attribute name="title">
-            <string>Extras</string>
+            <string>Viewer</string>
            </attribute>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
-             <layout class="QVBoxLayout" name="extrasVerticalLayout">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetDefaultConstraint</enum>
-              </property>
+             <layout class="QVBoxLayout" name="viewerVerticalLayout">
               <item>
-               <widget class="QLabel" name="lowExposureLabel">
-                <property name="text">
-                 <string>Extras like snapshots recording controls</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QPushButton" name="snapshotButton">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="toolTip">
-                   <string>Record specified number of individual images on base folder</string>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true"/>
-                  </property>
+                 <widget class="QPushButton" name="viewerFileButton">
                   <property name="text">
-                   <string>Record snapshots</string>
-                  </property>
-                  <property name="icon">
-                   <iconset>
-                    <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
-                  </property>
-                  <property name="checkable">
-                   <bool>false</bool>
+                   <string>Select File</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="nSnapshotsSpinBox">
+                 <widget class="QLineEdit" name="viewerFileLineEdit">
                   <property name="toolTip">
-                   <string>Number of snapshots to record</string>
+                   <string>Path to .b2nd file</string>
                   </property>
-                  <property name="maximum">
-                   <number>999</number>
-                  </property>
-                  <property name="value">
-                   <number>1</number>
+                  <property name="placeholderText">
+                   <string/>
                   </property>
                  </widget>
                 </item>
                </layout>
               </item>
               <item>
-               <widget class="Line" name="subFolderExtrasSeparatorLine">
+               <widget class="QSliderLabeled" name="viewerImageSlider">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="toolTip">
+                 <string>Image index</string>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_12">
-                <item>
-                 <widget class="QLabel" name="extrasSubFolderQLabel">
-                  <property name="text">
-                   <string>Sub folder</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="subFolderExtrasLineEdit">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="toolTip">
-                   <string>Sub folder where extra recordings (e.g. snapshots) will be stored</string>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="placeholderText">
-                   <string>Sub folder to store extra recordings like snapshot images</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="snapshotLabel_3">
-                  <property name="text">
-                   <string>File prefix</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="filePrefixExtrasLineEdit">
-                  <property name="toolTip">
-                   <string>File prefix used to prepend to anapshot file names</string>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="placeholderText">
-                   <string>File prefix to append to each stored file</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
+               <widget class="QGraphicsView" name="viewerGraphicsView">
+                <property name="minimumSize">
                  <size>
-                  <width>20</width>
-                  <height>40</height>
+                  <width>512</width>
+                  <height>272</height>
                  </size>
                 </property>
-               </spacer>
+               </widget>
               </item>
              </layout>
             </item>
@@ -935,6 +1001,16 @@
       <item>
        <layout class="QHBoxLayout" name="statusHorizontalLayout">
         <item>
+         <widget class="QLabel" name="temperatureNameLabel">
+          <property name="text">
+           <string>Temperature:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLCDNumber" name="temperatureLCDNumber">
           <property name="toolTip">
            <string>Camera temperature</string>
@@ -957,7 +1033,7 @@
         <item>
          <widget class="QLabel" name="overexposureLabel">
           <property name="text">
-           <string>overexp:</string>
+           <string>Overexp:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -987,7 +1063,7 @@
         <item>
          <widget class="QLabel" name="underexposureLabel">
           <property name="text">
-           <string>underexp:</string>
+           <string>Underexp:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1069,6 +1145,53 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="timeLabel">
+          <property name="text">
+           <string>Time:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="timerLCDNumber">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Time elapsed while recording</string>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="smallDecimalPoint">
+           <bool>false</bool>
+          </property>
+          <property name="digitCount">
+           <number>8</number>
+          </property>
+          <property name="mode">
+           <enum>QLCDNumber::Dec</enum>
+          </property>
+          <property name="segmentStyle">
+           <enum>QLCDNumber::Flat</enum>
+          </property>
+          <property name="value" stdset="0">
+           <double>0.000000000000000</double>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -1081,29 +1204,11 @@
   <customwidget>
    <class>QSliderLabeled</class>
    <extends>QSlider</extends>
-   <header>widgets.h</header>
+   <header location="global">widgets.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>filePrefixLineEdit</tabstop>
-  <tabstop>baseFolderButton</tabstop>
-  <tabstop>baseFolderLineEdit</tabstop>
-  <tabstop>recordButton</tabstop>
-  <tabstop>darkCorrectionButton</tabstop>
-  <tabstop>whiteBalanceButton</tabstop>
-  <tabstop>exposureLineEdit</tabstop>
-  <tabstop>skipFramesSpinBox</tabstop>
-  <tabstop>normalizeCheckbox</tabstop>
-  <tabstop>autoexposureCheckbox</tabstop>
-  <tabstop>rgbNormSlider</tabstop>
-  <tabstop>bandSlider</tabstop>
   <tabstop>exposureSlider</tabstop>
-  <tabstop>logTextEdit</tabstop>
-  <tabstop>logTextLineEdit</tabstop>
-  <tabstop>subFolderExtrasLineEdit</tabstop>
-  <tabstop>filePrefixExtrasLineEdit</tabstop>
-  <tabstop>snapshotButton</tabstop>
-  <tabstop>nSnapshotsSpinBox</tabstop>
  </tabstops>
  <resources/>
  <connections/>

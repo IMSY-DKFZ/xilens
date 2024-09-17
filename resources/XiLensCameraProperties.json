@@ -389,6 +389,12 @@
     "mosaicWidth": 0,
     "mosaicHeight": 0
   },
+  "MQ042CG-CM": {
+    "cameraType": "rgb",
+    "cameraFamily": "xiQ",
+    "mosaicWidth": 0,
+    "mosaicHeight": 0
+  },
   "MQ042CG-CM-S7": {
     "cameraType": "rgb",
     "cameraFamily": "xiQ",
