@@ -266,11 +266,9 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
         PrepareBGRImage(bgrImage, static_cast<int>(m_mainWindow->GetBGRNorm()));
     }
     // Update saturation display and display images through the main thread
-    QMetaObject::invokeMethod(m_mainWindow, "UpdateSaturationPercentageLCDDisplays", Qt::QueuedConnection,
-                              Q_ARG(cv::Mat &, rawImage));
-    QMetaObject::invokeMethod(m_mainWindow, "UpdateRGBImage", Qt::QueuedConnection, Q_ARG(cv::Mat &, bgrImage));
-    QMetaObject::invokeMethod(m_mainWindow, "UpdateRawImage", Qt::QueuedConnection,
-                              Q_ARG(cv::Mat &, rawImageToDisplay));
+    emit ImageReadyToUpdateRGB(bgrImage);
+    emit ImageReadyToUpdateRaw(rawImageToDisplay);
+    emit SaturationPercentageImageReady(rawImage);
 }
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)

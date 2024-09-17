@@ -48,7 +48,6 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     m_imageContainer.Initialize(this->m_xiAPIWrapper);
     m_updateFPSDisplayTimer = new QTimer(this);
     ui->setupUi(this);
-    this->SetUpConnections();
     this->SetUpCustomUiComponents();
 
     // Initialize BLOSC2
@@ -74,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     expSpinBox->setValue(expSlider->value());
 
     LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
-
+    this->SetUpConnections();
     EnableUi(false);
 }
 
@@ -128,6 +127,12 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleViewerFileLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::HandleViewerFileLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(m_display, &Displayer::ImageReadyToUpdateRGB, this, &MainWindow::UpdateRGBImage));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(m_display, &Displayer::ImageReadyToUpdateRaw, this, &MainWindow::UpdateRawImage));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_display, &Displayer::SaturationPercentageImageReady, this,
+                                              &MainWindow::UpdateSaturationPercentageLCDDisplays));
 }
 
 void MainWindow::HandleConnectionResult(bool status, const char *file, int line, const char *func)

@@ -5,11 +5,11 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <xiApi.h>
-
 #include <QObject>
 #include <QString>
 #include <boost/thread.hpp>
+#include <opencv2/core.hpp>
+#include <xiApi.h>
 
 class Displayer : public QObject
 {
@@ -33,6 +33,22 @@ class Displayer : public QObject
      * Allows to start or continue displaying images
      */
     void StartDisplayer();
+
+  signals:
+    /**
+     * Qt signal emitted when an RGB image is ready to be displayed in the UI.
+     */
+    void ImageReadyToUpdateRGB(cv::Mat &);
+
+    /**
+     * Qt signal emitted when a raw image is ready to be displayed in the UI.
+     */
+    void ImageReadyToUpdateRaw(cv::Mat &);
+
+    /**
+     * Qt signal emitted when a new image is ready to compute the saturation percentage for the display.
+     */
+    void SaturationPercentageImageReady(cv::Mat &);
 
   protected:
     /**
