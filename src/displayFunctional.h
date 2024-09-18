@@ -75,6 +75,11 @@ class DisplayerFunctional : public Displayer
     QString m_cameraType = CAMERA_TYPE_SPECTRAL;
 
     /**
+     * camera model used to identify camera properties.
+     */
+    QString m_cameraModel;
+
+    /**
      * Mosaic shape, particularly used for mosaic type cameras
      */
     std::vector<int> m_mosaicShape;
@@ -133,12 +138,6 @@ class DisplayerFunctional : public Displayer
      * Variable containing the data for the new image to be displayed.
      */
     XI_IMG m_nextImage{};
-
-    /**
-     * Vector with channel numbers that can be used to construct an approximate
-     * RGB image
-     */
-    std::vector<int> m_BGRChannels = {11, 15, 3};
 
     /**
      * Scaling factor used to convert image from 10bit to 8bit

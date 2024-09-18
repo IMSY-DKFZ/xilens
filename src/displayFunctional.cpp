@@ -273,8 +273,19 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 {
+    if (!getCameraMapper().contains(m_cameraModel))
+    {
+        LOG_XILENS(error) << "Could not find camera model in Mapper: " << m_cameraModel.toStdString();
+        throw std::runtime_error("Could not find camera in Mapper");
+    }
+    auto bgrChannels = getCameraMapper().value(m_cameraModel).bgrChannels;
+    if (bgrChannels.empty())
+    {
+        LOG_XILENS(error) << "Empty BGR channel indices";
+        throw std::runtime_error("Empty RGB channel indices");
+    }
     std::vector<cv::Mat> channels;
-    for (int i : m_BGRChannels)
+    for (int i : bgrChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
@@ -307,5 +318,6 @@ void DisplayerFunctional::SetCameraProperties(QString cameraModel)
         throw std::runtime_error("Could not find camera in Mapper");
     }
     this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
+    this->m_cameraModel = cameraModel;
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }

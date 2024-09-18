@@ -5,6 +5,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
 #include <QString>
@@ -129,6 +130,7 @@ struct CameraData
     QString cameraType;
     QString cameraFamily;
     std::vector<int> mosaicShape;
+    std::vector<int> bgrChannels;
 
     static CameraData fromJson(const QJsonObject &jsonObject)
     {
@@ -137,10 +139,36 @@ struct CameraData
         data.cameraFamily = jsonObject.value("cameraFamily").toString();
         data.mosaicShape.push_back(jsonObject.value("mosaicWidth").toInt());
         data.mosaicShape.push_back(jsonObject.value("mosaicHeight").toInt());
+        if (jsonObject.contains("bgrChannels") && jsonObject["bgrChannels"].isArray())
+        {
+            QJsonArray array = jsonObject["bgrChannels"].toArray();
+            for (const auto &entry : array)
+            {
+                data.bgrChannels.push_back(entry.toInt());
+            }
+        }
+        else
+        {
+            data.bgrChannels = std::vector<int>(); // Optional, but explicitly sets it as empty
+        }
         return data;
     }
 };
 
+/**
+ * Loads a camera mapper configuration from a JSON file.
+ *
+ * This function reads a JSON configuration file specified by the fileName
+ * and initializes a camera mapper based on the data within the file. The
+ * JSON file must adhere to the expected schema for this operation to
+ * succeed. The camera mapper configuration typically involves parameters
+ * such as camera mosaic shape, camera family, etc.
+ *
+ * @param fileName The path to the JSON file containing the camera mapper configuration.
+ *
+ * @return Returns true if the camera mapper configuration was successfully loaded,
+ *         false otherwise.
+ */
 QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName);
 
 /**
