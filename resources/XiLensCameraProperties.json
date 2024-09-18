@@ -441,25 +441,113 @@
     "cameraType": "spectral",
     "cameraFamily": "xiSpec",
     "mosaicWidth": 4,
-    "mosaicHeight": 4
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-VIS-FL": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-VIS-FV": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-VIS-FF": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
   },
   "MQ022HG-IM-SM5X5-NIR2": {
     "cameraType": "spectral",
     "cameraFamily": "xiSpec",
     "mosaicWidth": 5,
-    "mosaicHeight": 5
+    "mosaicHeight": 5,
+    "bgrChannels": [21, 12, 5]
+  },
+  "MQ022HG-IM-SM5X5-NIR2-FL": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5,
+    "bgrChannels": [21, 12, 5]
+  },
+  "MQ022HG-IM-SM5X5-NIR2-FV": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5,
+    "bgrChannels": [21, 12, 5]
+  },
+  "MQ022HG-IM-SM5X5-NIR2-FF": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 5,
+    "mosaicHeight": 5,
+    "bgrChannels": [21, 12, 5]
   },
   "MQ022HG-IM-SM4X4-RN2": {
     "cameraType": "spectral",
     "cameraFamily": "xiSpec",
     "mosaicWidth": 4,
-    "mosaicHeight": 4
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-RN2-FL": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-RN2-FV": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
+  },
+  "MQ022HG-IM-SM4X4-RN2-FF": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [11, 15, 3]
   },
   "MQ022HG-IM-SM4X4-VIS3": {
     "cameraType": "spectral",
     "cameraFamily": "xiSpec",
     "mosaicWidth": 4,
-    "mosaicHeight": 4
+    "mosaicHeight": 4,
+    "bgrChannels": [13, 6, 5]
+  },
+  "MQ022HG-IM-SM4X4-VIS3-FL": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [13, 6, 5]
+  },
+  "MQ022HG-IM-SM4X4-VIS3-FV": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [13, 6, 5]
+  },
+  "MQ022HG-IM-SM4X4-VIS3-FF": {
+    "cameraType": "spectral",
+    "cameraFamily": "xiSpec",
+    "mosaicWidth": 4,
+    "mosaicHeight": 4,
+    "bgrChannels": [13, 6, 5]
   },
   "MX022CG-CM": {
     "cameraType": "rgb",
