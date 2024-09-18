@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All displaying operations run from a thread, and only calls the main thread when the process images are to be displayed.
 - Restructures UI for a more clear use and structures controls inside a toolbox.
 - Limits frequency at which images are displayed to avoid locking the UI. Images are still recorded at full speed.
+- Defines per-camera property to control which channels are used for rGB representation of the raw spectral data.
 
 ### Removed
 
