@@ -131,7 +131,7 @@ void MainWindow::SetUpConnections()
         QObject::connect(m_display, &Displayer::ImageReadyToUpdateRGB, this, &MainWindow::UpdateRGBImage));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(m_display, &Displayer::ImageReadyToUpdateRaw, this, &MainWindow::UpdateRawImage));
-    HANDLE_CONNECTION_RESULT(QObject::connect(m_display, &Displayer::SaturationPercentageImageReady, this,
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_display, &Displayer::SaturationPercentageReady, this,
                                               &MainWindow::UpdateSaturationPercentageLCDDisplays));
 }
 
@@ -430,7 +430,8 @@ void MainWindow::ProcessViewerImageSliderValueChanged(int value)
     mat.convertTo(mat, CV_8UC1);
 
     // Indicate that processing is finished.
-    emit ViewerImageProcessingComplete(mat);
+    auto viewerQImage = GetQImageFromMatrix(mat, QImage::Format_Grayscale8);
+    emit ViewerImageProcessingComplete(viewerQImage);
 }
 
 void MainWindow::ViewerWorkerThreadFunc()
@@ -1152,24 +1153,12 @@ void MainWindow::HandleReloadCamerasPushButtonClicked()
     ui->reloadCamerasPushButton->setDown(false);
 }
 
-void MainWindow::UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const
+void MainWindow::UpdateSaturationPercentageLCDDisplays(double percentageBelowThreshold,
+                                                       double percentageAboveThreshold) const
 {
-    if (image.empty() || image.type() != CV_8UC1)
-    {
-        throw std::invalid_argument("Invalid input matrix. It must be non-empty and of type CV_8UC1, "
-                                    "got: " +
-                                    cv::typeToString(image.type()));
-    }
-
-    int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
-    auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
-    double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
     QString displayValue = QString::number(percentageAboveThreshold, 'f', 1);
     QMetaObject::invokeMethod(ui->overexposurePercentageLCDNumber, "display", Qt::QueuedConnection,
                               Q_ARG(QString, displayValue));
-
-    int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
-    double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
     displayValue = QString::number(percentageBelowThreshold, 'f', 1);
     QMetaObject::invokeMethod(ui->underexposurePercentageLCDNumber, "display", Qt::QueuedConnection,
                               Q_ARG(QString, displayValue));
@@ -1190,39 +1179,35 @@ void MainWindow::UpdateFPSLCDDisplay()
     QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, displayValue));
 }
 
-void MainWindow::UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
-                             std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene)
+void MainWindow::UpdateImage(QImage image, QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
+                             QGraphicsScene *scene)
 {
-    QImage qtImage((uchar *)image.data, image.cols, image.rows, static_cast<long>(image.step), format);
-    qtImage = qtImage.scaled(view->width(), view->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    image = image.scaled(view->width(), view->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     if (pixmapItem == nullptr)
     {
-        pixmapItem.reset(scene->addPixmap(QPixmap::fromImage(qtImage)));
+        pixmapItem.reset(scene->addPixmap(QPixmap::fromImage(image)));
         pixmapItem->setFlag(QGraphicsItem::ItemIsMovable, false);
         pixmapItem->setFlag(QGraphicsItem::ItemIsSelectable, true);
     }
     else
     {
-        pixmapItem->setPixmap(QPixmap::fromImage(qtImage));
+        pixmapItem->setPixmap(QPixmap::fromImage(image));
     }
 }
 
-void MainWindow::UpdateRGBImage(cv::Mat &image)
+void MainWindow::UpdateRGBImage(QImage image)
 {
-    UpdateImage(image, QImage::Format_RGB888, this->ui->rgbImageGraphicsView, this->m_rgbPixMapItem,
-                this->m_rgbScene.get());
+    UpdateImage(image, this->ui->rgbImageGraphicsView, this->m_rgbPixMapItem, this->m_rgbScene.get());
 }
 
-void MainWindow::UpdateRawImage(cv::Mat &image)
+void MainWindow::UpdateRawImage(QImage image)
 {
-    UpdateImage(image, QImage::Format_BGR888, this->ui->rawImageGraphicsView, this->m_rawPixMapItem,
-                this->m_rawScene.get());
+    UpdateImage(image, this->ui->rawImageGraphicsView, this->m_rawPixMapItem, this->m_rawScene.get());
 }
 
-void MainWindow::UpdateRawViewerImage(cv::Mat &image)
+void MainWindow::UpdateRawViewerImage(QImage image)
 {
-    UpdateImage(image, QImage::Format_Grayscale8, this->ui->viewerGraphicsView, this->m_rawViewerPixMapItem,
-                this->m_rawViewerScene.get());
+    UpdateImage(image, this->ui->viewerGraphicsView, this->m_rawViewerPixMapItem, this->m_rawViewerScene.get());
 }
 
 void MainWindow::SetGraphicsViewScene()

@@ -7,6 +7,7 @@
 
 #include <xiApi.h>
 
+#include <QImage>
 #include <QObject>
 #include <QTimer>
 #include <boost/thread.hpp>
@@ -240,5 +241,23 @@ class DisplayerFunctional : public Displayer
  * The higher the value, the larger the intensity range of the resulting image.
  */
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
+
+/**
+ * Creates a QImage object from an OpenCv matrix and a given image format.
+ *
+ * @param image OpenCV matrix.
+ * @param format format of image, for example QImage::Format_BGR888.
+ * @return QImage.
+ * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+ */
+QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format);
+
+/**
+ * Computes the saturation percentages for underexposed and overexposed pixels from an image.
+ *
+ * @param image OpenCV matrix .
+ * @return Percentage of underexposed pixels (first value) and overexposed ones (second value).
+ */
+std::pair<double, double> GetSaturationPercentages(cv::Mat &image);
 
 #endif // DISPLAYFUNCTIONAL_H
