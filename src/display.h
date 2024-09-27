@@ -5,6 +5,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include <QImage>
 #include <QObject>
 #include <QString>
 #include <boost/thread.hpp>
@@ -38,17 +39,17 @@ class Displayer : public QObject
     /**
      * Qt signal emitted when an RGB image is ready to be displayed in the UI.
      */
-    void ImageReadyToUpdateRGB(cv::Mat &);
+    void ImageReadyToUpdateRGB(QImage);
 
     /**
      * Qt signal emitted when a raw image is ready to be displayed in the UI.
      */
-    void ImageReadyToUpdateRaw(cv::Mat &);
+    void ImageReadyToUpdateRaw(QImage);
 
     /**
-     * Qt signal emitted when a new image is ready to compute the saturation percentage for the display.
+     * Qt signal emitted when the saturation values are ready to be displayed in the UI.
      */
-    void SaturationPercentageImageReady(cv::Mat &);
+    void SaturationPercentageReady(double undersaturation, double oversaturation);
 
   protected:
     /**

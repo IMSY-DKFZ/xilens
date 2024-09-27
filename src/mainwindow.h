@@ -10,6 +10,7 @@
 #include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QGuiApplication>
+#include <QImage>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QScreen>
@@ -145,9 +146,9 @@ class MainWindow : public QMainWindow
     /**
      * Updates the raw image displayed in the viewer tab.
      *
-     * @param image OpenCV patrix to display.
+     * @param image Qt image to display.
      */
-    void UpdateRawViewerImage(cv::Mat &image);
+    void UpdateRawViewerImage(QImage image);
 
     /**
      * Waits for the viewer thread to be running and for new values to be available in the queue. It emits a
@@ -159,14 +160,13 @@ class MainWindow : public QMainWindow
      * Takes an image, and scales it to the available width in the QtGraphicsView element before displaying it in the
      * provided scene.
      *
-     * @param image OpenCV matrix to be displayed.
-     * @param format format expected of the image, for example `QImage::Format_RGB888` for an 8bit RGB image.
+     * @param image Qt image to be displayed.
      * @param view the graphics view element where image will be displayed.
      * @param pixmapItem pixmap item where the image is to be placed.
      * @param scene the scene that will contain the pixmap.
      */
-    static void UpdateImage(cv::Mat &image, QImage::Format format, QGraphicsView *view,
-                            std::unique_ptr<QGraphicsPixmapItem> &pixmapItem, QGraphicsScene *scene);
+    static void UpdateImage(QImage image, QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
+                            QGraphicsScene *scene);
 
     /**
      * Identifies if the saturation tool button is checked or not.
@@ -227,32 +227,32 @@ class MainWindow : public QMainWindow
     /**
      * Qt signal that is emitted when reading an processing of the image to display in viewer tab is finished.
      *
-     * @param mat OpenCV matrix containing the image to display. This should be a one channel image.
+     * @param image Qt image containing the image to display. This should be a one channel image.
      */
-    void ViewerImageProcessingComplete(cv::Mat &mat);
+    void ViewerImageProcessingComplete(QImage image);
 
   public slots:
     /**
      * Qt slot that updates the RGB image displayed in the GUI.
      *
-     * @param image OpenCv matrix containing an 8bit (per channel) RGB image to be displayed.
+     * @param image Qt image containing an 8bit (per channel) RGB image to be displayed.
      */
-    void UpdateRGBImage(cv::Mat &image);
+    void UpdateRGBImage(QImage image);
 
     /**
      * Qt slot that updates the raw image displayed in the GUI.
      *
-     * @param image OpenCV matrix containing an 8bit single channel image to be displayed.
+     * @param image Qt image containing an 8bit single channel image to be displayed.
      */
-    void UpdateRawImage(cv::Mat &image);
+    void UpdateRawImage(QImage image);
 
     /**
      * Qt slot that updates the saturation percentage on the LCD displays.
      *
-     * @param image The input image of type CV_8UC1. It must be non-empty.
-     * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
+     * @param percentageBelowThreshold Percentage of under-exposed pixels.
+     * @param percentageAboveThreshold Percentage of overexposed pixels.
      */
-    void UpdateSaturationPercentageLCDDisplays(cv::Mat &image) const;
+    void UpdateSaturationPercentageLCDDisplays(double percentageBelowThreshold, double percentageAboveThreshold) const;
 
   private slots:
 

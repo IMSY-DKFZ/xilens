@@ -266,9 +266,12 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
         PrepareBGRImage(bgrImage, static_cast<int>(m_mainWindow->GetBGRNorm()));
     }
     // Update saturation display and display images through the main thread
-    emit ImageReadyToUpdateRGB(bgrImage);
-    emit ImageReadyToUpdateRaw(rawImageToDisplay);
-    emit SaturationPercentageImageReady(rawImage);
+    auto bgrQImage = GetQImageFromMatrix(bgrImage, QImage::Format_RGB888);
+    auto rawQImage = GetQImageFromMatrix(rawImageToDisplay, QImage::Format_BGR888);
+    auto saturationValues = GetSaturationPercentages(rawImage);
+    emit ImageReadyToUpdateRGB(bgrQImage);
+    emit ImageReadyToUpdateRaw(rawQImage);
+    emit SaturationPercentageReady(saturationValues.first, saturationValues.second);
 }
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
@@ -320,4 +323,28 @@ void DisplayerFunctional::SetCameraProperties(QString cameraModel)
     this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
     this->m_cameraModel = cameraModel;
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
+}
+
+QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format)
+{
+    QImage qtImage((uchar *)image.data, image.cols, image.rows, static_cast<long>(image.step), format);
+    return qtImage;
+}
+
+std::pair<double, double> GetSaturationPercentages(cv::Mat &image)
+{
+    if (image.empty() || image.type() != CV_8UC1)
+    {
+        throw std::invalid_argument("Invalid input matrix. It must be non-empty and of type CV_8UC1, "
+                                    "got: " +
+                                    cv::typeToString(image.type()));
+    }
+
+    int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
+    double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
+
+    int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
+    return std::make_pair(percentageBelowThreshold, percentageAboveThreshold);
 }
