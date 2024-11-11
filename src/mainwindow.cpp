@@ -578,10 +578,20 @@ void MainWindow::OpenFileInViewer(const QString &filePath)
 {
     char *path = strdup(filePath.toUtf8().constData());
     b2nd_open(path, &this->m_viewerNDArray);
-    this->ui->viewerImageSlider->setEnabled(true);
     auto n_images = static_cast<int>(this->m_viewerNDArray->shape[0] - 1);
-    this->ui->viewerImageSlider->setMaximum(n_images);
-    this->HandleViewerImageSliderValueChanged(this->ui->viewerImageSlider->value());
+    int defaultIndex = 0;
+    // only enable slider when more than one image is in the file
+    if (n_images != 0)
+    {
+        this->ui->viewerImageSlider->setEnabled(true);
+        this->ui->viewerImageSlider->setMaximum(n_images);
+    }
+    else
+    {
+        this->ui->viewerImageSlider->setEnabled(false);
+    }
+    this->ui->viewerImageSlider->setValue(defaultIndex);
+    this->HandleViewerImageSliderValueChanged(defaultIndex);
 }
 
 void MainWindow::WriteLogHeader()
