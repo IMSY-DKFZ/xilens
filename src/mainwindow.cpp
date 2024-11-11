@@ -97,8 +97,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleViewerFileButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFileNameLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoexposureCheckbox, &QCheckBox::clicked, this,
                                               &MainWindow::HandleAutoexposureCheckboxClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
@@ -117,10 +115,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleReloadCamerasPushButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameSnapshotsLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFileNameSnapshotsLineEditReturnPressed));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleBaseFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleBaseFolderLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::textEdited, this,
@@ -944,12 +938,6 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::HandleFileNameLineEditReturnPressed()
-{
-    m_fileName = ui->fileNameLineEdit->text();
-    RestoreLineEditStyle(ui->fileNameLineEdit);
-}
-
 void MainWindow::HandleViewerFileLineEditReturnPressed()
 {
     auto file = QFile(ui->viewerFileLineEdit->text());
@@ -963,28 +951,6 @@ void MainWindow::HandleViewerFileLineEditReturnPressed()
     {
         LOG_XILENS(error) << "Viewer file path does not exist.";
     }
-}
-
-void MainWindow::HandleFileNameSnapshotsLineEditReturnPressed()
-{
-    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
-    {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setWindowTitle("Error");
-        msgBox.setText("<b>Invalid file name.</b>");
-        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
-        msgBox.exec();
-        return;
-    }
-    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
-    RestoreLineEditStyle(ui->fileNameSnapshotsLineEdit);
-}
-
-void MainWindow::HandleBaseFolderLineEditReturnPressed()
-{
-    m_baseFolderPath = ui->baseFolderLineEdit->text();
-    RestoreLineEditStyle(ui->baseFolderLineEdit);
 }
 
 void MainWindow::HandleLogTextLineEditReturnPressed()
@@ -1010,12 +976,22 @@ void MainWindow::HandleLogTextLineEditReturnPressed()
 
 void MainWindow::HandleFileNameLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->fileNameLineEdit, newText, m_fileName);
+    m_fileName = ui->fileNameLineEdit->text();
 }
 
 void MainWindow::HandleFileNameSnapshotsLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->fileNameSnapshotsLineEdit, newText, m_snapshotsFileName);
+    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setWindowTitle("Error");
+        msgBox.setText("<b>Invalid file name.</b>");
+        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
+        msgBox.exec();
+        return;
+    }
+    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
 }
 
 void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
@@ -1025,7 +1001,7 @@ void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
 
 void MainWindow::HandleBaseFolderLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderPath);
+    m_baseFolderPath = ui->baseFolderLineEdit->text();
 }
 
 void MainWindow::HandleViewerFileLineEditTextEdited(const QString &newText)

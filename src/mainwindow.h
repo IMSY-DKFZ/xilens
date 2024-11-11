@@ -298,13 +298,6 @@ class MainWindow : public QMainWindow
     void HandleViewerFileButtonClicked();
 
     /**
-     * Qt slot triggered when the return key is pressed on the field that defines
-     * the file name in the UI. It updates the member variable that stores the
-     * value.
-     */
-    void HandleFileNameLineEditReturnPressed();
-
-    /**
      * Qt slot triggered when the file name is edited. It changes the
      * appearance of the field in the UI. It does not change the value of the
      * member variable that stores the file name.
@@ -369,19 +362,6 @@ class MainWindow : public QMainWindow
      * @param newText edited text.
      */
     void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the file name field
-     * for snapshot images in the UI.
-     * This method will show a en error message box when the name of the snapshot file is the same as the file
-     * where the video is to be recorded.
-     */
-    void HandleFileNameSnapshotsLineEditReturnPressed();
-
-    /**
-     * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
-     */
-    void HandleBaseFolderLineEditReturnPressed();
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.
