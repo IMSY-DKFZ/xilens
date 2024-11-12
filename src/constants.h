@@ -13,7 +13,7 @@
 #include <opencv2/opencv.hpp>
 
 /**
- *  \name OPENCV Display Image Resolution
+ *  \name Display Image Resolution
  * @{
  */
 const int MAX_WIDTH_DISPLAY_WINDOW = 1024;

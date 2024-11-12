@@ -18,18 +18,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 #include <string>
-#if (CV_VERSION_MAJOR == 4)
-/**
- * Variable definitions for newer versions of OpenCV
- */
-enum
-{
-    CV_LOAD_IMAGE_ANYDEPTH = cv::IMREAD_ANYDEPTH,
-    CV_LOAD_IMAGE_ANYCOLOR = cv::IMREAD_COLOR,
-    CV_EVENT_LBUTTONDOWN = cv::EVENT_LBUTTONDOWN,
-    CV_EVENT_LBUTTONUP = cv::EVENT_LBUTTONUP,
-};
-#endif
 
 /**
  * Handles the result from the XiAPI, shows an error message and throws a

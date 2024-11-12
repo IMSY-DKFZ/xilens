@@ -15,17 +15,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core/types_c.h>
 #include <string>
 #include <utility>
-
-#if CV_VERSION_MAJOR == 3
-#include <opencv2/core/types_c.h>
-#include <opencv2/imgproc/imgproc_c.h>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/videoio.hpp>
-#endif
 
 #include "constants.h"
 #include "displayFunctional.h"
