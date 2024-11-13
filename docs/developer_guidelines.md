@@ -35,7 +35,7 @@ To build the documentation locally and check that yours is rendered properly, yo
 ``` bash
 conda create -n xilens python=3.10
 conda activate xilens
-pip install mkdocs mkdocs-glightbox mkdocs-material mkdocstrings[python]
+pip install mkdocs mkdoxy mkdocs-glightbox mkdocs-material mkdocstrings[python]
 mkdocs serve
 ```
 

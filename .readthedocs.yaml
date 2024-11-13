@@ -5,14 +5,7 @@ build:
   tools: {python: "3.10"}
   jobs:
     post_create_environment:
-      - pip install -U furo breathe
-    pre_build:
-        - cd docs && doxygen Doxyfile
-  apt_packages:
-      - doxygen
-      - graphviz
+      - pip install -U mkdocs mkdocs-glightbox mkdocs-material mkdocstrings[python] mkdoxy
 
-sphinx:
-  builder: html
-  configuration: docs/source/conf.py
-  fail_on_warning: false
+mkdocs:
+   configuration: mkdocs.yml
