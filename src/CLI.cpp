@@ -16,11 +16,9 @@ int main(int argc, char **argv)
     CLI::App app{"XIMEA camera recorder"};
 
     // initialize dummy variables as default values
-    g_commandLineArguments.output_folder = "rec";
     g_commandLineArguments.test_mode = false;
 
     // add options to CLI
-    app.add_option("-o,--output", g_commandLineArguments.output_folder, "Output folder");
     app.add_flag("-t,--test", g_commandLineArguments.test_mode, "Test mode");
     app.add_flag("-v,--version", g_commandLineArguments.version, "Print version and build information");
 

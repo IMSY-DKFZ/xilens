@@ -169,11 +169,6 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color);
  */
 struct CommandLineArguments
 {
-    std::string model_file;
-    std::string trained_file;
-    std::string white_file;
-    std::string dark_file;
-    std::string output_folder;
     bool test_mode;
     bool version;
 };
