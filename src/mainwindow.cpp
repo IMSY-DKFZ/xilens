@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     // synchronize expSlider and exposure checkbox
     QSlider *expSlider = ui->exposureSlider;
     QSpinBox *expSpinBox = ui->exposureSpinBox;
-    // set default values and ranges
+    // set default values
     expSpinBox->setValue(expSlider->value());
 
     LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";

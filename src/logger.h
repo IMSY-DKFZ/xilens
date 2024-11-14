@@ -40,6 +40,10 @@ BOOST_LOG_GLOBAL_LOGGER(my_logger, XILENS_LOGGER)
     BOOST_LOG_CHANNEL_SEV(my_logger::get(), "XILENS", logging::trivial::lvl)                                           \
         << __FILE__ << ":" << (__LINE__) << " @ " << (__FUNCTION__) << "\t"
 
+/**
+ * Handles Qt connection results. Calls `MainWindow::HandleConnectionResult` with the current file,
+ * line number and function.
+ */
 #define HANDLE_CONNECTION_RESULT(status) HandleConnectionResult(status, __FILE__, __LINE__, __FUNCTION__)
 
 #endif // XILENS_LOGGER_H

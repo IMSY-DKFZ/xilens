@@ -22,7 +22,12 @@
 #include "xiAPIWrapper.h"
 
 /**
- * Main window namespace
+ * @brief Forward declares MainWindow class inside UI namespace.
+ *
+ * This namespace contains auto-generated classes that correspond to UI forms designed in `Qt Designer`.
+ * This is the main access point for all UI components of the application.
+ * The full definition of this namespace can be found in the auto-generated file `ui_mainwindow.h`, which is available
+ * after compilation in the build directory.
  */
 namespace Ui
 {
@@ -30,7 +35,18 @@ class MainWindow;
 }
 
 /**
- * Main window class declaration.
+ * @brief Class used to manage all UI component interactions as well as displaying the images queried from cameras.
+ *
+ * This class is in charge of initializing the UI components and handle any interactions with the user as well as
+ * displaying the images queried from the camera. During initialization of the UI, this class performs the following
+ * steps:
+ *
+ * - Initialize camera interface and image container.
+ * - Setup native and custom UI components.
+ * - Initialize BLOSC2.
+ * - Populates list of available cameras.
+ * - Established `Qt` connections.
+ * - Disables UI components until a camera is selected by the user.
  */
 class MainWindow : public QMainWindow
 {
