@@ -9,7 +9,6 @@
 #include <QDateTime>
 #include <boost/chrono.hpp>
 #include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
@@ -21,8 +20,7 @@
 
 FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth)
 {
-    this->filePath = strdup(filePath);
-    blosc2_init();
+    this->m_filePath = strdup(filePath);
     blosc2_cparams cparams = BLOSC2_CPARAMS_DEFAULTS;
     cparams.typesize = sizeof(uint16_t);
     cparams.compcode = BLOSC_ZSTD;
@@ -34,7 +32,7 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
     blosc2_storage storage = BLOSC2_STORAGE_DEFAULTS;
     storage.contiguous = true;
     storage.cparams = &cparams;
-    storage.urlpath = this->filePath;
+    storage.urlpath = this->m_filePath;
 
     // Shape of the ndarray
     int64_t shape[] = {0, imageHeight, imageWidth};
@@ -42,15 +40,15 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
     int32_t chunk_shape[] = {1, static_cast<int>(imageHeight), static_cast<int>(imageWidth)};
     int32_t block_shape[] = {1, static_cast<int>(imageHeight), static_cast<int>(imageWidth)};
 
-    this->ctx = b2nd_create_ctx(&storage, 3, shape, chunk_shape, block_shape, "|u2", DTYPE_NUMPY_FORMAT, nullptr, 0);
+    this->m_ctx = b2nd_create_ctx(&storage, 3, shape, chunk_shape, block_shape, "|u2", DTYPE_NUMPY_FORMAT, nullptr, 0);
     int result;
-    if (access(this->filePath, F_OK) != -1)
+    if (access(this->m_filePath, F_OK) != -1)
     {
-        result = b2nd_open(this->filePath, &src);
+        result = b2nd_open(this->m_filePath, &m_src);
     }
     else
     {
-        result = b2nd_empty(this->ctx, &src);
+        result = b2nd_empty(this->m_ctx, &m_src);
     }
     HandleBLOSCResult(result, "b2nd_empty || b2nd_open");
 }
@@ -58,38 +56,37 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
 FileImage::~FileImage()
 {
     // free BLOSC resources
-    b2nd_free(this->src);
-    b2nd_free_ctx(this->ctx);
-    blosc2_destroy();
+    b2nd_free(this->m_src);
+    b2nd_free_ctx(this->m_ctx);
 }
 
 void FileImage::AppendMetadata()
 {
     // pack and append metadata
-    PackAndAppendMetadata(this->src, EXPOSURE_KEY, this->m_exposureMetadata);
-    PackAndAppendMetadata(this->src, FRAME_NUMBER_KEY, this->m_acqNframeMetadata);
-    PackAndAppendMetadata(this->src, COLOR_FILTER_ARRAY_FORMAT_KEY, this->m_colorFilterArray);
-    PackAndAppendMetadata(this->src, TIME_STAMP_KEY, this->m_timeStamp);
+    PackAndAppendMetadata(this->m_src, EXPOSURE_KEY, this->m_exposureMetadata);
+    PackAndAppendMetadata(this->m_src, FRAME_NUMBER_KEY, this->m_acqNframeMetadata);
+    PackAndAppendMetadata(this->m_src, COLOR_FILTER_ARRAY_FORMAT_KEY, this->m_colorFilterArray);
+    PackAndAppendMetadata(this->m_src, TIME_STAMP_KEY, this->m_timeStamp);
     for (const QString &key : m_additionalMetadata.keys())
     {
-        PackAndAppendMetadata(this->src, key.toUtf8().constData(), this->m_additionalMetadata[key]);
+        PackAndAppendMetadata(this->m_src, key.toUtf8().constData(), this->m_additionalMetadata[key]);
     }
     LOG_XILENS(info) << "Metadata was written to file";
 }
 
-void FileImage::write(XI_IMG image, QMap<QString, float> additionalMetadata)
+void FileImage::WriteImageData(XI_IMG image, QMap<QString, float> additionalMetadata)
 {
     const size_t buffer_size = static_cast<size_t>(image.width) * static_cast<size_t>(image.height) * sizeof(uint16_t);
     if (buffer_size > static_cast<size_t>(INT64_MAX))
     {
         throw std::overflow_error("Buffer size exceeds the maximum value of int64_t.");
     }
-    int result = b2nd_append(src, image.bp, static_cast<int64_t>(buffer_size), 0);
+    int result = b2nd_append(m_src, image.bp, static_cast<int64_t>(buffer_size), 0);
     HandleBLOSCResult(result, "b2nd_append");
     // store metadata
     this->m_exposureMetadata.emplace_back(image.exposure_time_us);
     this->m_acqNframeMetadata.emplace_back(image.acq_nframe);
-    this->m_colorFilterArray.emplace_back(colorFilterToString(image.color_filter_array));
+    this->m_colorFilterArray.emplace_back(ColorFilterToString(image.color_filter_array));
     this->m_timeStamp.emplace_back(GetTimeStamp().toStdString());
     for (const QString &key : additionalMetadata.keys())
     {
@@ -113,7 +110,7 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
     }
 }
 
-std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
+std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
 {
     switch (colorFilterArray)
     {
@@ -235,26 +232,9 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
     }
 }
 
-void rescale(cv::Mat &mat, float high)
-{
-    double min, max;
-    cv::minMaxLoc(mat, &min, &max);
-    mat = (mat - ((float)min)) * high / ((float)max - min);
-}
-
-void clamp(cv::Mat &mat, cv::Range bounds)
-{
-    cv::min(cv::max(mat, bounds.start), bounds.end, mat);
-}
-
-void wait(int milliseconds)
+void WaitMilliseconds(int milliseconds)
 {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(milliseconds));
-}
-
-void initLogging(enum boost::log::trivial::severity_level severity)
-{
-    boost::log::core::get()->set_filter(boost::log::trivial::severity >= severity);
 }
 
 cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color)

@@ -30,3 +30,24 @@ TEST(DisplayerFunctional, DisplayImage)
     delete[] static_cast<unsigned char *>(image->bp);
     delete image;
 }
+
+TEST(GetSaturationPercentagesTest, ValidInput)
+{
+    cv::Mat image = (cv::Mat_<uchar>(2, 5) << 5, 5, 5, 5, 5, 250, 250, 250, 250, 250);
+    auto [belowThreshold, aboveThreshold] = GetSaturationPercentages(image);
+    EXPECT_NEAR(belowThreshold, 50.0, 0.01);
+    EXPECT_NEAR(aboveThreshold, 50.0, 0.01);
+}
+
+TEST(GetSaturationPercentagesTest, EmptyMatrix)
+{
+    cv::Mat image;
+    EXPECT_THROW({ auto result = GetSaturationPercentages(image); }, std::invalid_argument);
+}
+
+TEST(GetSaturationPercentagesTest, IncorrectMatrixType)
+{
+    cv::Mat image = cv::Mat::zeros(3, 3, CV_32F);
+
+    EXPECT_THROW({ auto result = GetSaturationPercentages(image); }, std::invalid_argument);
+}

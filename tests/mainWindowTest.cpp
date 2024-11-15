@@ -21,22 +21,9 @@ class MockMainWindowTest : public ::testing::Test
     }
 };
 
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_EmptyImage)
+TEST_F(MockMainWindowTest, UpdateSaturationDisplays)
 {
-    cv::Mat image; // Empty image
-    ASSERT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image), std::invalid_argument);
-}
-
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_WrongImageType)
-{
-    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC3) * 128; // RGB image
-    ASSERT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image), std::invalid_argument);
-}
-
-TEST_F(MockMainWindowTest, UpdateSaturationDisplaysTest_ValidImage)
-{
-    cv::Mat image = cv::Mat::ones(10, 10, CV_8UC1) * 128; // Valid grayscale image
-    ASSERT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image));
+    ASSERT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(100, 0));
 }
 
 TEST_F(MockMainWindowTest, EnableUI)
@@ -69,23 +56,6 @@ TEST_F(MockMainWindowTest, WriteLogHeaderTest)
     {
         ASSERT_TRUE(false);
     }
-}
-
-TEST_F(MockMainWindowTest, GivenValidImage_WhenUpdateSaturationPercentageLCDDisplays_ThenCorrectValuesAreDisplayed)
-{
-    // Create a valid image
-    cv::Mat image = cv::Mat::zeros(10, 10, CV_8UC1);
-    image(cv::Rect(0, 0, 10, 10)).setTo(255); // Set part of the image to a high value
-    // Execute
-    EXPECT_NO_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(image));
-}
-
-TEST_F(MockMainWindowTest, GivenInvalidImage_WhenUpdateSaturationPercentageLCDDisplays_ThenExceptionIsThrown)
-{
-    // Create an invalid image
-    cv::Mat emptyImage;
-    // Expect an exception to be thrown
-    EXPECT_THROW(mockMainWindow->UpdateSaturationPercentageLCDDisplays(emptyImage), std::invalid_argument);
 }
 
 TEST_F(MockMainWindowTest, DisplayRecordedImageCounter)

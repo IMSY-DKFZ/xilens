@@ -1,0 +1,5 @@
+.md-header__button.md-logo img,
+.md-header__button.md-logo png {
+    height: 100px;
+    width: 100px;
+}

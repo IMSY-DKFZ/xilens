@@ -18,18 +18,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 #include <string>
-#if (CV_VERSION_MAJOR == 4)
-/**
- * Variable definitions for newer versions of OpenCV
- */
-enum
-{
-    CV_LOAD_IMAGE_ANYDEPTH = cv::IMREAD_ANYDEPTH,
-    CV_LOAD_IMAGE_ANYCOLOR = cv::IMREAD_COLOR,
-    CV_EVENT_LBUTTONDOWN = cv::EVENT_LBUTTONDOWN,
-    CV_EVENT_LBUTTONUP = cv::EVENT_LBUTTONUP,
-};
-#endif
 
 /**
  * Handles the result from the XiAPI, shows an error message and throws a
@@ -56,6 +44,12 @@ enum
         throw std::runtime_error(errormsg.str());                                                                      \
     }
 
+/**
+ * @brief Image container responsible of writing images to a file, including metadata.
+ *
+ * This class manges the writing of images to a file. Writing metadata to the file needs to be triggered through the
+ * method FileImage::AppendMetadata.
+ */
 class FileImage
 {
   public:
@@ -88,17 +82,17 @@ class FileImage
     /**
      * path to file location
      */
-    char *filePath;
+    char *m_filePath;
 
     /**
      * Storage context
      */
-    b2nd_context_t *ctx;
+    b2nd_context_t *m_ctx;
 
     /**
      * Array storage created temporarily for BLOSC
      */
-    b2nd_array_t *src; // New member to store array
+    b2nd_array_t *m_src; // New member to store array
 
     /**
      * Opens a file and throws runtime error when opening fails
@@ -107,7 +101,7 @@ class FileImage
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
     /**
-     * Closes file when object is destructed
+     * Frees blosc2 context and releases the resources associated with the file.
      */
     ~FileImage();
 
@@ -116,7 +110,7 @@ class FileImage
      * @param image Ximea image where data is stored
      * @param additionalMetadata Additional metadata to be stored in the array
      */
-    void write(XI_IMG image, QMap<QString, float> additionalMetadata);
+    void WriteImageData(XI_IMG image, QMap<QString, float> additionalMetadata);
 
     /**
      * Appends metadata to BLOSC ND array. This method should be called before
@@ -151,33 +145,13 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
  * @param colorFilterArray XIMEA color filter array representation
  * @return string representing the color filter array
  */
-std::string colorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
-
-/**
- * Initializes the logging by setting a severity
- * @param severity level of logging to set
- */
-void initLogging(enum boost::log::trivial::severity_level severity);
+std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
 
 /**
  * waits a certain amount of milliseconds on a boost thread
- * @param milliseconds amount of time to wait
+ * @param milliseconds amount of time to WaitMilliseconds
  */
-void wait(int milliseconds);
-
-/**
- * Restricts the values in a matrix to the range defined by bounds
- * @param mat matrix of values to restrict
- * @param bounds range of values
- */
-void clamp(cv::Mat &mat, cv::Range bounds);
-
-/**
- * Rescales values to a range defined by high, lower bound is always 0
- * @param mat matrix values to rescale
- * @param high maximum value that defines the range
- */
-void rescale(cv::Mat &mat, float high);
+void WaitMilliseconds(int milliseconds);
 
 /**
  * Created a look up table (LUT) that can be used to define the colors of pixels
@@ -188,14 +162,13 @@ void rescale(cv::Mat &mat, float high);
  */
 cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color);
 
-// we collect the command line arguments in this global struct
+/**
+ * @brief Structure used to store command line arguments parsed by the user.
+ *
+ * Contains the CLI arguments that can be parsed through the terminal by the user.
+ */
 struct CommandLineArguments
 {
-    std::string model_file;
-    std::string trained_file;
-    std::string white_file;
-    std::string dark_file;
-    std::string output_folder;
     bool test_mode;
     bool version;
 };
@@ -216,7 +189,8 @@ void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
 QString GetTimeStamp();
 
 /**
- * Contains the CLI arguments that can be used through a terminal
+ * Contains the CLI arguments that can be parsed through the terminal by the user. This is initialized at start of
+ * the program, before the `Qt` application is initialized.
  */
 extern struct CommandLineArguments g_commandLineArguments;
 

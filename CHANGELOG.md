@@ -23,6 +23,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -
 
+## [0.2.2]
+
+### Added
+
+- Adds image viewer tab to open recorded .b2nd files and scroll over images.
+- Adds missing camera models to JSON file.
+- Adds documentation for all classes in XiLens.
+
+### Changed
+
+- All displaying operations run from a thread, and only calls the main thread when the process images are to be displayed.
+- Restructures UI for a more clear use and structures controls inside a toolbox.
+- Limits frequency at which images are displayed to avoid locking the UI. Images are still recorded at full speed.
+- Defines per-camera property to control which channels are used for rGB representation of the raw spectral data.
+- Moves from using Sphix to Mkdocs to build documentation.
+- Modifies signals for some text input such that ENTER does not need to be pressed for changes to take effect.
+
+### Removed
+
+- Removes command line options that are no longer needed such as white, dark, model file, etc.
+
+### Fixed
+
+- Fixes UI responsiveness hindered by temperature thread.
+- Fixes opening files that only have one image stored.
+
 ## [0.2.1]
 
 ### Added

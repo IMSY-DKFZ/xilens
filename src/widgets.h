@@ -12,6 +12,8 @@
 #include <QStyle>
 
 /**
+ * @brief Custom slider widget used to display text labels along the slider
+ *
  * Custom slider widget that displays text corresponding to values in the slider.
  * By default the number of text labels in the slider is set to a maximum of `8`.
  * If the calculated number of labels based on the interval and the min and max values in the slider exceed this value,
@@ -36,20 +38,20 @@ class QSliderLabeled : public QSlider
      *
      * @param value
      */
-    void setGrooveMargin(int value);
+    void SetGrooveMargin(int value);
 
     /**
      * Sets Maximum number of labels to display in the slider.
      *
      * @param value maximum number of labels.
      */
-    void setMaxNumberOfLabels(int value);
+    void SetMaxNumberOfLabels(int value);
 
     /**
      * Applies a custom style sheet that defines the width and height of the slider based on the orientation
      * of the slider.
      */
-    void applyStyleSheet();
+    void ApplyStyleSheet();
 
     /**
      * Sets the maximum spread of the slider. This will represent the maximum height when slider is horizontal and
@@ -57,7 +59,7 @@ class QSliderLabeled : public QSlider
      *
      * @param value the slider spread.
      */
-    void setSliderSpread(int value);
+    void SetSliderSpread(int value);
 
   protected:
     /**
@@ -77,14 +79,14 @@ class QSliderLabeled : public QSlider
     void showEvent(QShowEvent *event) override
     {
         QSlider::showEvent(event);
-        applyStyleSheet();
+        ApplyStyleSheet();
     }
 
     /**
      * @brief Overrides the event() method from the parent class.
      *
      * This method is triggered when an event is received by the widget. It specifically handles the
-     * `QEvent::EnabledChange` event and calls the `updatePainterPen()` method to update the painter pen. It then calls
+     * `QEvent::EnabledChange` event and calls the `UpdatePainterPen()` method to update the painter pen. It then calls
      * the event() method of the parent class to handle any other events. Finally, it returns a boolean value indicating
      * whether the event was handled.
      *
@@ -95,7 +97,7 @@ class QSliderLabeled : public QSlider
     {
         if (e->type() == QEvent::EnabledChange)
         {
-            updatePainterPen();
+            UpdatePainterPen();
         }
         return QSlider::event(e);
     }
@@ -135,7 +137,7 @@ class QSliderLabeled : public QSlider
      * Updates the painter's pen color based on the enabled state of the QSliderLabeled widget.
      * The pen color is set to a specific color if the widget is enabled, and to a different color if it is disabled.
      */
-    void updatePainterPen();
+    void UpdatePainterPen();
 };
 
 #endif // XILENS_WIDGETS_H

@@ -6,14 +6,17 @@
 #ifndef XILENS_CAMERA_H
 #define XILENS_CAMERA_H
 
-#include <xiApi.h>
-
 #include <QMap>
 #include <QString>
+#include <boost/thread.hpp>
+#include <xiApi.h>
 
 #include "constants.h"
 #include "xiAPIWrapper.h"
 
+/**
+ * @brief CBase class used to identify camera families, e.g. xiQ, xiSpec, etc.
+ */
 class CameraFamily
 {
   protected:
@@ -21,6 +24,12 @@ class CameraFamily
      * Camera identifier used by API to communicate with camera
      */
     HANDLE *m_cameraHandle;
+
+    /**
+     * Mutex used to lock access to variables like the camera temperature, this allows updating temperature from
+     * multiple threads.
+     */
+    boost::mutex m_mutexCameraTemperature;
 
   public:
     explicit CameraFamily(HANDLE *handle) : m_cameraHandle(handle)
@@ -84,11 +93,13 @@ class CameraFamily
     /*
      * Queries camera temperature
      */
-    QMap<QString, float> getCameraTemperature();
+    QMap<QString, float> GetCameraTemperature();
 };
 
 /**
- * Spectral camera family
+ * @brief Class representing the spectral camera family.
+ *
+ * This camera family manages custom properties of the spectral camera family. Such as updating camera temperature, etc.
  */
 class XiSpecFamily : public CameraFamily
 {
@@ -115,7 +126,9 @@ class XiSpecFamily : public CameraFamily
 };
 
 /**
- * xiC camera family
+ * @brief Class representing the xiC camera family.
+ *
+ * This camera family manages custom properties of the xiC camera family. Such as updating camera temperature, etc.
  */
 class XiCFamily : public CameraFamily
 {
@@ -142,7 +155,9 @@ class XiCFamily : public CameraFamily
 };
 
 /**
- * xiQ camera family
+ * @brief Class representing the xiQ camera family.
+ *
+ * This camera family manages custom properties of the xiQ camera family. Such as updating camera temperature, etc.
  */
 class XiQFamily : public CameraFamily
 {
@@ -189,7 +204,10 @@ using XiRAYFamily = XiCFamily;
 using XiXFamily = XiCFamily;
 
 /**
- * Base camera class
+ * @brief Base class used to identify different camera types such as spectral, RGB and gray cameras.
+ *
+ * This class handles the connection the the API wrapper for communicating with each camera, and defines custom
+ * initialization parameters (binning, data format, etc.) for each camera.
  */
 class Camera
 {
@@ -206,7 +224,7 @@ class Camera
      * @param family family of the camera to be constructed
      * @param handle camera handle used for all interactions with it
      */
-    Camera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : family(family), m_cameraHandle(handle)
+    Camera(std::unique_ptr<CameraFamily> *family, HANDLE *handle) : m_cameraFamily(family), m_cameraHandle(handle)
     {
     }
 
@@ -218,7 +236,7 @@ class Camera
     /**
      * Unique pointer to camera family
      */
-    std::unique_ptr<CameraFamily> *family;
+    std::unique_ptr<CameraFamily> *m_cameraFamily;
 
     /**
      * initializes camera by setting parameters such as framerate, binning mode,
@@ -285,7 +303,7 @@ class Camera
 };
 
 /**
- * Spectral camera construct
+ * @brief Spectral camera class. Used to communicate with all spectral cameras.
  */
 class SpectralCamera : public Camera
 {
@@ -310,7 +328,7 @@ class SpectralCamera : public Camera
 };
 
 /**
- * Gray scale camera-specific components
+ * @brief Gray scale camera class. Used to communicate with all gray scale cameras.
  */
 class GrayCamera : public Camera
 {
@@ -335,7 +353,7 @@ class GrayCamera : public Camera
 };
 
 /**
- * GRGB camera-specific components
+ * @brief RGB camera class. USer to communicate with all color cameras.
  */
 class RGBCamera : public Camera
 {

@@ -3,6 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
+#include <boost/thread.hpp>
+
 #include "camera.h"
 
 #include "logger.h"
@@ -12,7 +14,7 @@ void CameraFamily::UpdateCameraTemperature()
 {
 }
 
-QMap<QString, float> CameraFamily::getCameraTemperature()
+QMap<QString, float> CameraFamily::GetCameraTemperature()
 {
     return this->m_cameraTemperature;
 }
@@ -129,6 +131,7 @@ int RGBCamera::InitializeCamera()
 
 void XiSpecFamily::UpdateCameraTemperature()
 {
+    boost::lock_guard<boost::mutex> guard(this->m_mutexCameraTemperature);
     float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
 
     this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_CHIP_TEMP, &chipTemp);
@@ -143,6 +146,7 @@ void XiSpecFamily::UpdateCameraTemperature()
 
 void XiCFamily::UpdateCameraTemperature()
 {
+    boost::lock_guard<boost::mutex> guard(this->m_mutexCameraTemperature);
     float sensorBoardTemp;
     this->m_apiWrapper->xiGetParamFloat(*m_cameraHandle, XI_PRM_SENSOR_BOARD_TEMP, &sensorBoardTemp);
     this->m_cameraTemperature[SENSOR_BOARD_TEMP] = sensorBoardTemp;
@@ -150,6 +154,7 @@ void XiCFamily::UpdateCameraTemperature()
 
 void XiQFamily::UpdateCameraTemperature()
 {
+    boost::lock_guard<boost::mutex> guard(this->m_mutexCameraTemperature);
     float chipTemp, houseTemp, houseBackSideTemp, sensorBoardTemp;
     if (*m_cameraHandle != INVALID_HANDLE_VALUE)
     {

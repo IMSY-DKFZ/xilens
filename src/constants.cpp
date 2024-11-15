@@ -24,7 +24,9 @@ bool isCameraSupported(const QString &type, const QString &family)
 QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
 {
     QDir dir;
-    if (QCoreApplication::applicationDirPath() == QDir::cleanPath(QDir::fromNativeSeparators("/usr/bin")))
+    auto appDir = QCoreApplication::applicationDirPath();
+    if ((appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/local/bin"))) ||
+        (appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/bin"))))
     {
         dir.setPath(QDir::fromNativeSeparators("/etc/xilens"));
     }
@@ -34,6 +36,10 @@ QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
     }
 
     QFile file(dir.filePath(fileName));
+    if (!file.exists())
+    {
+        LOG_XILENS(error) << "File does not exist: " << file.fileName().toStdString();
+    }
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         LOG_XILENS(error) << "Cannot open file";

@@ -5,18 +5,9 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <string>
 #include <utility>
-#if CV_VERSION_MAJOR == 3
-#include <opencv2/videoio.hpp>
-#endif
-#if __has_include(<opencv2/contrib/contrib.hpp>)
-#include <opencv2/contrib/contrib.hpp>
-#else
-#define opencv2_has_contrib 0
-#endif
 
 #include "constants.h"
 #include "displayFunctional.h"
@@ -28,10 +19,34 @@ typedef cv::Point3_<uint8_t> Pixel;
 
 DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow)
 {
+    auto result = QObject::connect(&m_displayTimer, &QTimer::timeout, this, &DisplayerFunctional::OnDisplayTimeout);
+    if (!result)
+    {
+        LOG_XILENS(error) << "Error while connecting displayer to timer";
+    }
+    m_displayTimer.setInterval(m_displayIntervalMilliseconds);
+    m_displayTimer.start();
+    m_displayThread = boost::thread(&DisplayerFunctional::ProcessImageOnThread, this);
 }
 
 DisplayerFunctional::~DisplayerFunctional()
 {
+    if (m_displayTimer.isActive())
+    {
+        m_displayTimer.stop();
+    }
+    {
+        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        m_stop = true;
+    }
+    m_displayCondition.notify_all();
+    m_displayThread.interrupt();
+    if (m_displayThread.joinable())
+    {
+        m_displayThread.join();
+    }
+    QObject::disconnect();
+    m_clahe.release();
 }
 
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm)
@@ -50,14 +65,14 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
-    // ectract L channel
+    // extract L channel
     std::vector<cv::Mat> lab_planes(3);
     cv::split(lab_image, lab_planes);
 
-    // apply clahe to the L channel and save it in lab_planes
+    // apply m_clahe to the L channel and save it in lab_planes
     cv::Mat dst;
-    this->clahe->setClipLimit(m_mainWindow->GetBGRNorm());
-    this->clahe->apply(lab_planes[0], dst);
+    this->m_clahe->setClipLimit(m_mainWindow->GetBGRNorm());
+    this->m_clahe->apply(lab_planes[0], dst);
     dst.copyTo(lab_planes[0]);
 
     // merge color planes back to bgr_image
@@ -74,14 +89,14 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
     cv::LUT(mask, m_lut, mask);
     if (equalize_hist)
     {
-        this->clahe->apply(raw_image, raw_image);
+        this->m_clahe->apply(raw_image, raw_image);
     }
     cvtColor(raw_image, raw_image, cv::COLOR_GRAY2RGB);
 
     if (m_mainWindow->IsSaturationButtonChecked())
     {
         // Parallel execution on each pixel using C++11 lambda.
-        raw_image.forEach<Pixel>([mask, this](Pixel &p, const int position[]) -> void {
+        raw_image.forEach<Pixel>([mask](Pixel &p, const int position[]) -> void {
             if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
             {
                 p.x = SATURATION_COLOR[0];
@@ -105,9 +120,9 @@ void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned 
         throw std::out_of_range("Band number is out of the expected range.");
     }
     // compute location of first value
-    int init_col = (band_nr - 1) % this->m_mosaicShape[0];
-    int init_row = (band_nr - 1) / this->m_mosaicShape[1];
-    // select data from specific band
+    int init_col = static_cast<int>(band_nr - 1) % this->m_mosaicShape[0];
+    int init_row = static_cast<int>(band_nr - 1) / this->m_mosaicShape[1];
+    // select data from the specific band
     int row = 0;
     for (int i = init_row; i < image.rows; i += this->m_mosaicShape[0])
     {
@@ -140,89 +155,131 @@ void DisplayerFunctional::Display(XI_IMG &image)
     {
         return;
     }
-    static int selected_display = 0;
-    selected_display++;
-    // give it some time to draw the first frame. For some reason neccessary.
-    // probably has to do with missing waitkeys after imshow (these crash the
-    // application)
-    if ((selected_display == 1) || (selected_display > 10))
+    boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+    m_nextImage = image;
+    m_hasPendingImage = true;
+}
+
+void DisplayerFunctional::OnDisplayTimeout()
+{
+    if (m_hasPendingImage)
     {
-        // additionally, give it some chance to recover from lots of ui interaction
-        // by skipping every 100th frame
-        if (selected_display % 100 > 0)
-        {
-            boost::lock_guard<boost::mutex> guard(mtx_);
-
-            cv::Mat currentImage(image.height, image.width, CV_16UC1, image.bp);
-            cv::Mat rawImage;
-            static cv::Mat bgrImage;
-
-            if (m_cameraType == CAMERA_TYPE_SPECTRAL)
-            {
-                rawImage = InitializeBandImage(currentImage);
-                this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
-                bgrImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
-                                          currentImage.cols / this->m_mosaicShape[1], CV_8UC3);
-                this->GetBGRImage(currentImage, bgrImage);
-            }
-            else if (m_cameraType == CAMERA_TYPE_GRAY)
-            {
-                rawImage = currentImage.clone();
-                rawImage /= m_scaling_factor; // 10 bit to 8 bit
-                rawImage.convertTo(rawImage, CV_8UC1);
-                cv::cvtColor(rawImage, bgrImage, cv::COLOR_GRAY2BGR);
-            }
-            else if (m_cameraType == CAMERA_TYPE_RGB)
-            {
-                rawImage = currentImage.clone();
-                rawImage /= m_scaling_factor; // 10 bit to 8 bit
-                rawImage.convertTo(rawImage, CV_8UC3);
-
-                bgrImage = currentImage.clone();
-                if (image.color_filter_array == XI_CFA_BAYER_GBRG)
-                {
-                    cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
-                }
-                else
-                {
-                    LOG_XILENS(error) << "Could not interpret filter array of type: " << image.color_filter_array;
-                }
-
-                bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
-            }
-            else
-            {
-                LOG_XILENS(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
-                throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
-            }
-            cv::Mat raw_image_to_display = rawImage.clone();
-            DownsampleImageIfNecessary(raw_image_to_display);
-            this->PrepareRawImage(raw_image_to_display, m_mainWindow->GetNormalize());
-            // display BGR image
-            DownsampleImageIfNecessary(bgrImage);
-            if (m_mainWindow->GetNormalize())
-            {
-                NormalizeBGRImage(bgrImage);
-            }
-            else
-            {
-                PrepareBGRImage(bgrImage, m_mainWindow->GetBGRNorm());
-            }
-            // update saturation displays
-            m_mainWindow->UpdateSaturationPercentageLCDDisplays(rawImage);
-
-            // display images for RGB and Raw
-            m_mainWindow->UpdateRGBImage(bgrImage);
-
-            m_mainWindow->UpdateRawImage(raw_image_to_display);
-        }
+        m_displayCondition.notify_one();
     }
+}
+
+[[noreturn]] void DisplayerFunctional::ProcessImageOnThread()
+{
+    while (true)
+    {
+        XI_IMG image;
+        {
+            boost::unique_lock<boost::mutex> lock(m_mutexImageDisplay);
+            boost::this_thread::interruption_point();
+            m_displayCondition.wait(lock, [this] { return m_hasPendingImage; });
+
+            if (m_hasPendingImage)
+            {
+                image = m_nextImage;
+                m_hasPendingImage = false;
+            }
+        }
+        ProcessImage(image);
+    }
+}
+
+void DisplayerFunctional::ProcessImage(XI_IMG &image)
+{
+    if (m_stop)
+    {
+        return;
+    }
+    cv::Mat currentImage;
+    int filterArrayType;
+    {
+        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        currentImage =
+            cv::Mat(static_cast<int>(image.height), static_cast<int>(image.width), CV_16UC1, image.bp).clone();
+        filterArrayType = image.color_filter_array;
+    }
+    cv::Mat rawImage;
+    static cv::Mat bgrImage;
+
+    if (m_cameraType == CAMERA_TYPE_SPECTRAL)
+    {
+        rawImage = InitializeBandImage(currentImage);
+        this->GetBand(currentImage, rawImage, m_mainWindow->GetBand());
+        bgrImage = cv::Mat::zeros(currentImage.rows / this->m_mosaicShape[0],
+                                  currentImage.cols / this->m_mosaicShape[1], CV_8UC3);
+        this->GetBGRImage(currentImage, bgrImage);
+    }
+    else if (m_cameraType == CAMERA_TYPE_GRAY)
+    {
+        rawImage = currentImage.clone();
+        rawImage /= m_scaling_factor; // 10 bit to 8 bit
+        rawImage.convertTo(rawImage, CV_8UC1);
+        cv::cvtColor(rawImage, bgrImage, cv::COLOR_GRAY2BGR);
+    }
+    else if (m_cameraType == CAMERA_TYPE_RGB)
+    {
+        rawImage = currentImage.clone();
+        rawImage /= m_scaling_factor; // 10 bit to 8 bit
+        rawImage.convertTo(rawImage, CV_8UC3);
+
+        bgrImage = currentImage.clone();
+        if (filterArrayType == XI_CFA_BAYER_GBRG)
+        {
+            cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
+        }
+        else
+        {
+            LOG_XILENS(error) << "Could not interpret filter array of type: " << filterArrayType;
+        }
+
+        bgrImage.convertTo(bgrImage, CV_8UC3, 1.0 / m_scaling_factor);
+    }
+    else
+    {
+        LOG_XILENS(error) << "Could not recognize camera type: " << m_cameraType.toStdString();
+        throw std::runtime_error("Could not recognize camera type: " + m_cameraType.toStdString());
+    }
+    cv::Mat rawImageToDisplay = rawImage.clone();
+    DownsampleImageIfNecessary(rawImageToDisplay);
+    this->PrepareRawImage(rawImageToDisplay, m_mainWindow->GetNormalize());
+    // display BGR image
+    DownsampleImageIfNecessary(bgrImage);
+    if (m_mainWindow->GetNormalize())
+    {
+        NormalizeBGRImage(bgrImage);
+    }
+    else
+    {
+        PrepareBGRImage(bgrImage, static_cast<int>(m_mainWindow->GetBGRNorm()));
+    }
+    // Update saturation display and display images through the main thread
+    auto bgrQImage = GetQImageFromMatrix(bgrImage, QImage::Format_RGB888);
+    auto rawQImage = GetQImageFromMatrix(rawImageToDisplay, QImage::Format_BGR888);
+    auto saturationValues = GetSaturationPercentages(rawImage);
+    emit ImageReadyToUpdateRGB(bgrQImage);
+    emit ImageReadyToUpdateRaw(rawQImage);
+    emit SaturationPercentageReady(saturationValues.first, saturationValues.second);
 }
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
 {
+    if (!getCameraMapper().contains(m_cameraModel))
+    {
+        LOG_XILENS(error) << "Could not find camera model in Mapper: " << m_cameraModel.toStdString();
+        throw std::runtime_error("Could not find camera in Mapper");
+    }
+    auto bgrChannels = getCameraMapper().value(m_cameraModel).bgrChannels;
+    if (bgrChannels.empty())
+    {
+        LOG_XILENS(error) << "Empty BGR channel indices";
+        throw std::runtime_error("Empty RGB channel indices");
+    }
     std::vector<cv::Mat> channels;
-    for (int i : m_bgr_channels)
+    for (int i : bgrChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
@@ -255,5 +312,30 @@ void DisplayerFunctional::SetCameraProperties(QString cameraModel)
         throw std::runtime_error("Could not find camera in Mapper");
     }
     this->m_cameraType = getCameraMapper().value(cameraModel).cameraType;
+    this->m_cameraModel = cameraModel;
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
+}
+
+QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format)
+{
+    QImage qtImage((uchar *)image.data, image.cols, image.rows, static_cast<long>(image.step), format);
+    return qtImage;
+}
+
+std::pair<double, double> GetSaturationPercentages(cv::Mat &image)
+{
+    if (image.empty() || image.type() != CV_8UC1)
+    {
+        throw std::invalid_argument("Invalid input matrix. It must be non-empty and of type CV_8UC1, "
+                                    "got: " +
+                                    cv::typeToString(image.type()));
+    }
+
+    int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
+    double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
+
+    int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
+    return std::make_pair(percentageBelowThreshold, percentageAboveThreshold);
 }
