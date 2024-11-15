@@ -12,6 +12,8 @@
 #include <QStyle>
 
 /**
+ * @brief Custom slider widget used to display text labels along the slider
+ *
  * Custom slider widget that displays text corresponding to values in the slider.
  * By default the number of text labels in the slider is set to a maximum of `8`.
  * If the calculated number of labels based on the interval and the min and max values in the slider exceed this value,

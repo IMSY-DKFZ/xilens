@@ -18,18 +18,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <stdexcept>
 #include <string>
-#if (CV_VERSION_MAJOR == 4)
-/**
- * Variable definitions for newer versions of OpenCV
- */
-enum
-{
-    CV_LOAD_IMAGE_ANYDEPTH = cv::IMREAD_ANYDEPTH,
-    CV_LOAD_IMAGE_ANYCOLOR = cv::IMREAD_COLOR,
-    CV_EVENT_LBUTTONDOWN = cv::EVENT_LBUTTONDOWN,
-    CV_EVENT_LBUTTONUP = cv::EVENT_LBUTTONUP,
-};
-#endif
 
 /**
  * Handles the result from the XiAPI, shows an error message and throws a
@@ -56,6 +44,12 @@ enum
         throw std::runtime_error(errormsg.str());                                                                      \
     }
 
+/**
+ * @brief Image container responsible of writing images to a file, including metadata.
+ *
+ * This class manges the writing of images to a file. Writing metadata to the file needs to be triggered through the
+ * method FileImage::AppendMetadata.
+ */
 class FileImage
 {
   public:
@@ -107,7 +101,7 @@ class FileImage
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
     /**
-     * Closes file when object is destructed
+     * Frees blosc2 context and releases the resources associated with the file.
      */
     ~FileImage();
 
@@ -168,14 +162,13 @@ void WaitMilliseconds(int milliseconds);
  */
 cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color);
 
-// we collect the command line arguments in this global struct
+/**
+ * @brief Structure used to store command line arguments parsed by the user.
+ *
+ * Contains the CLI arguments that can be parsed through the terminal by the user.
+ */
 struct CommandLineArguments
 {
-    std::string model_file;
-    std::string trained_file;
-    std::string white_file;
-    std::string dark_file;
-    std::string output_folder;
     bool test_mode;
     bool version;
 };
@@ -196,7 +189,8 @@ void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
 QString GetTimeStamp();
 
 /**
- * Contains the CLI arguments that can be used through a terminal
+ * Contains the CLI arguments that can be parsed through the terminal by the user. This is initialized at start of
+ * the program, before the `Qt` application is initialized.
  */
 extern struct CommandLineArguments g_commandLineArguments;
 

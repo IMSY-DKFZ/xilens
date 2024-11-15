@@ -20,6 +20,13 @@
 #include "imageContainer.h"
 #include "xiAPIWrapper.h"
 
+/**
+ * @brief Class in charge of interfacing with the camera through an API wrapper.
+ *
+ * This class is in charge of initializing the communication with the cameras, start the image acquisition, and also
+ * stop it when required. At the same time, this class opens and closes the camera while checking if there are any
+ * available cameras, and how many of them.
+ */
 class CameraInterface : public QObject
 {
     Q_OBJECT

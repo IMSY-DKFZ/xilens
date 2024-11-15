@@ -9,7 +9,6 @@
 #include <QDateTime>
 #include <boost/chrono.hpp>
 #include <boost/log/core.hpp>
-#include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/thread.hpp>
 #include <iostream>

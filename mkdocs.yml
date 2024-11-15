@@ -1,0 +1,108 @@
+site_name: XiLens /ksɪlɛns/
+repo_url: https://github.com/IMSY-DKFZ/xilens
+repo_name: IMSY-DKFZ/xilens
+copyright: Copyright &copy; Intelligent Medical Systems; German Cancer Research Center (DKFZ)
+nav:
+  - Home: index.md
+  - Getting started: getting_started.md
+  - Developer guidelines: developer_guidelines.md
+  - Open B2ND files: b2nd_processing.md
+  - FAQ: faq.md
+  - Supported cameras: supported_cameras.md
+  - API:
+    - XiLens:
+      - 'Links': 'XiLens/links.md'
+      - 'Classes':
+          - 'Class List': 'XiLens/annotated.md'
+          - 'Class Index': 'XiLens/classes.md'
+          - 'Class Hierarchy': 'XiLens/hierarchy.md'
+          - 'Class Members': 'XiLens/class_members.md'
+          - 'Class Member Functions': 'XiLens/class_member_functions.md'
+          - 'Class Member Variables': 'XiLens/class_member_variables.md'
+          - 'Class Member Typedefs': 'XiLens/class_member_typedefs.md'
+          - 'Class Member Enumerations': 'XiLens/class_member_enums.md'
+      - 'Namespaces':
+          - 'Namespace List': 'XiLens/namespaces.md'
+          - 'Namespace Members': 'XiLens/namespace_members.md'
+          - 'Namespace Member Functions': 'XiLens/namespace_member_functions.md'
+          - 'Namespace Member Variables': 'XiLens/namespace_member_variables.md'
+          - 'Namespace Member Typedefs': 'XiLens/namespace_member_typedefs.md'
+          - 'Namespace Member Enumerations': 'XiLens/namespace_member_enums.md'
+      - 'Functions': 'XiLens/functions.md'
+      - 'Variables': 'XiLens/variables.md'
+      - 'Macros': 'XiLens/macros.md'
+      - 'Files': 'XiLens/files.md'
+theme:
+  logo: resources/logo.png
+  icon:
+    repo: fontawesome/brands/github
+  favicon: resources/icon.png
+  name: material
+  custom_dir: overrides
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - announce.dismiss
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+extra_css:
+  - stylesheets/extra.css
+plugins:
+  - search
+  - offline
+  - mkdoxy:
+      projects:
+        XiLens: # name of project must be alphanumeric + numbers (without spaces)
+          src-dirs: src/ # path to source code (support multiple paths separated by space) => INPUT
+          full-doc: True # if you want to generate full documentation
+          doxy-cfg:
+            FILE_PATTERNS: "*.h*"
+            EXCLUDE: "src/CLI11.h"
+            RECURSIVE: True
+  - glightbox:
+      zoomable: true
+      draggable: true
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

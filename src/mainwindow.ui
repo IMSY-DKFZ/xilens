@@ -86,7 +86,7 @@
             <string/>
            </property>
            <attribute name="title">
-            <string>Video</string>
+            <string>Record</string>
            </attribute>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
@@ -159,7 +159,172 @@
                    </layout>
                   </item>
                   <item>
-                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0">
+                   <layout class="QVBoxLayout" name="mainUiVerticalLayout" stretch="0,0,0,0,0,0,0,0">
+                    <item>
+                     <layout class="QFormLayout" name="formLayout">
+                      <property name="sizeConstraint">
+                       <enum>QLayout::SetDefaultConstraint</enum>
+                      </property>
+                      <property name="labelAlignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <property name="formAlignment">
+                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      </property>
+                      <item row="0" column="0">
+                       <widget class="QPushButton" name="baseFolderButton">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="toolTip">
+                         <string>Select folder where all data is organized</string>
+                        </property>
+                        <property name="text">
+                         <string>Save folder</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QLineEdit" name="baseFolderLineEdit">
+                        <property name="toolTip">
+                         <string>Folder where all data is stored</string>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true"/>
+                        </property>
+                        <property name="readOnly">
+                         <bool>false</bool>
+                        </property>
+                        <property name="placeholderText">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0">
+                       <widget class="QLabel" name="fileNameLabel">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="toolTip">
+                         <string>File name</string>
+                        </property>
+                        <property name="text">
+                         <string>File Name</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="1">
+                       <widget class="QLineEdit" name="fileNameLineEdit">
+                        <property name="toolTip">
+                         <string>File name used to store the video data</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="placeholderText">
+                         <string/>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="0">
+                       <widget class="QLabel" name="skipFramesLabel">
+                        <property name="text">
+                         <string>Skip frames</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="1">
+                       <widget class="QSpinBox" name="skipFramesSpinBox">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="toolTip">
+                         <string>Time to wait between consecutive recording frames</string>
+                        </property>
+                        <property name="toolTipDuration">
+                         <number>5</number>
+                        </property>
+                        <property name="maximum">
+                         <number>1000</number>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_3">
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QPushButton" name="recordButton">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <property name="toolTip">
+                         <string>Press to start / stop recording</string>
+                        </property>
+                        <property name="autoFillBackground">
+                         <bool>false</bool>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true"/>
+                        </property>
+                        <property name="text">
+                         <string>Record</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
+                        </property>
+                        <property name="checkable">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="darkCorrectionButton">
+                        <property name="enabled">
+                         <bool>true</bool>
+                        </property>
+                        <property name="toolTip">
+                         <string>Record dark reference images</string>
+                        </property>
+                        <property name="text">
+                         <string>Dark</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="whiteBalanceButton">
+                        <property name="enabled">
+                         <bool>true</bool>
+                        </property>
+                        <property name="toolTip">
+                         <string>Record white reference images</string>
+                        </property>
+                        <property name="text">
+                         <string>White</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
                     <item>
                      <widget class="QToolBox" name="videoToolBox">
                       <property name="sizePolicy">
@@ -180,192 +345,6 @@
                       <property name="currentIndex">
                        <number>0</number>
                       </property>
-                      <widget class="QWidget" name="page">
-                       <property name="geometry">
-                        <rect>
-                         <x>0</x>
-                         <y>0</y>
-                         <width>513</width>
-                         <height>247</height>
-                        </rect>
-                       </property>
-                       <attribute name="label">
-                        <string>Video file management</string>
-                       </attribute>
-                       <layout class="QVBoxLayout" name="verticalLayout_5">
-                        <item>
-                         <layout class="QFormLayout" name="formLayout">
-                          <property name="sizeConstraint">
-                           <enum>QLayout::SetDefaultConstraint</enum>
-                          </property>
-                          <property name="labelAlignment">
-                           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                          </property>
-                          <property name="formAlignment">
-                           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                          </property>
-                          <item row="0" column="0">
-                           <widget class="QPushButton" name="baseFolderButton">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="toolTip">
-                             <string>Select folder where all data is organized</string>
-                            </property>
-                            <property name="text">
-                             <string>Save folder</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="0" column="1">
-                           <widget class="QLineEdit" name="baseFolderLineEdit">
-                            <property name="toolTip">
-                             <string>Folder where all data is stored</string>
-                            </property>
-                            <property name="styleSheet">
-                             <string notr="true"/>
-                            </property>
-                            <property name="readOnly">
-                             <bool>false</bool>
-                            </property>
-                            <property name="placeholderText">
-                             <string/>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="1" column="0">
-                           <widget class="QLabel" name="fileNameLabel">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="toolTip">
-                             <string>File name</string>
-                            </property>
-                            <property name="text">
-                             <string>File Name</string>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="1" column="1">
-                           <widget class="QLineEdit" name="fileNameLineEdit">
-                            <property name="toolTip">
-                             <string>File name used to store the video data</string>
-                            </property>
-                            <property name="text">
-                             <string/>
-                            </property>
-                            <property name="placeholderText">
-                             <string/>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="2" column="0">
-                           <widget class="QLabel" name="skipFramesLabel">
-                            <property name="text">
-                             <string>Skip frames</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item row="2" column="1">
-                           <widget class="QSpinBox" name="skipFramesSpinBox">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="toolTip">
-                             <string>Time to wait between consecutive recording frames</string>
-                            </property>
-                            <property name="toolTipDuration">
-                             <number>5</number>
-                            </property>
-                            <property name="maximum">
-                             <number>1000</number>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="recordButton">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="toolTip">
-                           <string>Press to start / stop recording</string>
-                          </property>
-                          <property name="autoFillBackground">
-                           <bool>false</bool>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true"/>
-                          </property>
-                          <property name="text">
-                           <string>Record video</string>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>resources/play-button.png</normaloff>resources/play-button.png</iconset>
-                          </property>
-                          <property name="checkable">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="darkCorrectionButton">
-                          <property name="enabled">
-                           <bool>true</bool>
-                          </property>
-                          <property name="toolTip">
-                           <string>Record dark reference images</string>
-                          </property>
-                          <property name="text">
-                           <string>Record dark reference</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="whiteBalanceButton">
-                          <property name="enabled">
-                           <bool>true</bool>
-                          </property>
-                          <property name="toolTip">
-                           <string>Record white reference images</string>
-                          </property>
-                          <property name="text">
-                           <string>Record white reference</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="verticalSpacer_5">
-                          <property name="orientation">
-                           <enum>Qt::Vertical</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>20</width>
-                            <height>40</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
                       <widget class="QWidget" name="page_2">
                        <property name="geometry">
                         <rect>

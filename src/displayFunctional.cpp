@@ -5,18 +5,9 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <string>
 #include <utility>
-#if CV_VERSION_MAJOR == 3
-#include <opencv2/videoio.hpp>
-#endif
-#if __has_include(<opencv2/contrib/contrib.hpp>)
-#include <opencv2/contrib/contrib.hpp>
-#else
-#define opencv2_has_contrib 0
-#endif
 
 #include "constants.h"
 #include "displayFunctional.h"

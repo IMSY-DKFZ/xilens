@@ -15,17 +15,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include <iostream>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core/types_c.h>
 #include <string>
 #include <utility>
-
-#if CV_VERSION_MAJOR == 3
-#include <opencv2/core/types_c.h>
-#include <opencv2/imgproc/imgproc_c.h>
-
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/videoio.hpp>
-#endif
 
 #include "constants.h"
 #include "displayFunctional.h"
@@ -69,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     // synchronize expSlider and exposure checkbox
     QSlider *expSlider = ui->exposureSlider;
     QSpinBox *expSpinBox = ui->exposureSpinBox;
-    // set default values and ranges
+    // set default values
     expSpinBox->setValue(expSlider->value());
 
     LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
@@ -97,8 +89,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleViewerFileButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFileNameLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoexposureCheckbox, &QCheckBox::clicked, this,
                                               &MainWindow::HandleAutoexposureCheckboxClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
@@ -117,10 +107,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleReloadCamerasPushButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameSnapshotsLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleFileNameSnapshotsLineEditReturnPressed));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::returnPressed, this,
-                                              &MainWindow::HandleBaseFolderLineEditReturnPressed));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleBaseFolderLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::textEdited, this,
@@ -584,10 +570,20 @@ void MainWindow::OpenFileInViewer(const QString &filePath)
 {
     char *path = strdup(filePath.toUtf8().constData());
     b2nd_open(path, &this->m_viewerNDArray);
-    this->ui->viewerImageSlider->setEnabled(true);
     auto n_images = static_cast<int>(this->m_viewerNDArray->shape[0] - 1);
-    this->ui->viewerImageSlider->setMaximum(n_images);
-    this->HandleViewerImageSliderValueChanged(this->ui->viewerImageSlider->value());
+    int defaultIndex = 0;
+    // only enable slider when more than one image is in the file
+    if (n_images != 0)
+    {
+        this->ui->viewerImageSlider->setEnabled(true);
+        this->ui->viewerImageSlider->setMaximum(n_images);
+    }
+    else
+    {
+        this->ui->viewerImageSlider->setEnabled(false);
+    }
+    this->ui->viewerImageSlider->setValue(defaultIndex);
+    this->HandleViewerImageSliderValueChanged(defaultIndex);
 }
 
 void MainWindow::WriteLogHeader()
@@ -944,12 +940,6 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
     lineEdit->setStyleSheet(FIELD_ORIGINAL_STYLE);
 }
 
-void MainWindow::HandleFileNameLineEditReturnPressed()
-{
-    m_fileName = ui->fileNameLineEdit->text();
-    RestoreLineEditStyle(ui->fileNameLineEdit);
-}
-
 void MainWindow::HandleViewerFileLineEditReturnPressed()
 {
     auto file = QFile(ui->viewerFileLineEdit->text());
@@ -963,28 +953,6 @@ void MainWindow::HandleViewerFileLineEditReturnPressed()
     {
         LOG_XILENS(error) << "Viewer file path does not exist.";
     }
-}
-
-void MainWindow::HandleFileNameSnapshotsLineEditReturnPressed()
-{
-    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
-    {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setWindowTitle("Error");
-        msgBox.setText("<b>Invalid file name.</b>");
-        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
-        msgBox.exec();
-        return;
-    }
-    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
-    RestoreLineEditStyle(ui->fileNameSnapshotsLineEdit);
-}
-
-void MainWindow::HandleBaseFolderLineEditReturnPressed()
-{
-    m_baseFolderPath = ui->baseFolderLineEdit->text();
-    RestoreLineEditStyle(ui->baseFolderLineEdit);
 }
 
 void MainWindow::HandleLogTextLineEditReturnPressed()
@@ -1010,12 +978,22 @@ void MainWindow::HandleLogTextLineEditReturnPressed()
 
 void MainWindow::HandleFileNameLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->fileNameLineEdit, newText, m_fileName);
+    m_fileName = ui->fileNameLineEdit->text();
 }
 
 void MainWindow::HandleFileNameSnapshotsLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->fileNameSnapshotsLineEdit, newText, m_snapshotsFileName);
+    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setWindowTitle("Error");
+        msgBox.setText("<b>Invalid file name.</b>");
+        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
+        msgBox.exec();
+        return;
+    }
+    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
 }
 
 void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
@@ -1025,7 +1003,7 @@ void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
 
 void MainWindow::HandleBaseFolderLineEditTextEdited(const QString &newText)
 {
-    UpdateComponentEditedStyle(ui->baseFolderLineEdit, newText, m_baseFolderPath);
+    m_baseFolderPath = ui->baseFolderLineEdit->text();
 }
 
 void MainWindow::HandleViewerFileLineEditTextEdited(const QString &newText)

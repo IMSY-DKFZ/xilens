@@ -22,7 +22,12 @@
 #include "xiAPIWrapper.h"
 
 /**
- * Main window namespace
+ * @brief Forward declares MainWindow class inside UI namespace.
+ *
+ * This namespace contains auto-generated classes that correspond to UI forms designed in `Qt Designer`.
+ * This is the main access point for all UI components of the application.
+ * The full definition of this namespace can be found in the auto-generated file `ui_mainwindow.h`, which is available
+ * after compilation in the build directory.
  */
 namespace Ui
 {
@@ -30,7 +35,18 @@ class MainWindow;
 }
 
 /**
- * Main window class declaration.
+ * @brief Class used to manage all UI component interactions as well as displaying the images queried from cameras.
+ *
+ * This class is in charge of initializing the UI components and handle any interactions with the user as well as
+ * displaying the images queried from the camera. During initialization of the UI, this class performs the following
+ * steps:
+ *
+ * - Initialize camera interface and image container.
+ * - Setup native and custom UI components.
+ * - Initialize BLOSC2.
+ * - Populates list of available cameras.
+ * - Established `Qt` connections.
+ * - Disables UI components until a camera is selected by the user.
  */
 class MainWindow : public QMainWindow
 {
@@ -298,13 +314,6 @@ class MainWindow : public QMainWindow
     void HandleViewerFileButtonClicked();
 
     /**
-     * Qt slot triggered when the return key is pressed on the field that defines
-     * the file name in the UI. It updates the member variable that stores the
-     * value.
-     */
-    void HandleFileNameLineEditReturnPressed();
-
-    /**
      * Qt slot triggered when the file name is edited. It changes the
      * appearance of the field in the UI. It does not change the value of the
      * member variable that stores the file name.
@@ -369,19 +378,6 @@ class MainWindow : public QMainWindow
      * @param newText edited text.
      */
     void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
-
-    /**
-     * Qt slot triggered when the return key is pressed on the file name field
-     * for snapshot images in the UI.
-     * This method will show a en error message box when the name of the snapshot file is the same as the file
-     * where the video is to be recorded.
-     */
-    void HandleFileNameSnapshotsLineEditReturnPressed();
-
-    /**
-     * Qt slot triggered when the return key is pressed on the base folder field line edit in the UI.
-     */
-    void HandleBaseFolderLineEditReturnPressed();
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.

@@ -13,6 +13,16 @@
 #include "util.h"
 #include "xiAPIWrapper.h"
 
+/**
+ * @brief Container for images queried from each camera.
+ *
+ * This class handles the polling of images from the camera and emits a `Qt` signal when a new image is available.
+ * If an error occurs when acquiring an image from the camera, e.g. connection error, the file associated with the
+ * acquisition is closed, metadata is appended, and throws an exception.
+ *
+ * The file associated with the images can be initialized with ImageContainer::InitializeFile, and it can be closed
+ * using ImageContainer::CloseFile. Closing the file automatically appends the corresponding metadata to the file.
+ */
 class ImageContainer : public QObject
 {
     Q_OBJECT

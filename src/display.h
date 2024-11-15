@@ -12,6 +12,14 @@
 #include <opencv2/core.hpp>
 #include <xiApi.h>
 
+/**
+ * @brief Base class used to display images queried from each camera.
+ *
+ * This class implements several `Qt` signals that are triggered when new images are ready to be displayed.
+ * For example, RGB, raw, and saturation percentages for each image.
+ *
+ * Whether images are to be displayed or not are also controlled through the variable Displayer::m_stop.
+ */
 class Displayer : public QObject
 {
     Q_OBJECT
