@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Removed
+
+-
+
+### Fixed
+
+-
+
+## [0.2.2]
+
+### Added
+
 - Adds image viewer tab to open recorded .b2nd files and scroll over images.
 - Adds missing camera models to JSON file.
 - Adds documentation for all classes in XiLens.
@@ -30,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixes UI responsiveness hindered by temperature thread.
 - Fixes opening files that only have one image stored.
--
 
 ## [0.2.1]
 
