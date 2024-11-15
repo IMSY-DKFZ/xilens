@@ -88,8 +88,5 @@ jobs:
         uses: actions/checkout@v4.1.7
       - name: Documentation
         run: |
-          sudo apt install doxygen graphviz
-          sudo pip3 install -U sphinx furo breathe
-          cd docs
-          doxygen Doxyfile
-          make html
+          sudo pip3 install -U mkdocs mkdocs-glightbox mkdocs-material mkdocstrings[python] mkdoxy
+          mkdocs build
