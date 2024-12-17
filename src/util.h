@@ -97,6 +97,7 @@ class FileImage
     /**
      * Opens a file and throws runtime error when opening fails
      * @param filePath path to file to open
+     * @throws XiLensError when initializing file fails
      */
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
@@ -118,6 +119,16 @@ class FileImage
      *
      */
     void AppendMetadata();
+
+    /**
+     * Checks for each expected metadata key, that the length matches the number of images
+     * in the file. Returns false if metadata has inconsistent shape or if it does not exist for any key.
+     *
+     * @param src BLOSC ND-Array to check.
+     * @return `true` if the metadata is consistent and `false` if the metadata shape is missing or shape is
+     * inconsistent.
+     */
+    static bool CheckFileMetadata(const b2nd_array_t *src);
 };
 
 /**
@@ -128,6 +139,15 @@ class FileImage
  * @param newData data package with `Message Pack <https://msgpack.org/>`_.
  */
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
+
+/**
+ * Unpacks the metadata in array and computes the number of elements corresponding to the specified key.
+ *
+ * @param src BLOSC ND-Array from which the metadata should be analyzed.
+ * @param key Identifier of the metadata layer from which the number of elements is desired.
+ * @return number of elements in metadata layer or negative value if an error occurred.
+ */
+int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key);
 
 /**
  * Packs and appends the metadata associated with a BLOSC NDarray

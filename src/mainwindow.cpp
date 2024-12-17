@@ -21,6 +21,7 @@
 
 #include "constants.h"
 #include "displayFunctional.h"
+#include "errors.h"
 #include "imageContainer.h"
 #include "logger.h"
 #include "mainwindow.h"
@@ -253,9 +254,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::RecordSnapshots()
 {
-    int nr_images = ui->nSnapshotsSpinBox->value();
-    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    const int nrImages = ui->nSnapshotsSpinBox->value();
+    ToggleSnapshotUI(false);
 
     std::string fileName = ui->fileNameSnapshotsLineEdit->text().toUtf8().constData();
 
@@ -263,25 +263,76 @@ void MainWindow::RecordSnapshots()
     {
         fileName = m_fileName.toUtf8().constData();
     }
-    QString filePath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", "");
-    auto image = m_imageContainer.GetCurrentImage();
-    FileImage snapshotsFile(filePath.toStdString().c_str(), image.height, image.width);
-
-    for (int i = 0; i < nr_images; i++)
+    const QString filePath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", "");
+    const auto snapshotsFile = OpenFileForSnapshots(filePath);
+    if (!snapshotsFile)
     {
-        int exp_time = m_cameraInterface.m_camera->GetExposureMs();
-        int waitTime = 2 * exp_time;
-        WaitMilliseconds(waitTime);
-        image = m_imageContainer.GetCurrentImage();
-        snapshotsFile.WriteImageData(image, GetCameraTemperature());
-        int progress = static_cast<int>((static_cast<float>(i + 1) / static_cast<float>(nr_images)) * 100);
-        QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
+        // If the file couldn't be opened, restore UI and exit
+        ResetSnapshotUI();
+        return;
     }
-    snapshotsFile.AppendMetadata();
+
+    for (int i = 0; i < nrImages; i++)
+    {
+        CaptureAndStoreSnapshotImage(*snapshotsFile, i, nrImages);
+    }
+    snapshotsFile->AppendMetadata();
     LOG_XILENS(info) << "Closed snapshot recording file";
+    ResetSnapshotUI();
+}
+
+std::unique_ptr<FileImage> MainWindow::OpenFileForSnapshots(const QString &filePath)
+{
+    auto image = m_imageContainer.GetCurrentImage();
+    try
+    {
+        return std::make_unique<FileImage>(filePath.toStdString().c_str(), image.height, image.width);
+    }
+    catch (const XiLensError &error)
+    {
+        LOG_XILENS(error) << "Could not open snapshot recording file: " << filePath.toStdString();
+
+        // Use a helper for showing error dialogs
+        ShowErrorDialog("Invalid file name.", error.toString().data());
+        return nullptr; // Return nullptr to indicate failure
+    }
+}
+
+void MainWindow::CaptureAndStoreSnapshotImage(FileImage &snapshotsFile, int currentIndex, int totalImages)
+{
+    const int exposure = m_cameraInterface.m_camera->GetExposureMs();
+    const int waitTime = 2 * exposure;
+    WaitMilliseconds(waitTime);
+
+    // Capture the current image
+    const auto image = m_imageContainer.GetCurrentImage();
+    snapshotsFile.WriteImageData(image, GetCameraTemperature());
+
+    // Update progress bar
+    const int progress = static_cast<int>((currentIndex + 1) * 100.0 / totalImages);
+    QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, progress));
+}
+
+void MainWindow::ToggleSnapshotUI(const bool enabled) const
+{
+    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
+    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
+}
+
+void MainWindow::ResetSnapshotUI() const
+{
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
-    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    ToggleSnapshotUI(true);
+}
+
+void MainWindow::ShowErrorDialog(const QString &text, const QString &informativeText)
+{
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setWindowTitle("Error");
+    msgBox.setText("<b>" + text + "</b>");
+    msgBox.setInformativeText(informativeText);
+    msgBox.exec();
 }
 
 void MainWindow::HandleSnapshotButtonClicked()
@@ -465,9 +516,8 @@ void MainWindow::UpdateExposure()
     ui->exposureSlider->setValue(exp_ms);
 }
 
-void MainWindow::HandleRecordButtonClicked(bool clicked)
+void MainWindow::HandleRecordButtonClicked(const bool clicked)
 {
-    static QString original_colour;
     static QString original_button_text;
 
     if (clicked)
@@ -477,9 +527,18 @@ void MainWindow::HandleRecordButtonClicked(bool clicked)
                              .arg(this->m_cameraInterface.m_cameraIdentifier, this->m_cameraInterface.m_cameraSN),
                          LOG_FILE_NAME, true);
         this->m_elapsedTimer.start();
-        this->StartRecording();
+        try
+        {
+            this->StartRecording();
+        }
+        catch (const XiLensError &error)
+        {
+            this->LogMessage(" ERROR WHILE STARTING RECORDING", LOG_FILE_NAME, true);
+            this->LogMessage(error.what(), LOG_FILE_NAME, true);
+            QMetaObject::invokeMethod(ui->recordButton, "setChecked", Qt::QueuedConnection, Q_ARG(bool, false));
+            return;
+        }
         this->HandleElementsWhileRecording(clicked);
-        original_colour = ui->recordButton->styleSheet();
         original_button_text = ui->recordButton->text();
         // button text seems to be an object property and cannot be changed by using
         // QMetaObject::invokeMethod
@@ -647,7 +706,17 @@ void MainWindow::InitializeImageFileRecorder(std::string subFolder, std::string 
         fileName = m_fileName.toUtf8().constData();
     }
     QString fullPath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", std::move(subFolder));
-    this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
+    try
+    {
+        this->m_imageContainer.InitializeFile(fullPath.toStdString().c_str());
+    }
+    catch (const XiLensError &error)
+    {
+        LOG_XILENS(error) << "Error while initializing image file: " << fullPath.toStdString() << " "
+                          << error.toString();
+        ShowErrorDialog("Invalid file name.", error.toString().data());
+        throw;
+    }
 }
 
 void MainWindow::RecordImage(bool ignoreSkipping)

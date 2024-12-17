@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "src/constants.h"
+#include "src/errors.h"
 #include "src/util.h"
 
 TEST(UtilTest, HandleResultTest)
@@ -257,4 +258,35 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     }
     fileImage.AppendMetadata();
     blosc2_destroy();
+    blosc2_remove_urlpath(urlpath);
+}
+
+TEST_F(FileImageWriteTest, ExpectThrowOnInconsistentMetadata)
+{
+    uint32_t nrImages = 10;
+    XI_IMG xiImage;
+    xiImage.width = 64;
+    xiImage.height = 64;
+    xiImage.exposure_time_us = 40000;
+    xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
+    std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
+    const char *urlpath = strdup("test_image_inconsistent_metadata.b2nd");
+
+    blosc2_init();
+    blosc2_remove_urlpath(urlpath);
+
+    FileImage fileImage(urlpath, xiImage.height, xiImage.width);
+    QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
+    for (int i = 0; i < nrImages; i++)
+    {
+        fileImage.WriteImageData(xiImage, additionalMetadata);
+    }
+    fileImage.AppendMetadata();
+
+    auto new_data = std::vector<int>{1};
+    PackAndAppendMetadata(fileImage.m_src, EXPECTED_METADATA_KEYS[0].toUtf8().constData(), new_data);
+
+    EXPECT_THROW(FileImage(urlpath, xiImage.height, xiImage.width), XiLensError);
+
+    blosc2_remove_urlpath(urlpath);
 }

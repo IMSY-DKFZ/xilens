@@ -103,6 +103,7 @@ set(XILENS_LIB_HDR src/mainwindow.h
         src/xiAPIWrapper.h
         src/constants.h
         src/widgets.h
+        src/errors.h
 )
 set(XILENS_LIB_UI src/mainwindow.ui)
 

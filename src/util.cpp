@@ -16,6 +16,7 @@
 #include <string>
 
 #include "constants.h"
+#include "errors.h"
 #include "logger.h"
 
 FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth)
@@ -45,6 +46,12 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
     if (access(this->m_filePath, F_OK) != -1)
     {
         result = b2nd_open(this->m_filePath, &m_src);
+        auto metadataConsistent = CheckFileMetadata(m_src);
+        if (!metadataConsistent)
+        {
+            throw XiLensError(XiLensError::Code::FileInconsistentMetadata,
+                              "You need to indicate a different file name.");
+        }
     }
     else
     {
@@ -110,6 +117,21 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
     }
 }
 
+bool FileImage::CheckFileMetadata(const b2nd_array_t *src)
+{
+    for (auto key : EXPECTED_METADATA_KEYS)
+    {
+        auto nElements = GetBLOSCVLMetadataLength(src, key.toUtf8().constData());
+        if (nElements != src->shape[0])
+        {
+            LOG_XILENS(error) << "Metadata key: " << key.toUtf8().constData()
+                              << " has inconsistent length: " << nElements << " vs expected: " << src->shape[0];
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
 {
     switch (colorFilterArray)
@@ -137,6 +159,65 @@ std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
     }
 }
 
+int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key)
+{
+    uint8_t *content = nullptr;
+    int32_t content_len = 0;
+    int nElements = 0;
+    if (int metadataExists = blosc2_vlmeta_exists(src->sc, key); metadataExists < 0)
+    {
+        LOG_XILENS(error) << "Error when trying to get metadata for key: " << key;
+        return metadataExists;
+    }
+    if (auto result = blosc2_vlmeta_get(src->sc, key, &content, &content_len); result < 0)
+    {
+        LOG_XILENS(error) << "Error when trying to get metadata for key: " << key;
+        return result;
+    }
+    msgpack::unpacker unpacker;
+    unpacker.reserve_buffer(content_len);
+    memcpy(unpacker.buffer(), content, content_len);
+    unpacker.buffer_consumed(content_len);
+    msgpack::object_handle oh;
+    unpacker.next(oh);
+
+    if (oh.get().type == msgpack::type::ARRAY && oh.get().via.array.size > 0)
+    {
+        switch (oh.get().via.array.ptr[0].type)
+        {
+        case msgpack::type::STR: {
+            // It's a vector of strings
+            auto dataUnpacked = oh.get().as<std::vector<std::string>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        case msgpack::type::POSITIVE_INTEGER:
+        case msgpack::type::NEGATIVE_INTEGER: {
+            // It's a vector of ints
+            auto dataUnpacked = oh.get().as<std::vector<int>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        case msgpack::type::FLOAT32:
+        case msgpack::type::FLOAT: {
+            // It's a vector of floats
+            auto dataUnpacked = oh.get().as<std::vector<float>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        default: {
+            LOG_XILENS(error) << "Cannot handle MsgPack data type: " << oh.get().via.array.ptr[0].type;
+            throw std::runtime_error("Unhandled MsgPack type.");
+        }
+        }
+    }
+    else
+    {
+        throw std::runtime_error("Unexpected metadata type or empty array.");
+    }
+    return nElements;
+}
+
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData)
 {
     // Get the existing data
@@ -151,7 +232,6 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
         {
             throw std::runtime_error("Error when using blosc2_vlmeta_add");
         }
-        return;
     }
     else
     {

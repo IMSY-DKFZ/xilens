@@ -245,6 +245,17 @@ constexpr const char *COLOR_FILTER_ARRAY_FORMAT_KEY = "color_filter_array";
 constexpr const char *TIME_STAMP_KEY = "time_stamp";
 
 /**
+ * @brief List of metadata keys expected to be present in an image file.
+ *
+ * This vector contains the predefined keys required for metadata validation
+ * during file operations. Each key corresponds to a specific piece of image
+ * metadata, such as exposure time, frame number, color filter array format,
+ * timestamp, and sensor board temperature.
+ */
+const std::vector<QString> EXPECTED_METADATA_KEYS = {EXPOSURE_KEY, FRAME_NUMBER_KEY, COLOR_FILTER_ARRAY_FORMAT_KEY,
+                                                     TIME_STAMP_KEY, SENSOR_BOARD_TEMP};
+
+/**
  * @brief Maximum number of frames used to compute the frames per second at which recordings happen.
  */
 const int MAX_FRAMES_TO_COMPUTE_FPS = 10;

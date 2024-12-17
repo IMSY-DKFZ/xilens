@@ -298,6 +298,8 @@ class MainWindow : public QMainWindow
      * is synchronized with the exposure time label.
      *
      * @param clicked indicates if the button is clicked.
+     *
+     * @throws XiLensError when an error occurs while trying to initialize the file for recording the data.
      */
     void HandleRecordButtonClicked(bool clicked);
 
@@ -494,6 +496,8 @@ class MainWindow : public QMainWindow
      *
      * @param subFolder folder where data will be stored.
      * @param fileName file name.
+     *
+     * @throws XiLensError when the initialization of the file cannot be completed.
      */
     void InitializeImageFileRecorder(std::string subFolder = "", std::string fileName = "");
 
@@ -518,14 +522,73 @@ class MainWindow : public QMainWindow
     void UpdateTimer();
 
     /**
-     * Stops the timer that is displayed in the UI when recordings are started.
+     * Stops the timer displayed in the UI when recordings are started.
      */
     void StopTimer();
 
     /**
-     * @brief MEthod used to record singe snapshot images while recording.
+     * @brief Method used to record a specific number of images.
+     *
+     * The main different to recording a video, this function records a specific number of images instead of a
+     * continuous stream.
+     * This method terminates after the specified number of images has been recorded.
      */
     void RecordSnapshots();
+
+    /**
+     * @brief Captures an image from the camera and stores it in the specified file, while updating the progress bar.
+     *
+     * This method performs the following operations:
+     * - Retrieves the camera's exposure time and calculates the wait time accordingly.
+     * - Captures the current image from the `m_imageContainer` and stores it in the specified `snapshotsFile`.
+     * - Updates the progress bar to reflect the percentage of images captured out of the total images.
+     *
+     * @param snapshotsFile A reference to the file where the captured image data will be stored.
+     * @param currentIndex The index of the current image being captured (used for progress calculation).
+     * @param totalImages The total number of images to be captured (used for progress calculation).
+     */
+    void CaptureAndStoreSnapshotImage(FileImage &snapshotsFile, int currentIndex, int totalImages);
+
+    /**
+     * @brief Opens a file for saving snapshot images and initializes the file with the current image's dimensions.
+     *
+     * This method attempts to create a new file to save snapshot images using the specified file path. It retrieves the
+     * height and width of the current image and initializes the file accordingly. If the operation fails, an error is
+     * logged, an error dialog is shown to the user, and a null pointer is returned.
+     *
+     * @param filePath The path of the file to be created for saving snapshot images.
+     * @return A unique pointer to the initialized `FileImage` object if successful, or a null pointer if the operation
+     * fails.
+     */
+    std::unique_ptr<FileImage> OpenFileForSnapshots(const QString &filePath);
+
+    /**
+     * @brief Display an error window with a title and message.
+     *
+     * @param text title of the error.
+     * @param informativeText additional error message to be displayed in the window.
+     */
+    static void ShowErrorDialog(const QString &text, const QString &informativeText);
+
+    /**
+     * @brief Enables or disables UI components related to snapshot functionality.
+     *
+     * This method adjusts the enabling state of UI components associated with the snapshot feature.
+     * It modifies the interaction capabilities of these components based on the provided parameter.
+     *
+     * @param enabled A boolean value indicating whether the snapshot-related UI components
+     * should be enabled (true) or disabled (false).
+     */
+    void ToggleSnapshotUI(bool enabled) const;
+
+    /**
+     * @brief Resets the state of the snapshot-related UI components.
+     *
+     * This method resets the snapshot UI to its initial state by setting the progress bar value to 0
+     * and re-enabling the snapshot UI components. It ensures the snapshot interface is properly
+     * prepared for a new operation or interaction.
+     */
+    void ResetSnapshotUI() const;
 
     /**
      * @brief UpdateExposure Synchronizes the sliders and text edits displaying
@@ -557,7 +620,6 @@ class MainWindow : public QMainWindow
      * format including timestamp etc.
      *
      * @param fileName the name of the file (snapshot, recording, liver_image, ...).
-     * @param frameNumber the acquisition frame number provided by ximea.
      * @param extension file extension (.b2nd).
      * @param subFolder sometimes we want to add an additional layer of subfolder.
      * specifically when saving white/dark balance images.
