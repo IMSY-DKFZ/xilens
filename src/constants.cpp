@@ -7,8 +7,6 @@
 #include <QDir>
 #include <QFile>
 #include <QJsonDocument>
-#include <QJsonObject>
-#include <QStringList>
 
 #include "constants.h"
 #include "logger.h"

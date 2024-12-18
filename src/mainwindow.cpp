@@ -3,18 +3,14 @@
  * License: see LICENSE.md file
  *******************************************************/
 #include <QCloseEvent>
-#include <QDateTime>
-#include <QDir>
 #include <QFileDialog>
 #include <QGraphicsItem>
-#include <QGraphicsScene>
 #include <QMessageBox>
 #include <QTextStream>
 #include <b2nd.h>
 #include <boost/chrono.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
-#include <iostream>
 #include <opencv2/core/types_c.h>
 #include <string>
 #include <utility>

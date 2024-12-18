@@ -3,11 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#include <QColor>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QSlider>
-#include <QStyle>
 #include <QStyleOptionSlider>
 #include <QToolTip>
 

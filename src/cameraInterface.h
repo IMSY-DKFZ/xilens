@@ -7,13 +7,9 @@
 
 #include <xiApi.h>
 
-#include <QObject>
-#include <QString>
 #include <QtCore>
 #include <boost/asio/io_service.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <opencv2/core/core.hpp>
-#include <string>
 
 #include "camera.h"
 #include "constants.h"

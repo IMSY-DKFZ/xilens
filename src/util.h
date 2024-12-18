@@ -11,12 +11,8 @@
 #include <QMap>
 #include <QString>
 #include <boost/log/trivial.hpp>
-#include <cstdio>
-#include <iostream>
 #include <msgpack.hpp>
-#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <stdexcept>
 #include <string>
 
 /**

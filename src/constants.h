@@ -9,7 +9,6 @@
 #include <QJsonObject>
 #include <QMap>
 #include <QString>
-#include <QVariant>
 #include <opencv2/opencv.hpp>
 
 /**

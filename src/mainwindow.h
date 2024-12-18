@@ -7,13 +7,9 @@
 
 #include <QApplication>
 #include <QCloseEvent>
-#include <QElapsedTimer>
 #include <QGraphicsScene>
-#include <QGuiApplication>
-#include <QImage>
 #include <QLineEdit>
 #include <QMainWindow>
-#include <QScreen>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 

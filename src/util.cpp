@@ -6,7 +6,6 @@
 
 #include <blosc2.h>
 
-#include <QDateTime>
 #include <boost/chrono.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>

@@ -7,13 +7,9 @@
 
 #include <xiApi.h>
 
-#include <QImage>
-#include <QObject>
-#include <QTimer>
 #include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <string>
 
 #include "constants.h"
 #include "display.h"
