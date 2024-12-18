@@ -275,6 +275,9 @@ class MainWindow : public QMainWindow
     /**
      * Qt slot triggered when the snapshot button is pressed. Triggers the
      * recording of snapshot images or stops it when pressed a second time.
+     *
+     * If the name of the snapshot file is the same as the name of the file
+     * where a video is to be recorded, an error box is displayed.
      */
     void HandleSnapshotButtonClicked();
 
@@ -378,8 +381,9 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when file name for snapshots is edited on the UI.
      *
      * @param newText edited text.
+     * @return 0 if file name is valid, 1 otherwise.
      */
-    void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
+    int HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.

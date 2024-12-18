@@ -337,6 +337,11 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
 
 void MainWindow::HandleSnapshotButtonClicked()
 {
+    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(this->ui->fileNameSnapshotsLineEdit->text());
+    if (invalidFileName)
+    {
+        return;
+    }
     m_snapshotsThread = boost::thread(&MainWindow::RecordSnapshots, this);
 }
 
@@ -1047,22 +1052,18 @@ void MainWindow::HandleLogTextLineEditReturnPressed()
 
 void MainWindow::HandleFileNameLineEditTextEdited(const QString &newText)
 {
-    m_fileName = ui->fileNameLineEdit->text();
+    m_fileName = newText;
 }
 
-void MainWindow::HandleFileNameSnapshotsLineEditTextEdited(const QString &newText)
+int MainWindow::HandleFileNameSnapshotsLineEditTextEdited(const QString &newText)
 {
-    if (m_fileName == ui->fileNameSnapshotsLineEdit->text())
+    if (m_fileName == newText)
     {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.setWindowTitle("Error");
-        msgBox.setText("<b>Invalid file name.</b>");
-        msgBox.setInformativeText("Snapshot file name cannot be the same as video recording file name.");
-        msgBox.exec();
-        return;
+        ShowErrorDialog("Invalid file name.", "Snapshot file name cannot be the same as video recording file name.");
+        return 1;
     }
-    m_snapshotsFileName = ui->fileNameSnapshotsLineEdit->text();
+    m_snapshotsFileName = newText;
+    return 0;
 }
 
 void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
@@ -1072,7 +1073,7 @@ void MainWindow::HandleLogTextLineEditTextEdited(const QString &newText)
 
 void MainWindow::HandleBaseFolderLineEditTextEdited(const QString &newText)
 {
-    m_baseFolderPath = ui->baseFolderLineEdit->text();
+    m_baseFolderPath = newText;
 }
 
 void MainWindow::HandleViewerFileLineEditTextEdited(const QString &newText)
