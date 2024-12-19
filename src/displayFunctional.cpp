@@ -5,7 +5,6 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <string>
 #include <utility>
 
@@ -17,9 +16,9 @@
 
 typedef cv::Point3_<uint8_t> Pixel;
 
-DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : Displayer(), m_mainWindow(mainWindow)
+DisplayerFunctional::DisplayerFunctional(MainWindow *mainWindow) : m_mainWindow(mainWindow)
 {
-    auto result = QObject::connect(&m_displayTimer, &QTimer::timeout, this, &DisplayerFunctional::OnDisplayTimeout);
+    const auto result = connect(&m_displayTimer, &QTimer::timeout, this, &DisplayerFunctional::OnDisplayTimeout);
     if (!result)
     {
         LOG_XILENS(error) << "Error while connecting displayer to timer";
@@ -36,7 +35,7 @@ DisplayerFunctional::~DisplayerFunctional()
         m_displayTimer.stop();
     }
     {
-        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        boost::lock_guard guard(m_mutexImageDisplay);
         m_stop = true;
     }
     m_displayCondition.notify_all();
@@ -45,29 +44,32 @@ DisplayerFunctional::~DisplayerFunctional()
     {
         m_displayThread.join();
     }
-    QObject::disconnect();
+    if (disconnect())
+    {
+        LOG_XILENS(error) << "Error while disconnecting displayer from timer";
+    }
     m_clahe.release();
 }
 
-void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm)
+void PrepareBGRImage(cv::Mat &bgr_image, const int bgr_norm)
 {
     double min, max;
     static double last_norm = 1.;
-    cv::minMaxLoc(bgr_image, &min, &max);
+    minMaxLoc(bgr_image, &min, &max);
 
-    last_norm = 0.9 * last_norm + (double)bgr_norm * 0.01 * max;
+    last_norm = 0.9 * last_norm + static_cast<double>(bgr_norm) * 0.01 * max;
 
     bgr_image *= 255. / last_norm;
     bgr_image.convertTo(bgr_image, CV_8UC3);
 }
 
-void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
+void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image) const
 {
     cv::Mat lab_image;
     cvtColor(bgr_image, lab_image, cv::COLOR_BGR2Lab);
     // extract L channel
     std::vector<cv::Mat> lab_planes(3);
-    cv::split(lab_image, lab_planes);
+    split(lab_image, lab_planes);
 
     // apply m_clahe to the L channel and save it in lab_planes
     cv::Mat dst;
@@ -79,14 +81,14 @@ void DisplayerFunctional::NormalizeBGRImage(cv::Mat &bgr_image)
     cv::merge(lab_planes, lab_image);
 
     // convert back to rgb
-    cv::cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
+    cvtColor(lab_image, bgr_image, cv::COLOR_Lab2BGR);
 }
 
-void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist)
+void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, const bool equalize_hist) const
 {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
-    cv::LUT(mask, m_lut, mask);
+    LUT(mask, m_lut, mask);
     if (equalize_hist)
     {
         this->m_clahe->apply(raw_image, raw_image);
@@ -113,21 +115,21 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, bool equalize_hist
     }
 }
 
-void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr)
+void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, const unsigned int band_nr) const
 {
     if (band_nr < 1 || band_nr > (this->m_mosaicShape[0] * this->m_mosaicShape[1]))
     {
         throw std::out_of_range("Band number is out of the expected range.");
     }
     // compute location of first value
-    int init_col = static_cast<int>(band_nr - 1) % this->m_mosaicShape[0];
-    int init_row = static_cast<int>(band_nr - 1) / this->m_mosaicShape[1];
+    const int initCol = static_cast<int>(band_nr - 1) % this->m_mosaicShape[0];
+    const int initRow = static_cast<int>(band_nr - 1) / this->m_mosaicShape[1];
     // select data from the specific band
     int row = 0;
-    for (int i = init_row; i < image.rows; i += this->m_mosaicShape[0])
+    for (int i = initRow; i < image.rows; i += this->m_mosaicShape[0])
     {
         int col = 0;
-        for (int j = init_col; j < image.cols; j += this->m_mosaicShape[1])
+        for (int j = initCol; j < image.cols; j += this->m_mosaicShape[1])
         {
             band_image.at<ushort>(row, col) = image.at<ushort>(i, j);
             col++;
@@ -143,9 +145,9 @@ void DisplayerFunctional::DownsampleImageIfNecessary(cv::Mat &image)
     // Check if the image exceeds the maximum dimensions
     if (image.cols > MAX_WIDTH_DISPLAY_WINDOW || image.rows > MAX_HEIGHT_DISPLAY_WINDOW)
     {
-        double scale =
-            std::min((double)MAX_WIDTH_DISPLAY_WINDOW / image.cols, (double)MAX_HEIGHT_DISPLAY_WINDOW / image.rows);
-        cv::resize(image, image, cv::Size(), scale, scale, cv::INTER_AREA);
+        const double scale = std::min(static_cast<double>(MAX_WIDTH_DISPLAY_WINDOW) / image.cols,
+                                      static_cast<double>(MAX_HEIGHT_DISPLAY_WINDOW) / image.rows);
+        resize(image, image, cv::Size(), scale, scale, cv::INTER_AREA);
     }
 }
 
@@ -174,7 +176,7 @@ void DisplayerFunctional::OnDisplayTimeout()
     {
         XI_IMG image;
         {
-            boost::unique_lock<boost::mutex> lock(m_mutexImageDisplay);
+            boost::unique_lock lock(m_mutexImageDisplay);
             boost::this_thread::interruption_point();
             m_displayCondition.wait(lock, [this] { return m_hasPendingImage; });
 
@@ -197,7 +199,7 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     cv::Mat currentImage;
     int filterArrayType;
     {
-        boost::lock_guard<boost::mutex> guard(m_mutexImageDisplay);
+        boost::lock_guard guard(m_mutexImageDisplay);
         currentImage =
             cv::Mat(static_cast<int>(image.height), static_cast<int>(image.width), CV_16UC1, image.bp).clone();
         filterArrayType = image.color_filter_array;
@@ -229,7 +231,7 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
         bgrImage = currentImage.clone();
         if (filterArrayType == XI_CFA_BAYER_GBRG)
         {
-            cv::cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
+            cvtColor(bgrImage, bgrImage, cv::COLOR_BayerGB2BGR);
         }
         else
         {
@@ -265,7 +267,7 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     emit SaturationPercentageReady(saturationValues.first, saturationValues.second);
 }
 
-void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
+void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) const
 {
     if (!getCameraMapper().contains(m_cameraModel))
     {
@@ -279,7 +281,7 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
         throw std::runtime_error("Empty RGB channel indices");
     }
     std::vector<cv::Mat> channels;
-    for (int i : bgrChannels)
+    for (const int i : bgrChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
@@ -296,15 +298,15 @@ void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image)
     }
 }
 
-cv::Mat DisplayerFunctional::InitializeBandImage(cv::Mat &image)
+cv::Mat DisplayerFunctional::InitializeBandImage(const cv::Mat &image) const
 {
-    int band_rows = (image.rows + m_mosaicShape[0] - 1) / m_mosaicShape[0]; // Using ceiling division
-    int band_cols = (image.cols + m_mosaicShape[1] - 1) / m_mosaicShape[1]; // Using ceiling division
-    cv::Mat band_image = cv::Mat::zeros(band_rows, band_cols, CV_16UC1);
-    return band_image;
+    const int bandRows = (image.rows + m_mosaicShape[0] - 1) / m_mosaicShape[0]; // Using ceiling division
+    const int bandCols = (image.cols + m_mosaicShape[1] - 1) / m_mosaicShape[1]; // Using ceiling division
+    cv::Mat bandImage = cv::Mat::zeros(bandRows, bandCols, CV_16UC1);
+    return bandImage;
 }
 
-void DisplayerFunctional::SetCameraProperties(QString cameraModel)
+void DisplayerFunctional::SetCameraProperties(const QString cameraModel)
 {
     if (!getCameraMapper().contains(cameraModel))
     {
@@ -316,13 +318,13 @@ void DisplayerFunctional::SetCameraProperties(QString cameraModel)
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }
 
-QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format)
+QImage GetQImageFromMatrix(const cv::Mat &image, const QImage::Format format)
 {
-    QImage qtImage((uchar *)image.data, image.cols, image.rows, static_cast<long>(image.step), format);
+    QImage qtImage(image.data, image.cols, image.rows, static_cast<long>(image.step), format);
     return qtImage;
 }
 
-std::pair<double, double> GetSaturationPercentages(cv::Mat &image)
+std::pair<double, double> GetSaturationPercentages(const cv::Mat &image)
 {
     if (image.empty() || image.type() != CV_8UC1)
     {
@@ -331,11 +333,11 @@ std::pair<double, double> GetSaturationPercentages(cv::Mat &image)
                                     cv::typeToString(image.type()));
     }
 
-    int aboveThresholdCount = cv::countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
-    auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
-    double percentageAboveThreshold = (static_cast<double>(aboveThresholdCount) / totalPixels) * 100.0;
+    const int aboveThresholdCount = countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    const auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
+    double percentageAboveThreshold = static_cast<double>(aboveThresholdCount) / totalPixels * 100.0;
 
-    int belowThresholdCount = cv::countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
-    double percentageBelowThreshold = (static_cast<double>(belowThresholdCount) / totalPixels) * 100.0;
+    const int belowThresholdCount = countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    double percentageBelowThreshold = static_cast<double>(belowThresholdCount) / totalPixels * 100.0;
     return std::make_pair(percentageBelowThreshold, percentageAboveThreshold);
 }

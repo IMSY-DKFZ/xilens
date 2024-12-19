@@ -9,7 +9,6 @@
 #include <QObject>
 #include <QString>
 #include <boost/thread.hpp>
-#include <opencv2/core.hpp>
 #include <xiApi.h>
 
 /**

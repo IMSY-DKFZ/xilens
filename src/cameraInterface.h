@@ -7,13 +7,9 @@
 
 #include <xiApi.h>
 
-#include <QObject>
-#include <QString>
 #include <QtCore>
 #include <boost/asio/io_service.hpp>
 #include <boost/scoped_ptr.hpp>
-#include <opencv2/core/core.hpp>
-#include <string>
 
 #include "camera.h"
 #include "constants.h"
@@ -49,7 +45,7 @@ class CameraInterface : public QObject
     /**
      * Check if XIMEA cameras are connected and counts them
      */
-    void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
+    void Initialize(const std::shared_ptr<XiAPIWrapper> &apiWrapper);
 
     /**
      * Wrapper to xiAPI, useful for mocking the aPI during testing
@@ -61,7 +57,7 @@ class CameraInterface : public QObject
      */
     ~CameraInterface();
 
-    void SetCamera(QString cameraType, QString cameraFamily);
+    void SetCamera(const QString &cameraType, const QString &cameraFamily);
 
     /**
      * @brief Initializes a device with the specified camera ID.
@@ -81,7 +77,7 @@ class CameraInterface : public QObject
      *
      * @param cameraIdentifier The deviceID used by XiAPI to open the device.
      */
-    int StartAcquisition(QString cameraIdentifier);
+    void StartAcquisition(QString cameraIdentifier);
 
     /**
      * @brief Stops the acquisition process.
@@ -91,7 +87,7 @@ class CameraInterface : public QObject
      *
      * @see StartAcquisition
      */
-    int StopAcquisition();
+    int StopAcquisition() const;
 
     /**
      * @brief Closes the device.
@@ -115,7 +111,7 @@ class CameraInterface : public QObject
      *
      * \param cameraModel A QString specifying the camera type.
      */
-    void SetCameraProperties(QString cameraModel);
+    void SetCameraProperties(const QString &cameraModel);
 
     /**
      * @brief Sets the camera index.
@@ -169,7 +165,7 @@ class CameraInterface : public QObject
      *
      * @return The handle associated with the current object.
      */
-    HANDLE GetHandle();
+    HANDLE GetHandle() const;
 
     /**
      * @brief Map of available cameras.
@@ -201,7 +197,7 @@ class CameraInterface : public QObject
      * @param cameraHandle Handle of the camera, it should be a valid handle initialized by `xiOpenDevice`.
      * @return camera identifier in the format `camera_model@sensorSN`.
      */
-    QString GetCameraIdentifier(HANDLE cameraHandle);
+    QString GetCameraIdentifier(HANDLE cameraHandle) const;
 
     /**
      * @brief The variable m_cameraIdentifier represents the model of the camera being

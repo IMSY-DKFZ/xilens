@@ -3,11 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
-#include <QColor>
 #include <QMouseEvent>
 #include <QPainter>
-#include <QSlider>
-#include <QStyle>
 #include <QStyleOptionSlider>
 #include <QToolTip>
 
@@ -19,10 +16,10 @@ QSliderLabeled::QSliderLabeled(QWidget *parent) : QSlider(parent)
 
 void QSliderLabeled::ApplyStyleSheet()
 {
-    QFontMetrics fm(font());
-    QString maxLabel = QString::number(maximum());
-    int textWidth = fm.horizontalAdvance(maxLabel);
-    int textHeight = fm.height();
+    const QFontMetrics fm(font());
+    const QString maxLabel = QString::number(maximum());
+    const int textWidth = fm.horizontalAdvance(maxLabel);
+    const int textHeight = fm.height();
 
     if (orientation() == Qt::Orientation::Horizontal)
     {
@@ -54,10 +51,10 @@ void QSliderLabeled::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setPen(m_penColor);
 
-    int min = minimum();
-    int max = maximum();
+    const int min = minimum();
+    const int max = maximum();
     int interval = tickInterval();
-    auto intervalAtMaxLabels = (max - min) / m_maxNumberOfLabels;
+    const auto intervalAtMaxLabels = (max - min) / m_maxNumberOfLabels;
     // Modify the interval if the current interval would generate too many labels in the slider.
     if (interval == 0 || (max - min) / interval > m_maxNumberOfLabels)
     {
@@ -70,7 +67,7 @@ void QSliderLabeled::paintEvent(QPaintEvent *event)
         {
             int xpos = QStyle::sliderPositionFromValue(min, max, i, width() - 2 * m_grooveMargin) + m_grooveMargin;
             QString label = QString::number(i);
-            int textWidth = painter.fontMetrics().horizontalAdvance(label);
+            const int textWidth = painter.fontMetrics().horizontalAdvance(label);
 
             // Ensure labels are not drawn off the widget's area
             xpos = qBound(0, xpos, width()) - textWidth / 2;
@@ -89,7 +86,7 @@ void QSliderLabeled::paintEvent(QPaintEvent *event)
 
             // to position the text, we need the bounding box and not just the text height
             QRect textRect = painter.fontMetrics().tightBoundingRect(label);
-            int textHeight = textRect.height();
+            const int textHeight = textRect.height();
 
             // Ensure labels are not drawn off the widget's area
             ypos = qBound(0, ypos, height()) + textHeight / 2;
@@ -108,21 +105,21 @@ void QSliderLabeled::mouseMoveEvent(QMouseEvent *event)
 
 void QSliderLabeled::UpdatePainterPen()
 {
-    QColor penColor = isEnabled() ? QColor(255, 215, 64) : QColor(79, 91, 98);
+    const QColor penColor = isEnabled() ? QColor(255, 215, 64) : QColor(79, 91, 98);
     m_penColor = penColor;
 }
 
-void QSliderLabeled::SetGrooveMargin(int value)
+void QSliderLabeled::SetGrooveMargin(const int value)
 {
     m_grooveMargin = value;
 }
 
-void QSliderLabeled::SetMaxNumberOfLabels(int value)
+void QSliderLabeled::SetMaxNumberOfLabels(const int value)
 {
     m_maxNumberOfLabels = value;
 }
 
-void QSliderLabeled::SetSliderSpread(int value)
+void QSliderLabeled::SetSliderSpread(const int value)
 {
     m_sliderSpread = value;
 }

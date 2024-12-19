@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     if (themeFile.open(QFile::ReadOnly | QFile::Text))
     {
         QTextStream stream(&themeFile);
-        QString stylesheetContent = stream.readAll();
+        const QString stylesheetContent = stream.readAll();
         a.setStyleSheet(stylesheetContent);
     }
     themeFile.close();

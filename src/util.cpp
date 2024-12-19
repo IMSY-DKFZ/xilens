@@ -6,7 +6,6 @@
 
 #include <blosc2.h>
 
-#include <QDateTime>
 #include <boost/chrono.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
@@ -16,6 +15,7 @@
 #include <string>
 
 #include "constants.h"
+#include "errors.h"
 #include "logger.h"
 
 FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth)
@@ -45,6 +45,11 @@ FileImage::FileImage(const char *filePath, unsigned int imageHeight, unsigned in
     if (access(this->m_filePath, F_OK) != -1)
     {
         result = b2nd_open(this->m_filePath, &m_src);
+        if (auto metadataConsistent = CheckFileMetadata(m_src); !metadataConsistent)
+        {
+            throw XiLensError(XiLensError::Code::FileInconsistentMetadata,
+                              "You need to indicate a different file name.");
+        }
     }
     else
     {
@@ -106,11 +111,27 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
     catch (const std::runtime_error &err)
     {
         LOG_XILENS(error) << "Error while trying to add metadata for key: " << key;
-        throw err;
+        LOG_XILENS(error) << "Error message: " << err.what();
+        throw;
     }
 }
 
-std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
+bool FileImage::CheckFileMetadata(const b2nd_array_t *src)
+{
+    for (auto key : EXPECTED_METADATA_KEYS)
+    {
+        const auto nrElements = GetBLOSCVLMetadataLength(src, key.toUtf8().constData());
+        if (nrElements != src->shape[0])
+        {
+            LOG_XILENS(error) << "Metadata key: " << key.toUtf8().constData()
+                              << " has inconsistent length: " << nrElements << " vs expected: " << src->shape[0];
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string ColorFilterToString(const XI_COLOR_FILTER_ARRAY colorFilterArray)
 {
     switch (colorFilterArray)
     {
@@ -137,21 +158,78 @@ std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray)
     }
 }
 
+int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key)
+{
+    uint8_t *content = nullptr;
+    int32_t content_len = 0;
+    int nElements = 0;
+    if (int metadataExists = blosc2_vlmeta_exists(src->sc, key); metadataExists < 0)
+    {
+        LOG_XILENS(error) << "Error when trying to get metadata for key: " << key;
+        return metadataExists;
+    }
+    if (auto result = blosc2_vlmeta_get(src->sc, key, &content, &content_len); result < 0)
+    {
+        LOG_XILENS(error) << "Error when trying to get metadata for key: " << key;
+        return result;
+    }
+    msgpack::unpacker unpacker;
+    unpacker.reserve_buffer(content_len);
+    memcpy(unpacker.buffer(), content, content_len);
+    unpacker.buffer_consumed(content_len);
+    msgpack::object_handle oh;
+    unpacker.next(oh);
+
+    if (oh.get().type == msgpack::type::ARRAY && oh.get().via.array.size > 0)
+    {
+        switch (oh.get().via.array.ptr[0].type)
+        {
+        case msgpack::type::STR: {
+            // It's a vector of strings
+            auto dataUnpacked = oh.get().as<std::vector<std::string>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        case msgpack::type::POSITIVE_INTEGER:
+        case msgpack::type::NEGATIVE_INTEGER: {
+            // It's a vector of ints
+            auto dataUnpacked = oh.get().as<std::vector<int>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        case msgpack::type::FLOAT32:
+        case msgpack::type::FLOAT: {
+            // It's a vector of floats
+            auto dataUnpacked = oh.get().as<std::vector<float>>();
+            nElements = dataUnpacked.size();
+            break;
+        }
+        default: {
+            LOG_XILENS(error) << "Cannot handle MsgPack data type: " << oh.get().via.array.ptr[0].type;
+            throw std::runtime_error("Unhandled MsgPack type.");
+        }
+        }
+    }
+    else
+    {
+        throw std::runtime_error("Unexpected metadata type or empty array.");
+    }
+    return nElements;
+}
+
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData)
 {
     // Get the existing data
     uint8_t *content = nullptr;
     int32_t content_len;
     int result;
-    int metadataExists = blosc2_vlmeta_exists(src->sc, key);
-    if (metadataExists < 0)
+    if (int metadataExists = blosc2_vlmeta_exists(src->sc, key); metadataExists < 0)
     {
         result = blosc2_vlmeta_add(src->sc, key, reinterpret_cast<uint8_t *>(newData.data()), newData.size(), nullptr);
         if (result < 0)
         {
             throw std::runtime_error("Error when using blosc2_vlmeta_add");
         }
-        return;
     }
     else
     {
@@ -224,7 +302,7 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
         }
 
         // Update the metadata with the new data
-        result = blosc2_vlmeta_update(src->sc, key, reinterpret_cast<uint8_t *>(sbuf.data()), sbuf.size(), NULL);
+        result = blosc2_vlmeta_update(src->sc, key, reinterpret_cast<uint8_t *>(sbuf.data()), sbuf.size(), nullptr);
         if (result < 0)
         {
             throw std::runtime_error("Error when using blosc2_vlmeta_update");
@@ -232,12 +310,12 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
     }
 }
 
-void WaitMilliseconds(int milliseconds)
+void WaitMilliseconds(const int milliseconds)
 {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(milliseconds));
 }
 
-cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color)
+cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color)
 {
     cv::Mat Lut(1, 256, CV_8UC3);
     for (uint i = 0; i < 256; ++i)
@@ -255,18 +333,17 @@ cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color)
     return Lut;
 }
 
-void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img)
+void XIIMGtoMat(const XI_IMG &xi_img, cv::Mat &mat_img)
 {
     mat_img = cv::Mat(xi_img.height, xi_img.width, CV_16UC1, xi_img.bp);
 }
 
 QString GetTimeStamp()
 {
-    QString timestamp;
-    QString curr_time = (QTime::currentTime()).toString("hh-mm-ss-zzz");
-    QString date = (QDate::currentDate()).toString("yyyyMMdd_");
-    timestamp = date + curr_time;
+    const QString currentTime = QTime::currentTime().toString("hh-mm-ss-zzz");
+    const QString date = QDate::currentDate().toString("yyyyMMdd_");
+    QString timestamp = date + currentTime;
     return timestamp;
 }
 
-struct CommandLineArguments g_commandLineArguments;
+CommandLineArguments g_commandLineArguments;

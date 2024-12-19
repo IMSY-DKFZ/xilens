@@ -7,13 +7,9 @@
 
 #include <xiApi.h>
 
-#include <QImage>
-#include <QObject>
-#include <QTimer>
 #include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <string>
 
 #include "constants.h"
 #include "display.h"
@@ -44,12 +40,13 @@ class DisplayerFunctional : public Displayer
     /**
      * Constructor of functional displayer
      *
-     * @param mainWindow reference to main window application
      */
-    explicit DisplayerFunctional() : Displayer(){};
+    explicit DisplayerFunctional()
+    {
+    }
 
     /**
-     * Destructor of the DisplayerFunctional class. It destroy the windows created
+     * Destructor of the DisplayerFunctional class. It destroys the windows created
      * by the displayer.
      */
     ~DisplayerFunctional() override;
@@ -170,11 +167,12 @@ class DisplayerFunctional : public Displayer
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
-     * histogram normalization in case it is specified
+     * histogram normalization in case it is specified.
      *
-     * @param raw_image, the image to be processed
+     * @param raw_image the image to be processed.
+     * @param equalize_hist if image should be normalized.
      */
-    void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist);
+    void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist) const;
 
     /**
      * @brief Normalizes a BGR image using the LAB color space.
@@ -188,7 +186,7 @@ class DisplayerFunctional : public Displayer
      * @param bgr_image The BGR image to be normalized. Note that the input image
      * will be modified.
      */
-    void NormalizeBGRImage(cv::Mat &bgr_image);
+    void NormalizeBGRImage(cv::Mat &bgr_image) const;
 
     /**
      * @brief Extracts a specific band (channel) from an image
@@ -200,7 +198,7 @@ class DisplayerFunctional : public Displayer
      * @param band_image The output band image
      * @param band_nr The number of the band to extract
      */
-    void GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr);
+    void GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr) const;
 
     /**
      * @brief Get the BGR image from the input image by splitting it into separate
@@ -213,7 +211,7 @@ class DisplayerFunctional : public Displayer
      * @param image The input image from which channels will be extracted.
      * @param bgr_image The output BGR image.
      */
-    void GetBGRImage(cv::Mat &image, cv::Mat &rgb_image);
+    void GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) const;
 
     /**
      * Initializes a channel image based on the raw image.
@@ -221,7 +219,7 @@ class DisplayerFunctional : public Displayer
      * @param image The raw image
      * @return Image filled with 0's with a size capable of holding a band image after demosaic operation is applied
      */
-    cv::Mat InitializeBandImage(cv::Mat &image);
+    cv::Mat InitializeBandImage(const cv::Mat &image) const;
 };
 
 /**
@@ -250,7 +248,7 @@ void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
  * @return QImage.
  * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
  */
-QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format);
+QImage GetQImageFromMatrix(const cv::Mat &image, QImage::Format format);
 
 /**
  * Computes the saturation percentages for underexposed and overexposed pixels from an image.
@@ -258,6 +256,6 @@ QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format);
  * @param image OpenCV matrix .
  * @return Percentage of underexposed pixels (first value) and overexposed ones (second value).
  */
-std::pair<double, double> GetSaturationPercentages(cv::Mat &image);
+std::pair<double, double> GetSaturationPercentages(const cv::Mat &image);
 
 #endif // DISPLAYFUNCTIONAL_H

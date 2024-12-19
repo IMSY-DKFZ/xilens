@@ -7,13 +7,9 @@
 
 #include <QApplication>
 #include <QCloseEvent>
-#include <QElapsedTimer>
 #include <QGraphicsScene>
-#include <QGuiApplication>
-#include <QImage>
 #include <QLineEdit>
 #include <QMainWindow>
-#include <QScreen>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
@@ -82,7 +78,7 @@ class MainWindow : public QMainWindow
     /**
      * Configures custom UI elements such as custom icons in buttons, etc.
      */
-    void SetUpCustomUiComponents();
+    void SetUpCustomUiComponents() const;
 
     /**
      * Disables the UI elements.
@@ -90,12 +86,12 @@ class MainWindow : public QMainWindow
      * @param layout layout where elements will be enabled or disabled.
      * @param enable indicates if elements should ne enabled or disabled.
      */
-    void EnableWidgetsInLayout(QLayout *layout, bool enable);
+    static void EnableWidgetsInLayout(const QLayout *layout, bool enable);
 
     /**
      * Writes general information as header of the log file.
      */
-    void WriteLogHeader();
+    void WriteLogHeader() const;
 
     /**
      * Logs message to log file and returns the timestamp used during logging.
@@ -104,7 +100,7 @@ class MainWindow : public QMainWindow
      * @param logFile file name where the message should be logged.
      * @param logTime whether time should be logged too or not.
      */
-    QString LogMessage(const QString &message, const QString &logFile, bool logTime);
+    QString LogMessage(const QString &message, const QString &logFile, bool logTime) const;
 
     /**
      * Queries the path where the logfile is stored.
@@ -112,7 +108,7 @@ class MainWindow : public QMainWindow
      * @param logFile file name.
      * @return path to file.
      */
-    QString GetLogFilePath(const QString &logFile);
+    QString GetLogFilePath(const QString &logFile) const;
 
     /**
      * Gets camera temperature.
@@ -125,7 +121,7 @@ class MainWindow : public QMainWindow
     /**
      * Displays camera temperature on an LCD display.
      */
-    void DisplayCameraTemperature();
+    void DisplayCameraTemperature() const;
 
     /**
      * Creates schedule for the thread in charge of logging temperature of the camera.
@@ -157,14 +153,14 @@ class MainWindow : public QMainWindow
     /**
      * Updates the frames per second that are stored to file on the UI.
      */
-    void UpdateFPSLCDDisplay();
+    void UpdateFPSLCDDisplay() const;
 
     /**
      * Updates the raw image displayed in the viewer tab.
      *
      * @param image Qt image to display.
      */
-    void UpdateRawViewerImage(QImage image);
+    void UpdateRawViewerImage(const QImage &image);
 
     /**
      * Waits for the viewer thread to be running and for new values to be available in the queue. It emits a
@@ -181,7 +177,7 @@ class MainWindow : public QMainWindow
      * @param pixmapItem pixmap item where the image is to be placed.
      * @param scene the scene that will contain the pixmap.
      */
-    static void UpdateImage(QImage image, QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
+    static void UpdateImage(QImage image, const QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
                             QGraphicsScene *scene);
 
     /**
@@ -189,7 +185,7 @@ class MainWindow : public QMainWindow
      *
      * @return true if the saturation button is checked, false otherwise.
      */
-    bool IsSaturationButtonChecked();
+    bool IsSaturationButtonChecked() const;
 
     /**
      * Provides access to the applications user interface.
@@ -211,7 +207,7 @@ class MainWindow : public QMainWindow
     /**
      * Displays the number of recorded images in the GUI.
      */
-    void DisplayRecordCount();
+    void DisplayRecordCount() const;
 
   protected:
     /**
@@ -253,14 +249,14 @@ class MainWindow : public QMainWindow
      *
      * @param image Qt image containing an 8bit (per channel) RGB image to be displayed.
      */
-    void UpdateRGBImage(QImage image);
+    void UpdateRGBImage(const QImage &image);
 
     /**
      * Qt slot that updates the raw image displayed in the GUI.
      *
      * @param image Qt image containing an 8bit single channel image to be displayed.
      */
-    void UpdateRawImage(QImage image);
+    void UpdateRawImage(const QImage &image);
 
     /**
      * Qt slot that updates the saturation percentage on the LCD displays.
@@ -275,6 +271,9 @@ class MainWindow : public QMainWindow
     /**
      * Qt slot triggered when the snapshot button is pressed. Triggers the
      * recording of snapshot images or stops it when pressed a second time.
+     *
+     * If the name of the snapshot file is the same as the name of the file
+     * where a video is to be recorded, an error box is displayed.
      */
     void HandleSnapshotButtonClicked();
 
@@ -298,6 +297,8 @@ class MainWindow : public QMainWindow
      * is synchronized with the exposure time label.
      *
      * @param clicked indicates if the button is clicked.
+     *
+     * @throws XiLensError when an error occurs while trying to initialize the file for recording the data.
      */
     void HandleRecordButtonClicked(bool clicked);
 
@@ -326,7 +327,7 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
      * of the exposure time to camera.
      */
-    void HandleAutoexposureCheckboxClicked(bool setAutoexposure);
+    void HandleAutoexposureCheckboxClicked(bool setAutoexposure) const;
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
@@ -346,7 +347,7 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void HandleLogTextLineEditTextEdited(const QString &newText);
+    void HandleLogTextLineEditTextEdited(const QString &newText) const;
 
     /**
      * Qt slot triggered when the return key is pressed on the trigger text field.
@@ -358,7 +359,7 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when the spin box containing the number of images to skip
      * while recording is modified. It restyles the appearance of the field.
      */
-    void HandleSkipFramesSpinBoxValueChanged();
+    void HandleSkipFramesSpinBoxValueChanged() const;
 
     /**
      * Qt slot triggered when a new camera is selected from the drop-down menu.
@@ -376,8 +377,9 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when file name for snapshots is edited on the UI.
      *
      * @param newText edited text.
+     * @return 0 if file name is valid, 1 otherwise.
      */
-    void HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
+    int HandleFileNameSnapshotsLineEditTextEdited(const QString &newText);
 
     /**
      * Qt slot triggered when base folder field is edited in the UI.
@@ -391,7 +393,7 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text
      */
-    void HandleViewerFileLineEditTextEdited(const QString &newText);
+    void HandleViewerFileLineEditTextEdited(const QString &newText) const;
 
     /**
      * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
@@ -494,6 +496,8 @@ class MainWindow : public QMainWindow
      *
      * @param subFolder folder where data will be stored.
      * @param fileName file name.
+     *
+     * @throws XiLensError when the initialization of the file cannot be completed.
      */
     void InitializeImageFileRecorder(std::string subFolder = "", std::string fileName = "");
 
@@ -518,20 +522,79 @@ class MainWindow : public QMainWindow
     void UpdateTimer();
 
     /**
-     * Stops the timer that is displayed in the UI when recordings are started.
+     * Stops the timer displayed in the UI when recordings are started.
      */
-    void StopTimer();
+    void StopTimer() const;
 
     /**
-     * @brief MEthod used to record singe snapshot images while recording.
+     * @brief Method used to record a specific number of images.
+     *
+     * The main different to recording a video, this function records a specific number of images instead of a
+     * continuous stream.
+     * This method terminates after the specified number of images has been recorded.
      */
     void RecordSnapshots();
+
+    /**
+     * @brief Captures an image from the camera and stores it in the specified file, while updating the progress bar.
+     *
+     * This method performs the following operations:
+     * - Retrieves the camera's exposure time and calculates the wait time accordingly.
+     * - Captures the current image from the `m_imageContainer` and stores it in the specified `snapshotsFile`.
+     * - Updates the progress bar to reflect the percentage of images captured out of the total images.
+     *
+     * @param snapshotsFile A reference to the file where the captured image data will be stored.
+     * @param currentIndex The index of the current image being captured (used for progress calculation).
+     * @param totalImages The total number of images to be captured (used for progress calculation).
+     */
+    void CaptureAndStoreSnapshotImage(FileImage &snapshotsFile, int currentIndex, int totalImages);
+
+    /**
+     * @brief Opens a file for saving snapshot images and initializes the file with the current image's dimensions.
+     *
+     * This method attempts to create a new file to save snapshot images using the specified file path. It retrieves the
+     * height and width of the current image and initializes the file accordingly. If the operation fails, an error is
+     * logged, an error dialog is shown to the user, and a null pointer is returned.
+     *
+     * @param filePath The path of the file to be created for saving snapshot images.
+     * @return A unique pointer to the initialized `FileImage` object if successful, or a null pointer if the operation
+     * fails.
+     */
+    std::unique_ptr<FileImage> OpenFileForSnapshots(const QString &filePath);
+
+    /**
+     * @brief Display an error window with a title and message.
+     *
+     * @param text title of the error.
+     * @param informativeText additional error message to be displayed in the window.
+     */
+    static void ShowErrorDialog(const QString &text, const QString &informativeText);
+
+    /**
+     * @brief Enables or disables UI components related to snapshot functionality.
+     *
+     * This method adjusts the enabling state of UI components associated with the snapshot feature.
+     * It modifies the interaction capabilities of these components based on the provided parameter.
+     *
+     * @param enabled A boolean value indicating whether the snapshot-related UI components
+     * should be enabled (true) or disabled (false).
+     */
+    void ToggleSnapshotUI(bool enabled) const;
+
+    /**
+     * @brief Resets the state of the snapshot-related UI components.
+     *
+     * This method resets the snapshot UI to its initial state by setting the progress bar value to 0
+     * and re-enabling the snapshot UI components. It ensures the snapshot interface is properly
+     * prepared for a new operation or interaction.
+     */
+    void ResetSnapshotUI() const;
 
     /**
      * @brief UpdateExposure Synchronizes the sliders and text edits displaying
      * the current exposure setting.
      */
-    void UpdateExposure();
+    void UpdateExposure() const;
 
     /**
      * Enables and disables elements of the GUI that should not me modified while
@@ -539,7 +602,7 @@ class MainWindow : public QMainWindow
      *
      * @param recordingInProgress indicates if recordings are happening or not.
      */
-    void HandleElementsWhileRecording(bool recordingInProgress);
+    void HandleElementsWhileRecording(bool recordingInProgress) const;
 
     /**
      * @brief MainWindow::GetWritingFolder returns the folder there the image
@@ -547,7 +610,7 @@ class MainWindow : public QMainWindow
      *
      * @return folder where data is to be stored.
      */
-    QString GetWritingFolder();
+    QString GetWritingFolder() const;
 
     /**
      * @brief GetFullFilenameStandardFormat returns the full filename of the
@@ -557,14 +620,13 @@ class MainWindow : public QMainWindow
      * format including timestamp etc.
      *
      * @param fileName the name of the file (snapshot, recording, liver_image, ...).
-     * @param frameNumber the acquisition frame number provided by ximea.
      * @param extension file extension (.b2nd).
      * @param subFolder sometimes we want to add an additional layer of subfolder.
      * specifically when saving white/dark balance images.
      * @return
      */
     QString GetFullFilenameStandardFormat(std::string &&fileName, const std::string &extension,
-                                          std::string &&subFolder);
+                                          std::string &&subFolder) const;
 
     /**
      * Queries the base folder path where data is to be stored.
@@ -612,7 +674,7 @@ class MainWindow : public QMainWindow
     /**
      * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
      */
-    void SetGraphicsViewScene();
+    void SetGraphicsViewScene() const;
 
     /**
      * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.

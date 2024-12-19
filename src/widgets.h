@@ -9,7 +9,6 @@
 #include <QColor>
 #include <QEvent>
 #include <QSlider>
-#include <QStyle>
 
 /**
  * @brief Custom slider widget used to display text labels along the slider

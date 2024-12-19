@@ -11,12 +11,8 @@
 #include <QMap>
 #include <QString>
 #include <boost/log/trivial.hpp>
-#include <cstdio>
-#include <iostream>
 #include <msgpack.hpp>
-#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <stdexcept>
 #include <string>
 
 /**
@@ -97,6 +93,9 @@ class FileImage
     /**
      * Opens a file and throws runtime error when opening fails
      * @param filePath path to file to open
+     * @param imageHeight height of image to store in file
+     * @param imageWidth width of image to store in file
+     * @throws XiLensError when initializing file fails
      */
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
@@ -118,6 +117,16 @@ class FileImage
      *
      */
     void AppendMetadata();
+
+    /**
+     * Checks for each expected metadata key, that the length matches the number of images
+     * in the file. Returns false if metadata has inconsistent shape or if it does not exist for any key.
+     *
+     * @param src BLOSC ND-Array to check.
+     * @return `true` if the metadata is consistent and `false` if the metadata shape is missing or shape is
+     * inconsistent.
+     */
+    static bool CheckFileMetadata(const b2nd_array_t *src);
 };
 
 /**
@@ -128,6 +137,15 @@ class FileImage
  * @param newData data package with `Message Pack <https://msgpack.org/>`_.
  */
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
+
+/**
+ * Unpacks the metadata in array and computes the number of elements corresponding to the specified key.
+ *
+ * @param src BLOSC ND-Array from which the metadata should be analyzed.
+ * @param key Identifier of the metadata layer from which the number of elements is desired.
+ * @return number of elements in metadata layer or negative value if an error occurred.
+ */
+int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key);
 
 /**
  * Packs and appends the metadata associated with a BLOSC NDarray
@@ -160,7 +178,7 @@ void WaitMilliseconds(int milliseconds);
  * @param dark_color color of pixels that are under-exposed
  * @return matrix with LUT
  */
-cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color);
+cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color);
 
 /**
  * @brief Structure used to store command line arguments parsed by the user.
@@ -179,7 +197,7 @@ struct CommandLineArguments
  * @param xi_img input ximea image
  * @param mat_img output cv::Mat image
  */
-void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
+void XIIMGtoMat(const XI_IMG &xi_img, cv::Mat &mat_img);
 
 /**
  * Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`

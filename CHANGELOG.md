@@ -9,19 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
--
+- New check for metadata to make sure metadata is consistent before appending data to an existing file.
 
 ### Changed
 
--
+- Refactors snapshot recording method to make it more modular
 
 ### Removed
 
--
+- Removes unused includes
 
 ### Fixed
 
--
+- Fixes deprecation warnings when building docker image
 
 ## [0.2.2]
 

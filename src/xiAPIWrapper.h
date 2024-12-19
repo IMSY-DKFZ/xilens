@@ -17,6 +17,8 @@
 class XiAPIWrapper
 {
   public:
+    virtual ~XiAPIWrapper() = default;
+
     virtual int xiGetParamString(IN HANDLE hDevice, const char *prm, void *val, DWORD size)
     {
         return ::xiGetParamString(hDevice, prm, val, size);
