@@ -13,18 +13,18 @@
 
 bool isCameraSupported(const QString &type, const QString &family)
 {
-    return (std::find(SUPPORTED_CAMERA_TYPES.begin(), SUPPORTED_CAMERA_TYPES.end(), type) !=
-            SUPPORTED_CAMERA_TYPES.end()) &&
-           (std::find(SUPPORTED_CAMERA_FAMILIES.begin(), SUPPORTED_CAMERA_FAMILIES.end(), family) !=
-            SUPPORTED_CAMERA_FAMILIES.end());
+    return std::find(SUPPORTED_CAMERA_TYPES.begin(), SUPPORTED_CAMERA_TYPES.end(), type) !=
+               SUPPORTED_CAMERA_TYPES.end() &&
+           std::find(SUPPORTED_CAMERA_FAMILIES.begin(), SUPPORTED_CAMERA_FAMILIES.end(), family) !=
+               SUPPORTED_CAMERA_FAMILIES.end();
 }
 
 QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
 {
     QDir dir;
-    auto appDir = QCoreApplication::applicationDirPath();
-    if ((appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/local/bin"))) ||
-        (appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/bin"))))
+    const auto appDir = QCoreApplication::applicationDirPath();
+    if (appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/local/bin")) ||
+        appDir == QDir::cleanPath(QDir::fromNativeSeparators("/usr/bin")))
     {
         dir.setPath(QDir::fromNativeSeparators("/etc/xilens"));
     }
@@ -44,7 +44,7 @@ QMap<QString, CameraData> loadCameraMapperFromJson(const QString &fileName)
         throw std::runtime_error("Cannot open file");
     }
     LOG_XILENS(info) << "loading camera properties from: " << QFileInfo(file).absoluteFilePath().toStdString();
-    QJsonDocument document = QJsonDocument::fromJson(file.readAll());
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll());
     file.close();
 
     if (document.isNull())

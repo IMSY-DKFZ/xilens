@@ -5,7 +5,6 @@
 #include "cameraInterface.h"
 
 #include <boost/log/trivial.hpp>
-#include <iostream>
 #include <stdexcept>
 #include <utility>
 
@@ -13,7 +12,7 @@
 #include "logger.h"
 #include "util.h"
 
-void CameraInterface::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
+void CameraInterface::Initialize(const std::shared_ptr<XiAPIWrapper> &apiWrapper)
 {
     int stat = XI_OK;
     this->m_apiWrapper = apiWrapper;
@@ -23,7 +22,7 @@ void CameraInterface::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
     LOG_XILENS(info) << "number of ximea devices found: " << numberDevices;
 }
 
-void CameraInterface::SetCameraProperties(QString cameraModel)
+void CameraInterface::SetCameraProperties(const QString &cameraModel)
 {
     if (!getCameraMapper().contains(cameraModel))
     {
@@ -34,12 +33,12 @@ void CameraInterface::SetCameraProperties(QString cameraModel)
     this->m_cameraFamilyName = getCameraMapper().value(cameraModel).cameraFamily;
 }
 
-void CameraInterface::SetCameraIndex(int index)
+void CameraInterface::SetCameraIndex(const int index)
 {
     this->m_cameraIndex = index;
 }
 
-int CameraInterface::StartAcquisition(QString cameraIdentifier)
+void CameraInterface::StartAcquisition(QString cameraIdentifier)
 {
     if (!m_availableCameras.contains(cameraIdentifier))
     {
@@ -48,33 +47,28 @@ int CameraInterface::StartAcquisition(QString cameraIdentifier)
     }
     int stat_open = OpenDevice(m_availableCameras[cameraIdentifier]);
     HandleResult(stat_open, "OpenDevice");
-    auto openedCameraIdentifier = GetCameraIdentifier(m_cameraHandle);
-    if (openedCameraIdentifier != cameraIdentifier)
+    if (auto openedCameraIdentifier = GetCameraIdentifier(m_cameraHandle); openedCameraIdentifier != cameraIdentifier)
     {
         LOG_XILENS(error) << "Opened camera not the same as selected camera: " << cameraIdentifier.toStdString()
                           << "!=" << cameraIdentifier.toStdString();
         throw std::runtime_error("Opened camera is not the same as the selected one.");
     }
 
-    char cameraSN[100] = {0};
+    char cameraSN[100] = {};
     this->m_apiWrapper->xiGetParamString(this->m_cameraHandle, XI_PRM_DEVICE_SN, cameraSN, sizeof(cameraSN));
     this->m_cameraSN = QString::fromUtf8(cameraSN);
 
-    if (INVALID_HANDLE_VALUE != this->m_cameraHandle)
-    {
-        LOG_XILENS(info) << "Starting acquisition";
-        int stat = this->m_apiWrapper->xiStartAcquisition(this->m_cameraHandle);
-        HandleResult(stat, "xiStartAcquisition");
-        LOG_XILENS(info) << "successfully initialized camera\n";
-        return stat;
-    }
-    else
+    if (this->m_cameraHandle == INVALID_HANDLE_VALUE)
     {
         throw std::runtime_error("didn't start acquisition, camera invalid handle");
     }
+    LOG_XILENS(info) << "Starting acquisition";
+    int stat = this->m_apiWrapper->xiStartAcquisition(this->m_cameraHandle);
+    HandleResult(stat, "xiStartAcquisition");
+    LOG_XILENS(info) << "successfully initialized camera\n";
 }
 
-int CameraInterface::StopAcquisition()
+int CameraInterface::StopAcquisition() const
 {
     int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle)
@@ -87,11 +81,11 @@ int CameraInterface::StopAcquisition()
     return stat;
 }
 
-int CameraInterface::OpenDevice(DWORD cameraDeviceID)
+int CameraInterface::OpenDevice(const DWORD cameraDeviceID)
 {
     int stat = XI_OK;
     stat = this->m_apiWrapper->xiOpenDevice(cameraDeviceID, &m_cameraHandle);
-    HandleResult(stat, "xiOepnDevice");
+    HandleResult(stat, "xiOpenDevice");
 
     this->SetCamera(m_cameraType, m_cameraFamilyName);
 
@@ -106,18 +100,17 @@ int CameraInterface::OpenDevice(DWORD cameraDeviceID)
 
 void CameraInterface::CloseDevice()
 {
-    int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != this->m_cameraHandle)
     {
         LOG_XILENS(info) << "Closing device";
-        stat = this->m_apiWrapper->xiCloseDevice(this->m_cameraHandle);
+        const int stat = this->m_apiWrapper->xiCloseDevice(this->m_cameraHandle);
         this->m_cameraHandle = INVALID_HANDLE_VALUE;
         HandleResult(stat, "xiCloseDevice");
         LOG_XILENS(info) << "Done!";
     }
 }
 
-HANDLE CameraInterface::GetHandle()
+HANDLE CameraInterface::GetHandle() const
 {
     return this->m_cameraHandle;
 }
@@ -132,9 +125,8 @@ QStringList CameraInterface::GetAvailableCameraIdentifiers()
 
     for (DWORD i = 0; i < dwCamCount; i++)
     {
-        HANDLE cameraHandle = INVALID_HANDLE_VALUE;
-        int stat = this->m_apiWrapper->xiOpenDevice(i, &cameraHandle);
-        if (stat != XI_OK)
+        auto cameraHandle = INVALID_HANDLE_VALUE;
+        if (const int stat = this->m_apiWrapper->xiOpenDevice(i, &cameraHandle); stat != XI_OK)
         {
             LOG_XILENS(error) << "cannot open device with ID: " << i << " perhaps already open?";
         }
@@ -150,9 +142,9 @@ QStringList CameraInterface::GetAvailableCameraIdentifiers()
     return cameraIdentifiers;
 }
 
-QString CameraInterface::GetCameraIdentifier(HANDLE cameraHandle)
+QString CameraInterface::GetCameraIdentifier(const HANDLE cameraHandle) const
 {
-    char cameraModel[256] = {0};
+    char cameraModel[256] = {};
     char sensorSN[100] = "";
     this->m_apiWrapper->xiGetParamString(cameraHandle, XI_PRM_DEVICE_NAME, cameraModel, sizeof(cameraModel));
     this->m_apiWrapper->xiGetParamString(cameraHandle, XI_PRM_DEVICE_SENS_SN, sensorSN, sizeof(sensorSN));
@@ -169,7 +161,7 @@ CameraInterface::~CameraInterface()
     }
 }
 
-void CameraInterface::SetCamera(QString cameraType, QString cameraFamily)
+void CameraInterface::SetCamera(const QString &cameraType, const QString &cameraFamily)
 {
     // instantiate camera type
     if (cameraType == CAMERA_TYPE_SPECTRAL)

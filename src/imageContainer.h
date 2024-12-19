@@ -50,7 +50,7 @@ class ImageContainer : public QObject
      *
      * @param apiWrapper
      */
-    void Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper);
+    void Initialize(const std::shared_ptr<XiAPIWrapper> &apiWrapper);
 
     /**
      * It initializes the file object that will be used to store the data.
@@ -84,7 +84,7 @@ class ImageContainer : public QObject
      * @param cameraHandle The handle to the camera device.
      * @param pollingRate The polling rate in milliseconds.
      */
-    void PollImage(HANDLE *cameraHandle, int pollingRate);
+    void PollImage(const HANDLE *cameraHandle, int pollingRate);
 
     /**
      * Queries current imag ein container

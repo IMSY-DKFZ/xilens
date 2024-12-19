@@ -78,7 +78,7 @@ class MainWindow : public QMainWindow
     /**
      * Configures custom UI elements such as custom icons in buttons, etc.
      */
-    void SetUpCustomUiComponents();
+    void SetUpCustomUiComponents() const;
 
     /**
      * Disables the UI elements.
@@ -86,12 +86,12 @@ class MainWindow : public QMainWindow
      * @param layout layout where elements will be enabled or disabled.
      * @param enable indicates if elements should ne enabled or disabled.
      */
-    void EnableWidgetsInLayout(QLayout *layout, bool enable);
+    static void EnableWidgetsInLayout(const QLayout *layout, bool enable);
 
     /**
      * Writes general information as header of the log file.
      */
-    void WriteLogHeader();
+    void WriteLogHeader() const;
 
     /**
      * Logs message to log file and returns the timestamp used during logging.
@@ -100,7 +100,7 @@ class MainWindow : public QMainWindow
      * @param logFile file name where the message should be logged.
      * @param logTime whether time should be logged too or not.
      */
-    QString LogMessage(const QString &message, const QString &logFile, bool logTime);
+    QString LogMessage(const QString &message, const QString &logFile, bool logTime) const;
 
     /**
      * Queries the path where the logfile is stored.
@@ -108,7 +108,7 @@ class MainWindow : public QMainWindow
      * @param logFile file name.
      * @return path to file.
      */
-    QString GetLogFilePath(const QString &logFile);
+    QString GetLogFilePath(const QString &logFile) const;
 
     /**
      * Gets camera temperature.
@@ -121,7 +121,7 @@ class MainWindow : public QMainWindow
     /**
      * Displays camera temperature on an LCD display.
      */
-    void DisplayCameraTemperature();
+    void DisplayCameraTemperature() const;
 
     /**
      * Creates schedule for the thread in charge of logging temperature of the camera.
@@ -153,14 +153,14 @@ class MainWindow : public QMainWindow
     /**
      * Updates the frames per second that are stored to file on the UI.
      */
-    void UpdateFPSLCDDisplay();
+    void UpdateFPSLCDDisplay() const;
 
     /**
      * Updates the raw image displayed in the viewer tab.
      *
      * @param image Qt image to display.
      */
-    void UpdateRawViewerImage(QImage image);
+    void UpdateRawViewerImage(const QImage &image);
 
     /**
      * Waits for the viewer thread to be running and for new values to be available in the queue. It emits a
@@ -177,7 +177,7 @@ class MainWindow : public QMainWindow
      * @param pixmapItem pixmap item where the image is to be placed.
      * @param scene the scene that will contain the pixmap.
      */
-    static void UpdateImage(QImage image, QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
+    static void UpdateImage(QImage image, const QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
                             QGraphicsScene *scene);
 
     /**
@@ -185,7 +185,7 @@ class MainWindow : public QMainWindow
      *
      * @return true if the saturation button is checked, false otherwise.
      */
-    bool IsSaturationButtonChecked();
+    bool IsSaturationButtonChecked() const;
 
     /**
      * Provides access to the applications user interface.
@@ -207,7 +207,7 @@ class MainWindow : public QMainWindow
     /**
      * Displays the number of recorded images in the GUI.
      */
-    void DisplayRecordCount();
+    void DisplayRecordCount() const;
 
   protected:
     /**
@@ -249,14 +249,14 @@ class MainWindow : public QMainWindow
      *
      * @param image Qt image containing an 8bit (per channel) RGB image to be displayed.
      */
-    void UpdateRGBImage(QImage image);
+    void UpdateRGBImage(const QImage &image);
 
     /**
      * Qt slot that updates the raw image displayed in the GUI.
      *
      * @param image Qt image containing an 8bit single channel image to be displayed.
      */
-    void UpdateRawImage(QImage image);
+    void UpdateRawImage(const QImage &image);
 
     /**
      * Qt slot that updates the saturation percentage on the LCD displays.
@@ -327,7 +327,7 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when auto exposure checkbox is pressed. Handles control
      * of the exposure time to camera.
      */
-    void HandleAutoexposureCheckboxClicked(bool setAutoexposure);
+    void HandleAutoexposureCheckboxClicked(bool setAutoexposure) const;
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
@@ -347,7 +347,7 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text.
      */
-    void HandleLogTextLineEditTextEdited(const QString &newText);
+    void HandleLogTextLineEditTextEdited(const QString &newText) const;
 
     /**
      * Qt slot triggered when the return key is pressed on the trigger text field.
@@ -359,7 +359,7 @@ class MainWindow : public QMainWindow
      * Qt slot triggered when the spin box containing the number of images to skip
      * while recording is modified. It restyles the appearance of the field.
      */
-    void HandleSkipFramesSpinBoxValueChanged();
+    void HandleSkipFramesSpinBoxValueChanged() const;
 
     /**
      * Qt slot triggered when a new camera is selected from the drop-down menu.
@@ -393,7 +393,7 @@ class MainWindow : public QMainWindow
      *
      * @param newText edited text
      */
-    void HandleViewerFileLineEditTextEdited(const QString &newText);
+    void HandleViewerFileLineEditTextEdited(const QString &newText) const;
 
     /**
      * Qt slot triggered when the return key is pressed in the file path field of the viewer tab.
@@ -524,7 +524,7 @@ class MainWindow : public QMainWindow
     /**
      * Stops the timer displayed in the UI when recordings are started.
      */
-    void StopTimer();
+    void StopTimer() const;
 
     /**
      * @brief Method used to record a specific number of images.
@@ -594,7 +594,7 @@ class MainWindow : public QMainWindow
      * @brief UpdateExposure Synchronizes the sliders and text edits displaying
      * the current exposure setting.
      */
-    void UpdateExposure();
+    void UpdateExposure() const;
 
     /**
      * Enables and disables elements of the GUI that should not me modified while
@@ -602,7 +602,7 @@ class MainWindow : public QMainWindow
      *
      * @param recordingInProgress indicates if recordings are happening or not.
      */
-    void HandleElementsWhileRecording(bool recordingInProgress);
+    void HandleElementsWhileRecording(bool recordingInProgress) const;
 
     /**
      * @brief MainWindow::GetWritingFolder returns the folder there the image
@@ -610,7 +610,7 @@ class MainWindow : public QMainWindow
      *
      * @return folder where data is to be stored.
      */
-    QString GetWritingFolder();
+    QString GetWritingFolder() const;
 
     /**
      * @brief GetFullFilenameStandardFormat returns the full filename of the
@@ -626,7 +626,7 @@ class MainWindow : public QMainWindow
      * @return
      */
     QString GetFullFilenameStandardFormat(std::string &&fileName, const std::string &extension,
-                                          std::string &&subFolder);
+                                          std::string &&subFolder) const;
 
     /**
      * Queries the base folder path where data is to be stored.
@@ -674,7 +674,7 @@ class MainWindow : public QMainWindow
     /**
      * Sets the scene for RGB and raw image viewers. It defines antialiasing and smooth pixmap transformations.
      */
-    void SetGraphicsViewScene();
+    void SetGraphicsViewScene() const;
 
     /**
      * Appends the current time to que of recorded time stamps that can be used to calculate the frames per second.

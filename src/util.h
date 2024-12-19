@@ -93,6 +93,8 @@ class FileImage
     /**
      * Opens a file and throws runtime error when opening fails
      * @param filePath path to file to open
+     * @param imageHeight height of image to store in file
+     * @param imageWidth width of image to store in file
      * @throws XiLensError when initializing file fails
      */
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
@@ -176,7 +178,7 @@ void WaitMilliseconds(int milliseconds);
  * @param dark_color color of pixels that are under-exposed
  * @return matrix with LUT
  */
-cv::Mat CreateLut(cv::Vec3b saturation_color, cv::Vec3b dark_color);
+cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color);
 
 /**
  * @brief Structure used to store command line arguments parsed by the user.
@@ -195,7 +197,7 @@ struct CommandLineArguments
  * @param xi_img input ximea image
  * @param mat_img output cv::Mat image
  */
-void XIIMGtoMat(XI_IMG &xi_img, cv::Mat &mat_img);
+void XIIMGtoMat(const XI_IMG &xi_img, cv::Mat &mat_img);
 
 /**
  * Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`
