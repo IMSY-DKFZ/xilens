@@ -123,3 +123,30 @@ void QSliderLabeled::SetSliderSpread(const int value)
 {
     m_sliderSpread = value;
 }
+
+QSliderPopup::QSliderPopup(QWidget *parent)
+    : QWidget(nullptr), slider(new QSliderLabeled(this)), layout(new QVBoxLayout(this))
+{
+    // Make the widget a frameless popup
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+
+    slider->setRange(1, 16);
+    slider->setValue(10);
+    slider->setOrientation(Qt::Horizontal);
+    layout->addWidget(slider);
+    layout->setContentsMargins(5, 5, 5, 5);
+}
+
+QSliderPopup::QSliderPopup(const int min, const int max, const int value, const Qt::Orientation orientation,
+                           QWidget *parent)
+    : QWidget(nullptr), slider(new QSliderLabeled(this)), layout(new QVBoxLayout(this))
+{
+    // Make the widget a frameless popup
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+
+    slider->setRange(min, max);
+    slider->setValue(value);
+    slider->setOrientation(orientation);
+    layout->addWidget(slider);
+    layout->setContentsMargins(5, 5, 5, 5);
+}

@@ -151,6 +151,9 @@
                         <verstretch>0</verstretch>
                        </sizepolicy>
                       </property>
+                      <property name="toolTip">
+                       <string>Select camera</string>
+                      </property>
                       <property name="editable">
                        <bool>false</bool>
                       </property>
@@ -277,7 +280,7 @@
                          </sizepolicy>
                         </property>
                         <property name="toolTip">
-                         <string>Press to start / stop recording</string>
+                         <string>Start / Stop recording</string>
                         </property>
                         <property name="autoFillBackground">
                          <bool>false</bool>
@@ -343,7 +346,7 @@
                        <enum>QFrame::NoFrame</enum>
                       </property>
                       <property name="currentIndex">
-                       <number>0</number>
+                       <number>2</number>
                       </property>
                       <widget class="QWidget" name="page_2">
                        <property name="geometry">
@@ -351,7 +354,7 @@
                          <x>0</x>
                          <y>0</y>
                          <width>513</width>
-                         <height>121</height>
+                         <height>96</height>
                         </rect>
                        </property>
                        <attribute name="label">
@@ -402,6 +405,9 @@
                           </item>
                           <item>
                            <widget class="QSpinBox" name="exposureSpinBox">
+                            <property name="toolTip">
+                             <string>Exposure in milliseconds</string>
+                            </property>
                             <property name="minimum">
                              <number>5</number>
                             </property>
@@ -414,16 +420,6 @@
                            </widget>
                           </item>
                          </layout>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="autoexposureCheckbox">
-                          <property name="toolTip">
-                           <string>Select to adjust exposure automatically</string>
-                          </property>
-                          <property name="text">
-                           <string>Autoexposure</string>
-                          </property>
-                         </widget>
                         </item>
                         <item>
                          <spacer name="verticalSpacer_4">
@@ -446,73 +442,13 @@
                          <x>0</x>
                          <y>0</y>
                          <width>513</width>
-                         <height>185</height>
+                         <height>107</height>
                         </rect>
                        </property>
                        <attribute name="label">
                         <string>Display</string>
                        </attribute>
                        <layout class="QVBoxLayout" name="verticalLayout_7">
-                        <item>
-                         <widget class="QCheckBox" name="normalizeCheckbox">
-                          <property name="toolTip">
-                           <string>Select to normalize displayed images</string>
-                          </property>
-                          <property name="text">
-                           <string>Histogram normalization</string>
-                          </property>
-                          <property name="checked">
-                           <bool>false</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QLabel" name="displayedBandLabel">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="text">
-                           <string>Image channel</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QSliderLabeled" name="bandSlider">
-                          <property name="toolTip">
-                           <string>Select displayed spectral band</string>
-                          </property>
-                          <property name="autoFillBackground">
-                           <bool>false</bool>
-                          </property>
-                          <property name="minimum">
-                           <number>1</number>
-                          </property>
-                          <property name="maximum">
-                           <number>16</number>
-                          </property>
-                          <property name="pageStep">
-                           <number>1</number>
-                          </property>
-                          <property name="value">
-                           <number>10</number>
-                          </property>
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="invertedAppearance">
-                           <bool>false</bool>
-                          </property>
-                          <property name="tickPosition">
-                           <enum>QSlider::TicksBelow</enum>
-                          </property>
-                          <property name="tickInterval">
-                           <number>1</number>
-                          </property>
-                         </widget>
-                        </item>
                         <item>
                          <widget class="QLabel" name="rgbNormLabel">
                           <property name="sizePolicy">
@@ -529,7 +465,7 @@
                         <item>
                          <widget class="QSliderLabeled" name="rgbNormSlider">
                           <property name="toolTip">
-                           <string>Select the normalizing factor for RGB noormalization</string>
+                           <string>Normalizing factor for RGB noormalization</string>
                           </property>
                           <property name="minimum">
                            <number>1</number>
@@ -619,7 +555,7 @@
                                </sizepolicy>
                               </property>
                               <property name="toolTip">
-                               <string>Record specified number of individual images on base folder</string>
+                               <string>Record specified number of images on base folder</string>
                               </property>
                               <property name="styleSheet">
                                <string notr="true"/>
@@ -750,7 +686,7 @@
                 <item>
                  <widget class="QSliderLabeled" name="exposureSlider">
                   <property name="toolTip">
-                   <string>Select exposure time</string>
+                   <string>Exposure time in milliseconds</string>
                   </property>
                   <property name="minimum">
                    <number>5</number>
@@ -871,6 +807,81 @@
              </spacer>
             </item>
             <item>
+             <widget class="QToolButton" name="bandSelectorToolButton">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Select image channel (band)</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checkable">
+               <bool>false</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="normalizeImageToolButton">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Apply histogram normalization</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="autoExposureToolButton">
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Enable auto exposure</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QToolButton" name="saturationToolButton">
               <property name="minimumSize">
                <size>
@@ -879,7 +890,7 @@
                </size>
               </property>
               <property name="toolTip">
-               <string>Display or hide pixel saturation overlay.</string>
+               <string>Display or hide pixel saturation overlay</string>
               </property>
               <property name="text">
                <string/>

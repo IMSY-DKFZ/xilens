@@ -15,6 +15,7 @@
 
 #include "cameraInterface.h"
 #include "display.h"
+#include "widgets.h"
 #include "xiAPIWrapper.h"
 
 /**
@@ -324,10 +325,17 @@ class MainWindow : public QMainWindow
     void HandleFileNameLineEditTextEdited(const QString &newText);
 
     /**
-     * Qt slot triggered when auto exposure checkbox is pressed. Handles control
+     * Qt slot triggered when the auto exposure button is pressed. Handles control
      * of the exposure time to camera.
      */
-    void HandleAutoexposureCheckboxClicked(bool setAutoexposure) const;
+    void HandleAutoexposureToolButtonClicked(bool setAutoexposure) const;
+
+    /**
+     * Qt slot triggered when the band selector tool button is clicked.
+     * This displays a pop-up page where a custom slider is shown.
+     * Clicking outside the pop-up page will hide it.
+     */
+    void HandleBandSelectorToolButtonClicked() const;
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
@@ -912,6 +920,11 @@ class MainWindow : public QMainWindow
      * Timer that sets the rate of updates for the FPS LCD Display in the UI.
      */
     QTimer *m_updateFPSDisplayTimer;
+
+    /**
+     * Custom pop-up slider page used to display the band selector slider.
+     */
+    QSliderPopup *m_bandSelectorSliderPopup;
 };
 
 #endif // MAINWINDOW_H

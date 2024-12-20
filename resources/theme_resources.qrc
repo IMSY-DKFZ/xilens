@@ -1,6 +1,8 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
   <qresource prefix="icon">
+    <file>theme/disabled/auto_exposure.svg</file>
+    <file>theme/disabled/band_selector.svg</file>
     <file>theme/disabled/base.svg</file>
     <file>theme/disabled/branch-closed.svg</file>
     <file>theme/disabled/branch-end.svg</file>
@@ -23,6 +25,7 @@
     <file>theme/disabled/float.svg</file>
     <file>theme/disabled/leftarrow.svg</file>
     <file>theme/disabled/leftarrow2.svg</file>
+    <file>theme/disabled/normalization.svg</file>
     <file>theme/disabled/radiobutton_checked.svg</file>
     <file>theme/disabled/radiobutton_checked_invert.svg</file>
     <file>theme/disabled/radiobutton_unchecked.svg</file>
@@ -40,6 +43,8 @@
     <file>theme/disabled/uparrow.svg</file>
     <file>theme/disabled/uparrow2.svg</file>
     <file>theme/disabled/vline.svg</file>
+    <file>theme/primary/auto_exposure.svg</file>
+    <file>theme/primary/band_selector.svg</file>
     <file>theme/primary/base.svg</file>
     <file>theme/primary/branch-closed.svg</file>
     <file>theme/primary/branch-end.svg</file>
@@ -62,6 +67,7 @@
     <file>theme/primary/float.svg</file>
     <file>theme/primary/leftarrow.svg</file>
     <file>theme/primary/leftarrow2.svg</file>
+    <file>theme/primary/normalization.svg</file>
     <file>theme/primary/radiobutton_checked.svg</file>
     <file>theme/primary/radiobutton_checked_invert.svg</file>
     <file>theme/primary/radiobutton_unchecked.svg</file>
@@ -79,6 +85,8 @@
     <file>theme/primary/uparrow.svg</file>
     <file>theme/primary/uparrow2.svg</file>
     <file>theme/primary/vline.svg</file>
+    <file>theme/active/auto_exposure.svg</file>
+    <file>theme/active/band_selector.svg</file>
     <file>theme/active/base.svg</file>
     <file>theme/active/branch-closed.svg</file>
     <file>theme/active/branch-end.svg</file>
@@ -101,6 +109,7 @@
     <file>theme/active/float.svg</file>
     <file>theme/active/leftarrow.svg</file>
     <file>theme/active/leftarrow2.svg</file>
+    <file>theme/active/normalization.svg</file>
     <file>theme/active/radiobutton_checked.svg</file>
     <file>theme/active/radiobutton_checked_invert.svg</file>
     <file>theme/active/radiobutton_unchecked.svg</file>

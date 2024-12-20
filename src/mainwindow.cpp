@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
       m_cameraInterface(), m_testMode(g_commandLineArguments.test_mode),
       m_viewerThread(&MainWindow::ViewerWorkerThreadFunc, this), m_viewerThreadRunning(true), m_IOService(),
       m_temperatureIOService(), m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)),
-      m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0)
+      m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0), m_bandSelectorSliderPopup(new QSliderPopup(this))
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
@@ -86,8 +86,10 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleViewerFileButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameLineEditTextEdited));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoexposureCheckbox, &QCheckBox::clicked, this,
-                                              &MainWindow::HandleAutoexposureCheckboxClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->autoExposureToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleAutoexposureToolButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->bandSelectorToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleBandSelectorToolButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleWhiteBalanceButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->darkCorrectionButton, &QPushButton::clicked, this,
@@ -185,6 +187,7 @@ void MainWindow::EnableUi(const bool enable)
     SetGraphicsViewScene();
     this->ui->exposureSlider->setEnabled(enable);
     this->ui->logTextLineEdit->setEnabled(enable);
+    this->m_bandSelectorSliderPopup->setEnabled(enable);
 }
 
 void MainWindow::SetUpCustomUiComponents() const
@@ -201,6 +204,24 @@ void MainWindow::SetUpCustomUiComponents() const
     saturationButtonIcon.addFile(":/icon/theme/disabled/saturation.svg", QSize(), QIcon::Disabled);
     saturationButtonIcon.addFile(":/icon/theme/active/saturation.svg", QSize(), QIcon::Active);
     this->ui->saturationToolButton->setIcon(saturationButtonIcon);
+    // image normalization
+    QIcon normalizationButtonIcon;
+    normalizationButtonIcon.addFile(":/icon/theme/primary/normalization.svg", QSize(), QIcon::Normal);
+    normalizationButtonIcon.addFile(":/icon/theme/disabled/normalization.svg", QSize(), QIcon::Disabled);
+    normalizationButtonIcon.addFile(":/icon/theme/active/normalization.svg", QSize(), QIcon::Active);
+    this->ui->normalizeImageToolButton->setIcon(normalizationButtonIcon);
+    // auto exposure
+    QIcon autoExposureButtonIcon;
+    autoExposureButtonIcon.addFile(":/icon/theme/primary/auto_exposure.svg", QSize(), QIcon::Normal);
+    autoExposureButtonIcon.addFile(":/icon/theme/disabled/auto_exposure.svg", QSize(), QIcon::Disabled);
+    autoExposureButtonIcon.addFile(":/icon/theme/active/auto_exposure.svg", QSize(), QIcon::Active);
+    this->ui->autoExposureToolButton->setIcon(autoExposureButtonIcon);
+    // band selector
+    QIcon bandSelectorButtonIcon;
+    bandSelectorButtonIcon.addFile(":/icon/theme/primary/band_selector.svg", QSize(), QIcon::Normal);
+    bandSelectorButtonIcon.addFile(":/icon/theme/disabled/band_selector.svg", QSize(), QIcon::Disabled);
+    bandSelectorButtonIcon.addFile(":/icon/theme/active/band_selector.svg", QSize(), QIcon::Active);
+    this->ui->bandSelectorToolButton->setIcon(bandSelectorButtonIcon);
 }
 
 void MainWindow::Display()
@@ -430,6 +451,21 @@ void MainWindow::HandleExposureValueChanged(const int value)
 {
     m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
+}
+
+void MainWindow::HandleBandSelectorToolButtonClicked() const
+{
+    const QPoint buttonTopLeft = ui->bandSelectorToolButton->mapToGlobal(QPoint(0, 0));
+    const int buttonWidth = ui->bandSelectorToolButton->width();
+
+    constexpr int popupWidth = 400;
+    constexpr int popupHeight = 50;
+    const QPoint globalPos(buttonTopLeft.x() + (buttonWidth - popupWidth) / 2,
+                           buttonTopLeft.y() + ui->bandSelectorToolButton->height());
+
+    m_bandSelectorSliderPopup->resize(popupWidth, popupHeight);
+    m_bandSelectorSliderPopup->move(globalPos);
+    m_bandSelectorSliderPopup->show();
 }
 
 void MainWindow::HandleViewerImageSliderValueChanged(const int value)
@@ -675,12 +711,12 @@ QString MainWindow::LogMessage(const QString &message, const QString &logFile, c
 
 bool MainWindow::GetNormalize() const
 {
-    return this->ui->normalizeCheckbox->isChecked();
+    return this->ui->normalizeImageToolButton->isChecked();
 }
 
 unsigned MainWindow::GetBand() const
 {
-    return this->ui->bandSlider->value();
+    return this->m_bandSelectorSliderPopup->value();
 }
 
 unsigned MainWindow::GetBGRNorm() const
@@ -901,7 +937,7 @@ void MainWindow::StopPollingThread()
     m_imageContainerThread.join();
 }
 
-void MainWindow::HandleAutoexposureCheckboxClicked(const bool setAutoexposure) const
+void MainWindow::HandleAutoexposureToolButtonClicked(const bool setAutoexposure) const
 {
     this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
     ui->exposureSlider->setEnabled(!setAutoexposure);
@@ -1139,11 +1175,11 @@ void MainWindow::HandleCameraListComboBoxCurrentIndexChanged(const int index)
             this->EnableUi(true);
             if (cameraType == CAMERA_TYPE_SPECTRAL)
             {
-                QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, true));
+                QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, true));
             }
             else
             {
-                QMetaObject::invokeMethod(ui->bandSlider, "setEnabled", Q_ARG(bool, false));
+                QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, false));
             }
         }
         else

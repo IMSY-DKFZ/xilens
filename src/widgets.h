@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QEvent>
 #include <QSlider>
+#include <QVBoxLayout>
 
 /**
  * @brief Custom slider widget used to display text labels along the slider
@@ -137,6 +138,86 @@ class QSliderLabeled : public QSlider
      * The pen color is set to a specific color if the widget is enabled, and to a different color if it is disabled.
      */
     void UpdatePainterPen();
+};
+
+/**
+ * @brief Popup widget containing a labeled slider
+ *
+ * This class implements a popup widget that encapsulates a custom labeled slider widget.
+ * It provides functionality to access the slider's value as well as modify its minimum and maximum bounds.
+ * The slider is displayed within a vertical layout to ensure proper placement within the widget.
+ */
+class QSliderPopup : public QWidget
+{
+    /**
+     * @brief Creates a popup widget with an integrated custom labeled slider and layout.
+     *
+     * This constructor initializes a frameless popup widget containing a custom horizontal `QSliderLabeled` component
+     * with a defined range of values (from 1 to 16). The slider is embedded in a horizontal-oriented layout
+     * with specified content margins. The widget is set to be displayed as a frameless window with popup behavior.
+     *
+     * @param parent The parent widget, it can be null.
+     */
+  public:
+    explicit QSliderPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Constructs a frameless popup widget containing a labeled slider with a specified range and orientation.
+     *
+     * This constructor initializes a `QSliderPopup` containing a `QSliderLabeled` widget integrated within a vertical
+     * layout. The slider is configured with the provided minimum value, maximum value, and default value. The
+     * orientation of the slider (horizontal or vertical) is set based on the given parameter. The widget is styled as a
+     * frameless popup window.
+     *
+     * @param min The minimum value of the slider.
+     * @param max The maximum value of the slider.
+     * @param value The initial value of the slider.
+     * @param orientation The orientation of the slider (`Qt::Horizontal` or `Qt::Vertical`).
+     * @param parent The parent widget of the popup, can be null.
+     * @return An instance of the QSliderPopup class.
+     */
+    QSliderPopup(int min, int max, int value, Qt::Orientation orientation, QWidget *parent = nullptr);
+
+    /**
+     * @brief returns the value of the slider
+     *
+     * @return value of hte slider
+     */
+    int value() const
+    {
+        return slider->value();
+    }
+
+    /**
+     * @brief Sets the minimum value of the slider.
+     *
+     * @param min minimum value.
+     */
+    void setMinimum(const int min) const
+    {
+        slider->setMinimum(min);
+    }
+
+    /**
+     * Sets the maximum value of the slider.
+     *
+     * @param max maximum value.
+     */
+    void setMaximum(const int max) const
+    {
+        slider->setMaximum(max);
+    }
+
+  private:
+    /**
+     * Custom labeled slider component to be displayed inside the pop-up page.
+     */
+    QSliderLabeled *slider;
+
+    /**
+     * Layout to be used for the pop-up page.
+     */
+    QVBoxLayout *layout;
 };
 
 #endif // XILENS_WIDGETS_H
