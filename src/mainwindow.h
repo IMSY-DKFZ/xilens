@@ -8,7 +8,6 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QGraphicsScene>
-#include <QLineEdit>
 #include <QMainWindow>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -74,7 +73,7 @@ class MainWindow : public QMainWindow
      *
      * @param enable indicates if UI is enabled or not.
      */
-    void EnableUi(bool enable);
+    void EnableUi(bool enable) const;
 
     /**
      * Configures custom UI elements such as custom icons in buttons, etc.
@@ -304,6 +303,18 @@ class MainWindow : public QMainWindow
     void HandleRecordButtonClicked(bool clicked);
 
     /**
+     * @brief Updates the icons of the record button based on the recording state.
+     *
+     * This function modifies the appearance of the record button to reflect whether recording is active or inactive.
+     * The icon changes dynamically to provide visual feedback about the current recording state.
+     *
+     * @param isRecording A boolean indicating the recording status.
+     *                    If true, the record button will display an "active recording" icon;
+     *                    if false, an "inactive recording" icon will be shown.
+     */
+    void SetRecordButtonIcons(bool isRecording) const;
+
+    /**
      * Qt slot triggered when the button to choose a base folder is clicked. Opens
      * a dialog where a folder can be selected.
      */
@@ -336,6 +347,24 @@ class MainWindow : public QMainWindow
      * Clicking outside the pop-up page will hide it.
      */
     void HandleBandSelectorToolButtonClicked() const;
+
+    /**
+     * @brief Handles the click event for the RGB normalization tool button.
+     *
+     * This method is responsible for displaying a popup associated with the RGB normalization
+     * functionality when the user interacts with the corresponding tool button in the UI.
+     * It ensures the popup is properly sized and positioned relative to the tool button.
+     */
+    void HandleRGBNormToolButtonClicked() const;
+
+    /**
+     * @brief Handles the arrow click event for the Snapshot Tool Button.
+     *
+     * This method is responsible for displaying a popup when the arrow portion of the
+     * snapshot tool button is clicked. The popup is positioned and configured with specific
+     * dimensions and attributes, ensuring a proper interface interaction for the user.
+     */
+    void HandleSnapshotToolButtonArrowClicked() const;
 
     /**
      * Qt slot triggered when white balance button is pressed. Records a new white
@@ -379,7 +408,7 @@ class MainWindow : public QMainWindow
     /**
      * Checks for connected XIMEA cameras and populates the dropdown list of available cameras.
      */
-    void HandleReloadCamerasPushButtonClicked();
+    void HandleReloadCamerasToolButtonClicked();
 
     /**
      * Qt slot triggered when file name for snapshots is edited on the UI.
@@ -690,6 +719,27 @@ class MainWindow : public QMainWindow
     void RegisterTimeImageRecorded();
 
     /**
+     * @brief Displays a popup widget when interacting with a specific tool button.
+     *
+     * This function positions and displays a popup widget anchored to a given tool button.
+     * The position and alignment of the popup are determined by the provided parameters.
+     *
+     * The placement process includes:
+     * - Calculating the global position of the provided tool button.
+     * - Determining the pop-up widget's position based on the button's position and alignment.
+     * - Resizing the popup widget to the specified dimensions.
+     * - Displaying the popup at the calculated position.
+     *
+     * @param button The tool button widget that triggers the popup.
+     * @param popup The popup widget to be displayed.
+     * @param popupWidth The desired width of the popup widget.
+     * @param popupHeight The desired height of the popup widget.
+     * @param centerAlign A boolean indicating whether the popup should be horizontally centered relative to the button.
+     */
+    static void ShowPopupOnToolButtonInteraction(const QWidget *button, QWidget *popup, int popupWidth, int popupHeight,
+                                                 bool centerAlign);
+
+    /**
      * The file name where videos are to be stored.
      */
     QString m_fileName;
@@ -925,6 +975,16 @@ class MainWindow : public QMainWindow
      * Custom pop-up slider page used to display the band selector slider.
      */
     QSliderPopup *m_bandSelectorSliderPopup;
+
+    /**
+     * custom pop-up slider page used to display the image brightness slider.
+     */
+    QSliderPopup *m_rgbNormSliderPopup;
+
+    /**
+     * custom pop-up window to display snapshot configuration such as file name and number of images
+     */
+    QLineSpinPopup *m_snapshotPopup;
 };
 
 #endif // MAINWINDOW_H

@@ -264,4 +264,8 @@ constexpr int MAX_FRAMES_TO_COMPUTE_FPS = 10;
  */
 constexpr int UPDATE_RATE_MS_FPS_TIMER = 2000;
 
+/**
+ * @brief default color of UI enabled elements
+ */
+constexpr auto COLOR_UI_PRIMARY = "#ffd740";
 #endif

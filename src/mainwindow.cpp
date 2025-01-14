@@ -30,7 +30,10 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
       m_cameraInterface(), m_testMode(g_commandLineArguments.test_mode),
       m_viewerThread(&MainWindow::ViewerWorkerThreadFunc, this), m_viewerThreadRunning(true), m_IOService(),
       m_temperatureIOService(), m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)),
-      m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0), m_bandSelectorSliderPopup(new QSliderPopup(this))
+      m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0),
+      m_bandSelectorSliderPopup(new QSliderPopup(1, 16, 10, Qt::Orientation::Horizontal)),
+      m_rgbNormSliderPopup(new QSliderPopup(1, 30, 5, Qt::Orientation::Horizontal)),
+      m_snapshotPopup(new QLineSpinPopup(this))
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
@@ -48,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 
     // populate available cameras
     ui->cameraListComboBox->addItem("select camera to enable UI...");
-    this->HandleReloadCamerasPushButtonClicked();
+    this->HandleReloadCamerasToolButtonClicked();
     ui->cameraListComboBox->setCurrentIndex(0);
 
     // set the base folder path
@@ -68,8 +71,10 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 
 void MainWindow::SetUpConnections()
 {
-    HANDLE_CONNECTION_RESULT(
-        QObject::connect(ui->snapshotButton, &QPushButton::clicked, this, &MainWindow::HandleSnapshotButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleSnapshotButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QArrowToolButton::ArrowClicked, this,
+                                              &MainWindow::HandleSnapshotToolButtonArrowClicked));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this, &MainWindow::HandleExposureValueChanged));
     HANDLE_CONNECTION_RESULT(
@@ -77,7 +82,7 @@ void MainWindow::SetUpConnections()
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerImageSlider, &QSlider::valueChanged, this,
                                               &MainWindow::HandleViewerImageSliderValueChanged));
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(ui->recordButton, &QPushButton::clicked, this, &MainWindow::HandleRecordButtonClicked));
+        QObject::connect(ui->recordToolButton, &QPushButton::clicked, this, &MainWindow::HandleRecordButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleBaseFolderButtonClicked));
     HANDLE_CONNECTION_RESULT(
@@ -90,9 +95,11 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleAutoexposureToolButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->bandSelectorToolButton, &QToolButton::clicked, this,
                                               &MainWindow::HandleBandSelectorToolButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->whiteBalanceButton, &QPushButton::clicked, this,
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->rgbNormToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleRGBNormToolButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordWhiteToolButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleWhiteBalanceButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->darkCorrectionButton, &QPushButton::clicked, this,
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordDarkToolButton, &QPushButton::clicked, this,
                                               &MainWindow::HandleDarkCorrectionButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->logTextLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleLogTextLineEditTextEdited));
@@ -102,9 +109,9 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleSkipFramesSpinBoxValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->cameraListComboBox, &QComboBox::currentIndexChanged, this,
                                               &MainWindow::HandleCameraListComboBoxCurrentIndexChanged));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadCamerasPushButton, &QPushButton::clicked, this,
-                                              &MainWindow::HandleReloadCamerasPushButtonClicked));
-    HANDLE_CONNECTION_RESULT(QObject::connect(ui->fileNameSnapshotsLineEdit, &QLineEdit::textEdited, this,
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadCamerasToolButton, &QPushButton::clicked, this,
+                                              &MainWindow::HandleReloadCamerasToolButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_snapshotPopup->m_lineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleFileNameSnapshotsLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->baseFolderLineEdit, &QLineEdit::textEdited, this,
                                               &MainWindow::HandleBaseFolderLineEditTextEdited));
@@ -154,7 +161,7 @@ void MainWindow::StopImageAcquisition()
     this->m_display->StopDisplayer();
     this->StopPollingThread();
     this->StopTemperatureThread();
-    m_cameraInterface.StopAcquisition();
+    (void)m_cameraInterface.StopAcquisition();
     // disconnect slots for image display
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::Display));
@@ -180,24 +187,27 @@ void MainWindow::EnableWidgetsInLayout(const QLayout *layout, const bool enable)
 }
 #pragma clang diagnostic pop
 
-void MainWindow::EnableUi(const bool enable)
+void MainWindow::EnableUi(const bool enable) const
 {
-    const QLayout *layout = ui->mainUiVerticalLayout->layout();
-    EnableWidgetsInLayout(layout, enable);
+    EnableWidgetsInLayout(ui->mainUiVerticalLayout->layout(), enable);
     SetGraphicsViewScene();
-    this->ui->exposureSlider->setEnabled(enable);
+    EnableWidgetsInLayout(ui->exposureHorizontalLayout->layout(), enable);
+    EnableWidgetsInLayout(ui->recordingControlsHorizontalLayout->layout(), enable);
     this->ui->logTextLineEdit->setEnabled(enable);
     this->m_bandSelectorSliderPopup->setEnabled(enable);
+    this->ui->autoExposureToolButton->setEnabled(enable);
 }
 
 void MainWindow::SetUpCustomUiComponents() const
 {
+    //
+    this->ui->exposureSlider->SetLabelInterval(50);
     // reload camera list button
     QIcon reloadButtonIcon;
     reloadButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
     reloadButtonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
     reloadButtonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
-    this->ui->reloadCamerasPushButton->setIcon(reloadButtonIcon);
+    this->ui->reloadCamerasToolButton->setIcon(reloadButtonIcon);
     // contrast tool button
     QIcon saturationButtonIcon;
     saturationButtonIcon.addFile(":/icon/theme/primary/saturation.svg", QSize(), QIcon::Normal);
@@ -222,6 +232,32 @@ void MainWindow::SetUpCustomUiComponents() const
     bandSelectorButtonIcon.addFile(":/icon/theme/disabled/band_selector.svg", QSize(), QIcon::Disabled);
     bandSelectorButtonIcon.addFile(":/icon/theme/active/band_selector.svg", QSize(), QIcon::Active);
     this->ui->bandSelectorToolButton->setIcon(bandSelectorButtonIcon);
+    // image intensity
+    QIcon imageIntensityButtonIcon;
+    imageIntensityButtonIcon.addFile(":/icon/theme/primary/rgb_norm.svg", QSize(), QIcon::Normal);
+    imageIntensityButtonIcon.addFile(":/icon/theme/disabled/rgb_norm.svg", QSize(), QIcon::Disabled);
+    imageIntensityButtonIcon.addFile(":/icon/theme/active/rgb_norm.svg", QSize(), QIcon::Active);
+    this->ui->rgbNormToolButton->setIcon(imageIntensityButtonIcon);
+    // record
+    this->SetRecordButtonIcons(false);
+    // record white
+    QIcon recordWhiteButtonIcon;
+    recordWhiteButtonIcon.addFile(":/icon/theme/primary/record_white.svg", QSize(), QIcon::Normal);
+    recordWhiteButtonIcon.addFile(":/icon/theme/disabled/record_white.svg", QSize(), QIcon::Disabled);
+    recordWhiteButtonIcon.addFile(":/icon/theme/active/record_white.svg", QSize(), QIcon::Active);
+    this->ui->recordWhiteToolButton->setIcon(recordWhiteButtonIcon);
+    // record dark
+    QIcon recordDarkButtonIcon;
+    recordDarkButtonIcon.addFile(":/icon/theme/primary/record_dark.svg", QSize(), QIcon::Normal);
+    recordDarkButtonIcon.addFile(":/icon/theme/disabled/record_dark.svg", QSize(), QIcon::Disabled);
+    recordDarkButtonIcon.addFile(":/icon/theme/active/record_dark.svg", QSize(), QIcon::Active);
+    this->ui->recordDarkToolButton->setIcon(recordDarkButtonIcon);
+    // record snapshots
+    QIcon recordSnapshotsButtonIcon;
+    recordSnapshotsButtonIcon.addFile(":/icon/theme/primary/snapshot.svg", QSize(), QIcon::Normal);
+    recordSnapshotsButtonIcon.addFile(":/icon/theme/disabled/snapshot.svg", QSize(), QIcon::Disabled);
+    recordSnapshotsButtonIcon.addFile(":/icon/theme/active/snapshot.svg", QSize(), QIcon::Active);
+    this->ui->recordSnapshotToolButton->setIcon(recordSnapshotsButtonIcon);
 }
 
 void MainWindow::Display()
@@ -268,10 +304,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::RecordSnapshots()
 {
-    const int nrImages = ui->nSnapshotsSpinBox->value();
+    const int nrImages = m_snapshotPopup->GetNumberOfSnapshots();
     ToggleSnapshotUI(false);
 
-    std::string fileName = ui->fileNameSnapshotsLineEdit->text().toUtf8().constData();
+    std::string fileName = m_snapshotPopup->GetFileNameSnapshot().toUtf8().constData();
 
     if (fileName.empty())
     {
@@ -329,8 +365,8 @@ void MainWindow::CaptureAndStoreSnapshotImage(FileImage &snapshotsFile, const in
 
 void MainWindow::ToggleSnapshotUI(const bool enabled) const
 {
-    QMetaObject::invokeMethod(ui->nSnapshotsSpinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
-    QMetaObject::invokeMethod(ui->fileNameSnapshotsLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
+    QMetaObject::invokeMethod(m_snapshotPopup->m_spinBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
+    QMetaObject::invokeMethod(m_snapshotPopup->m_lineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, enabled));
 }
 
 void MainWindow::ResetSnapshotUI() const
@@ -351,7 +387,7 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
 
 void MainWindow::HandleSnapshotButtonClicked()
 {
-    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(this->ui->fileNameSnapshotsLineEdit->text());
+    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->GetFileNameSnapshot());
     if (invalidFileName)
     {
         return;
@@ -455,17 +491,38 @@ void MainWindow::HandleExposureValueChanged(const int value)
 
 void MainWindow::HandleBandSelectorToolButtonClicked() const
 {
-    const QPoint buttonTopLeft = ui->bandSelectorToolButton->mapToGlobal(QPoint(0, 0));
-    const int buttonWidth = ui->bandSelectorToolButton->width();
+    constexpr int popupWidth = 450;
+    constexpr int popupHeight = 50;
+    ShowPopupOnToolButtonInteraction(ui->bandSelectorToolButton, m_bandSelectorSliderPopup, popupWidth, popupHeight,
+                                     true);
+}
 
+void MainWindow::HandleRGBNormToolButtonClicked() const
+{
     constexpr int popupWidth = 400;
     constexpr int popupHeight = 50;
-    const QPoint globalPos(buttonTopLeft.x() + (buttonWidth - popupWidth) / 2,
-                           buttonTopLeft.y() + ui->bandSelectorToolButton->height());
+    ShowPopupOnToolButtonInteraction(ui->rgbNormToolButton, m_rgbNormSliderPopup, popupWidth, popupHeight, true);
+}
 
-    m_bandSelectorSliderPopup->resize(popupWidth, popupHeight);
-    m_bandSelectorSliderPopup->move(globalPos);
-    m_bandSelectorSliderPopup->show();
+void MainWindow::HandleSnapshotToolButtonArrowClicked() const
+{
+    constexpr int popupWidth = 400;
+    constexpr int popupHeight = 50;
+    ShowPopupOnToolButtonInteraction(ui->recordSnapshotToolButton, m_snapshotPopup, popupWidth, popupHeight, false);
+}
+
+void MainWindow::ShowPopupOnToolButtonInteraction(const QWidget *button, QWidget *popup, const int popupWidth,
+                                                  const int popupHeight, const bool centerAlign)
+{
+    const QPoint buttonTopLeft = button->mapToGlobal(QPoint(0, 0));
+    const int buttonWidth = button->width();
+
+    const QPoint globalPos(centerAlign ? buttonTopLeft.x() + (buttonWidth - popupWidth) / 2 : buttonTopLeft.x(),
+                           buttonTopLeft.y() + button->height());
+
+    popup->resize(popupWidth, popupHeight);
+    popup->move(globalPos);
+    popup->show();
 }
 
 void MainWindow::HandleViewerImageSliderValueChanged(const int value)
@@ -553,11 +610,9 @@ void MainWindow::UpdateExposure() const
 
 void MainWindow::HandleRecordButtonClicked(const bool clicked)
 {
-    static QString original_button_text;
-
     if (clicked)
     {
-        this->LogMessage(" XILENS RECORDING STARTS", LOG_FILE_NAME, true);
+        (void)this->LogMessage(" XILENS RECORDING STARTS", LOG_FILE_NAME, true);
         this->LogMessage(QString(" camera selected: %1 %2")
                              .arg(this->m_cameraInterface.m_cameraIdentifier, this->m_cameraInterface.m_cameraSN),
                          LOG_FILE_NAME, true);
@@ -568,53 +623,61 @@ void MainWindow::HandleRecordButtonClicked(const bool clicked)
         }
         catch (const XiLensError &error)
         {
-            this->LogMessage(" ERROR WHILE STARTING RECORDING", LOG_FILE_NAME, true);
-            this->LogMessage(error.what(), LOG_FILE_NAME, true);
-            QMetaObject::invokeMethod(ui->recordButton, "setChecked", Qt::QueuedConnection, Q_ARG(bool, false));
+            (void)this->LogMessage(" ERROR WHILE STARTING RECORDING", LOG_FILE_NAME, true);
+            (void)this->LogMessage(error.what(), LOG_FILE_NAME, true);
+            QMetaObject::invokeMethod(this, "SetRecordButtonIcons", Qt::QueuedConnection, Q_ARG(bool, false));
             return;
         }
         this->HandleElementsWhileRecording(clicked);
-        original_button_text = ui->recordButton->text();
-        // button text seems to be an object property and cannot be changed by using
-        // QMetaObject::invokeMethod
-        ui->recordButton->setText(" Stop recording");
     }
     else
     {
-        this->LogMessage(" XILENS RECORDING ENDS", LOG_FILE_NAME, true);
+        (void)this->LogMessage(" XILENS RECORDING ENDS", LOG_FILE_NAME, true);
         this->StopRecording();
         this->HandleElementsWhileRecording(clicked);
-        ui->recordButton->setText(original_button_text);
     }
+}
+
+void MainWindow::SetRecordButtonIcons(const bool isRecording) const
+{
+    QIcon recordButtonIcon;
+    if (isRecording)
+    {
+        recordButtonIcon.addFile(":/icon/theme/primary/record_stop.svg", QSize(), QIcon::Normal);
+        recordButtonIcon.addFile(":/icon/theme/disabled/record_stop.svg", QSize(), QIcon::Disabled);
+        recordButtonIcon.addFile(":/icon/theme/active/record_stop.svg", QSize(), QIcon::Active);
+    }
+    else
+    {
+        recordButtonIcon.addFile(":/icon/theme/primary/record.svg", QSize(), QIcon::Normal);
+        recordButtonIcon.addFile(":/icon/theme/disabled/record.svg", QSize(), QIcon::Disabled);
+        recordButtonIcon.addFile(":/icon/theme/active/record.svg", QSize(), QIcon::Active);
+    }
+    this->ui->recordToolButton->setIcon(recordButtonIcon);
 }
 
 void MainWindow::HandleElementsWhileRecording(const bool recordingInProgress) const
 {
-    if (recordingInProgress)
-    {
-        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->fileNameLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-        QMetaObject::invokeMethod(ui->baseFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
-    }
-    else
-    {
-        QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->fileNameLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->reloadCamerasPushButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-        QMetaObject::invokeMethod(ui->baseFolderLineEdit, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
-    }
+    QMetaObject::invokeMethod(ui->baseFolderButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->fileNameLineEdit, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->cameraListComboBox, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->recordWhiteToolButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->recordDarkToolButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->reloadCamerasToolButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    QMetaObject::invokeMethod(ui->baseFolderLineEdit, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, !recordingInProgress));
+    this->SetRecordButtonIcons(recordingInProgress);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (this->ui->recordButton->isChecked())
+    if (this->ui->recordToolButton->isChecked())
     {
         HandleRecordButtonClicked(false);
     }
@@ -721,7 +784,7 @@ unsigned MainWindow::GetBand() const
 
 unsigned MainWindow::GetBGRNorm() const
 {
-    return this->ui->rgbNormSlider->value();
+    return this->m_rgbNormSliderPopup->value();
 }
 
 QString MainWindow::GetBaseFolder() const
@@ -965,14 +1028,14 @@ void MainWindow::HandleDarkCorrectionButtonClicked()
 
 void MainWindow::RecordReferenceImages(const QString &referenceType)
 {
-    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+    QMetaObject::invokeMethod(ui->recordToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     if (referenceType == "white")
     {
-        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->recordDarkToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
     else if (referenceType == "dark")
     {
-        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
+        QMetaObject::invokeMethod(ui->recordWhiteToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, false));
     }
 
     const QString baseFolder = ui->baseFolderLineEdit->text();
@@ -1013,14 +1076,14 @@ void MainWindow::RecordReferenceImages(const QString &referenceType)
     }
     this->m_imageContainer.CloseFile();
     QMetaObject::invokeMethod(ui->progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, 0));
-    QMetaObject::invokeMethod(ui->recordButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+    QMetaObject::invokeMethod(ui->recordToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     if (referenceType == "white")
     {
-        QMetaObject::invokeMethod(ui->darkCorrectionButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->recordDarkToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
     else if (referenceType == "dark")
     {
-        QMetaObject::invokeMethod(ui->whiteBalanceButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
+        QMetaObject::invokeMethod(ui->recordWhiteToolButton, "setEnabled", Qt::QueuedConnection, Q_ARG(bool, true));
     }
 }
 
@@ -1195,10 +1258,10 @@ void MainWindow::HandleCameraListComboBoxCurrentIndexChanged(const int index)
     }
 }
 
-void MainWindow::HandleReloadCamerasPushButtonClicked()
+void MainWindow::HandleReloadCamerasToolButtonClicked()
 {
     // set button style as pressed down, and process event loop before continuing
-    ui->reloadCamerasPushButton->setDown(true);
+    ui->reloadCamerasToolButton->setDown(true);
     QCoreApplication::processEvents();
 
     QStringList cameraList = m_cameraInterface.GetAvailableCameraIdentifiers();
@@ -1226,7 +1289,7 @@ void MainWindow::HandleReloadCamerasPushButtonClicked()
     }
 
     // restore button style
-    ui->reloadCamerasPushButton->setDown(false);
+    ui->reloadCamerasToolButton->setDown(false);
 }
 
 void MainWindow::UpdateSaturationPercentageLCDDisplays(const double percentageBelowThreshold,

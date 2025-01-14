@@ -8,11 +8,14 @@
 
 #include <QColor>
 #include <QEvent>
+#include <QLineEdit>
 #include <QSlider>
+#include <QSpinBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 /**
- * @brief Custom slider widget used to display text labels along the slider
+ * @brief Custom slider widget used to display text labels along the slider.
  *
  * Custom slider widget that displays text corresponding to values in the slider.
  * By default the number of text labels in the slider is set to a maximum of `8`.
@@ -29,7 +32,7 @@ class QSliderLabeled : public QSlider
     /**
      * Constructor of the labeled QSlider.
      *
-     * @param parent parent class
+     * @param parent parent class.
      */
     explicit QSliderLabeled(QWidget *parent = nullptr);
 
@@ -38,14 +41,20 @@ class QSliderLabeled : public QSlider
      *
      * @param value
      */
-    void SetGrooveMargin(int value);
+    void SetGrooveMargin(const int value)
+    {
+        m_grooveMargin = value;
+    }
 
     /**
      * Sets Maximum number of labels to display in the slider.
      *
      * @param value maximum number of labels.
      */
-    void SetMaxNumberOfLabels(int value);
+    void SetMaxNumberOfLabels(const int value)
+    {
+        m_maxNumberOfLabels = value;
+    }
 
     /**
      * Applies a custom style sheet that defines the width and height of the slider based on the orientation
@@ -59,14 +68,44 @@ class QSliderLabeled : public QSlider
      *
      * @param value the slider spread.
      */
-    void SetSliderSpread(int value);
+    void SetSliderSpread(const int value)
+    {
+        m_sliderSpread = value;
+    }
+
+    /**
+     * @brief Toggles the display of text labels on the slider.
+     *
+     * This method enables or disables the display of text labels along the slider
+     * based on the provided value. When enabled, labels corresponding to values are shown.
+     *
+     * @param value `true` to enable the display of labels, `false` to disable them.
+     */
+    void SetDisplayLabels(const bool value)
+    {
+        m_displayLabels = value;
+    }
+
+    /**
+     * @brief Sets the interval for displaying labels on the slider.
+     *
+     * This method configures the interval between the labels displayed along the slider.
+     * The labels are generated based on the set interval and the current minimum and
+     * maximum values of the slider.
+     *
+     * @param value The interval value specifying the spacing between labels. Must be a positive integer.
+     */
+    void SetLabelInterval(const int value)
+    {
+        m_labelInterval = value;
+    }
 
   protected:
     /**
      * paint event used to draw the labels on the slider. This overrides the paint event, but it calls the original
      * method before drawing the text.
      *
-     * @param event paint event parameters
+     * @param event paint event parameters.
      */
     void paintEvent(QPaintEvent *event) override;
 
@@ -74,7 +113,7 @@ class QSliderLabeled : public QSlider
      * show event that overwrites the original QSlider show event to apply a custom style sheet before  showing the
      * slider.
      *
-     * @param event show event parameters
+     * @param event show event parameters.
      */
     void showEvent(QShowEvent *event) override
     {
@@ -112,12 +151,21 @@ class QSliderLabeled : public QSlider
     void mouseMoveEvent(QMouseEvent *event) override;
 
     /**
-     * Slider groove margin
+     * Slider groove margin.
      */
     int m_grooveMargin = 12;
 
     /**
-     * Maximum number of labels to display
+     * @brief Interval between labels displayed on a slider.
+     *
+     * Determines the step interval for displaying text labels along the slider.
+     * This value is used to control the spacing between consecutive labels,
+     * allowing customization of the labeling frequency on the slider.
+     */
+    int m_labelInterval;
+
+    /**
+     * Maximum number of labels to display.
      */
     int m_maxNumberOfLabels = 8;
 
@@ -138,10 +186,33 @@ class QSliderLabeled : public QSlider
      * The pen color is set to a specific color if the widget is enabled, and to a different color if it is disabled.
      */
     void UpdatePainterPen();
+
+    /**
+     * @brief Computes and returns the label interval for the slider.
+     *
+     * Determines the interval at which text labels should be displayed along the slider.
+     * If no custom label interval (`m_labelInterval`) is specified, the method calculates the
+     * appropriate interval based on the slider's tick interval and ensures that the number
+     * of labels does not exceed the maximum allowed (`m_maxNumberOfLabels`).
+     *
+     * The computed interval ensures proper alignment of the labels with the slider's range,
+     * taking into account the minimum and maximum values.
+     *
+     * @return The interval value between consecutive labels on the slider.
+     */
+    int GetLabelInterval() const;
+
+    /**
+     * @brief Indicates whether text labels should be displayed on the slider.
+     *
+     * This variable controls the visibility of text labels along the slider. When set to `true`,
+     * labels corresponding to slider values are rendered. If set to `false`, the labels are not shown.
+     */
+    bool m_displayLabels;
 };
 
 /**
- * @brief Popup widget containing a labeled slider
+ * @brief Popup widget containing a labeled slider.
  *
  * This class implements a popup widget that encapsulates a custom labeled slider widget.
  * It provides functionality to access the slider's value as well as modify its minimum and maximum bounds.
@@ -149,18 +220,7 @@ class QSliderLabeled : public QSlider
  */
 class QSliderPopup : public QWidget
 {
-    /**
-     * @brief Creates a popup widget with an integrated custom labeled slider and layout.
-     *
-     * This constructor initializes a frameless popup widget containing a custom horizontal `QSliderLabeled` component
-     * with a defined range of values (from 1 to 16). The slider is embedded in a horizontal-oriented layout
-     * with specified content margins. The widget is set to be displayed as a frameless window with popup behavior.
-     *
-     * @param parent The parent widget, it can be null.
-     */
   public:
-    explicit QSliderPopup(QWidget *parent = nullptr);
-
     /**
      * @brief Constructs a frameless popup widget containing a labeled slider with a specified range and orientation.
      *
@@ -179,13 +239,13 @@ class QSliderPopup : public QWidget
     QSliderPopup(int min, int max, int value, Qt::Orientation orientation, QWidget *parent = nullptr);
 
     /**
-     * @brief returns the value of the slider
+     * @brief returns the value of the slider.
      *
-     * @return value of hte slider
+     * @return value of hte slider.
      */
     int value() const
     {
-        return slider->value();
+        return m_slider->value();
     }
 
     /**
@@ -193,31 +253,264 @@ class QSliderPopup : public QWidget
      *
      * @param min minimum value.
      */
-    void setMinimum(const int min) const
+    void SetMinimum(const int min) const
     {
-        slider->setMinimum(min);
+        m_slider->setMinimum(min);
     }
 
     /**
-     * Sets the maximum value of the slider.
+     * @brief Sets the maximum value of the slider.
      *
      * @param max maximum value.
      */
-    void setMaximum(const int max) const
+    void SetMaximum(const int max) const
     {
-        slider->setMaximum(max);
+        m_slider->setMaximum(max);
+    }
+
+    /**
+     * @brief Sets whether text labels are displayed along the slider.
+     *
+     * This method enables or disables the display of labels on the slider
+     * based on the input value. When set to true, labels corresponding
+     * to values in the slider are shown, otherwise, labels are hidden.
+     *
+     * @param value Boolean indicating whether to display labels (`true`) or not (`false`).
+     */
+    void SetDisplayLabels(const bool value) const
+    {
+        m_slider->SetDisplayLabels(value);
+    }
+
+    /**
+     * @brief Sets the interval for displaying labels on the slider.
+     *
+     * Defines the interval between adjacent labels displayed along the slider.
+     * This allows customization of how frequently labels appear on the slider
+     * based on the specified interval value.
+     *
+     * @param value The numerical value representing the interval between labels
+     */
+    void SetLabelInterval(const int value) const
+    {
+        m_slider->SetLabelInterval(value);
     }
 
   private:
     /**
-     * Custom labeled slider component to be displayed inside the pop-up page.
+     * @brief Custom labeled slider component to be displayed inside the pop-up page.
      */
-    QSliderLabeled *slider;
+    QSliderLabeled *m_slider;
 
     /**
-     * Layout to be used for the pop-up page.
+     * @brief Layout to be used for the pop-up page.
      */
-    QVBoxLayout *layout;
+    QVBoxLayout *m_layout;
+
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
 };
+
+/**
+ * @brief Popup widget containing a line input and a spin box.
+ *
+ * This class implements a popup widget that encapsulates a QLineEdit and a QSpinBox widget.
+ * It provides functionality to access and modify their values.
+ * The widgets are displayed next to each other in a horizontal layout with proper spacing.
+ */
+class QLineSpinPopup : public QWidget
+{
+  public:
+    /**
+     * @brief Constructs a popup widget containing a QLineEdit ("fileNameSnapshot") and a QSpinBox ("nSnapshots").
+     *
+     * The line edit and spin box are embedded within a horizontal-oriented layout to ensure proper placement.
+     * The widget is styled as a frameless popup window.
+     *
+     * @param parent The parent widget of the popup, can be null.
+     */
+    explicit QLineSpinPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Gets the text value from the QLineEdit.
+     *
+     * @return The text entered into the QLineEdit.
+     */
+    QString GetFileNameSnapshot() const
+    {
+        return m_lineEdit->text();
+    }
+
+    /**
+     * @brief Sets the text value in the QLineEdit.
+     *
+     * @param fileName The file name to set in the QLineEdit.
+     */
+    void SetFileNameSnapshot(const QString &fileName) const
+    {
+        m_lineEdit->setText(fileName);
+    }
+
+    /**
+     * @brief Gets the value from the QSpinBox.
+     *
+     * @return The current value of the QSpinBox.
+     */
+    int GetNumberOfSnapshots() const
+    {
+        return m_spinBox->value();
+    }
+
+    /**
+     * @brief Sets the value in the QSpinBox.
+     *
+     * @param value The value to set in the QSpinBox.
+     */
+    void SetNumberOfSnapshots(const int value) const
+    {
+        m_spinBox->setValue(value);
+    }
+
+    /**
+     * Line edit for entering the snapshot file name.
+     */
+    QLineEdit *m_lineEdit;
+
+    /**
+     * Spin box for setting the number of snapshots.
+     */
+    QSpinBox *m_spinBox;
+
+  private:
+    /**
+     * Layout for arranging the widgets.
+     */
+    QVBoxLayout *m_layout;
+
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
+};
+
+/**
+ * @brief A custom tool button with an arrow indicator in the bottom right corner.
+ *
+ * A specialized tool button designed for use in interfaces where an arrow
+ * indication is required. This button can handle arrow orientation and
+ * visual styles to assist user interactions in directional or expandable UI
+ * elements.
+ */
+class QArrowToolButton : public QToolButton
+{
+    Q_OBJECT
+
+  public:
+    /**
+     * @brief Constructor for QArrowToolButton.
+     *
+     * Initializes a QArrowToolButton instance with a custom arrow functionality,
+     * inheriting from QToolButton. This constructor sets the parent widget
+     * of the button for proper widget hierarchy management.
+     *
+     * @param parent The parent widget for this button. If null, the button
+     *               has no parent and acts as a top-level widget.
+     */
+    explicit QArrowToolButton(QWidget *parent = nullptr);
+
+  signals:
+    /**
+     * @brief Signal emitted when the arrow on the button is clicked.
+     *
+     * This signal is emitted whenever the user clicks on the arrow portion of the button.
+     * It is primarily used to notify connected slots of this specific interaction, allowing
+     * for custom handling or behavior in response to the arrow click.
+     */
+    void ArrowClicked();
+
+  protected:
+    /**
+     * @brief Custom paint event for drawing the arrow on the button.
+     *
+     * This method overrides the default paint event to draw a custom arrow on the button.
+     * The arrow's color changes dynamically based on the button's state, such as whether
+     * it is enabled, hovered, or pressed. The arrow is drawn using a QPainter instance
+     * and takes into account the visual states obtained through QStyleOptionToolButton.
+     *
+     * @param event A pointer to the QPaintEvent object providing details about the paint event.
+     */
+    void paintEvent(QPaintEvent *event) override;
+
+    /**
+     * @brief Handles mouse press events.
+     *
+     * This method processes mouse press events and checks if the click occurs
+     * within the rectangle occupied by the arrow. If the arrow is clicked, it emits
+     * an `arrowClicked` signal and prevents the default button behavior.
+     * Otherwise, the event is passed to the parent class for standard processing.
+     *
+     * @param event The pointer to the QMouseEvent containing information about the mouse press.
+     */
+    void mousePressEvent(QMouseEvent *event) override;
+
+  private:
+    /**
+     * @brief Calculates the rectangle area for the arrow region on the button.
+     *
+     * Determines the rectangular area where the arrow is drawn within the button.
+     * The size of the arrow is dynamically calculated as a fraction of the button's dimensions
+     * (1/5th of the smaller dimension) and ensures it remains an odd number for even alignment.
+     * The rectangle is positioned in the lower-right corner of the button.
+     *
+     * @return QRect representing the bounding rectangle for the arrow region.
+     */
+    QRect ArrowRect() const;
+};
+
+/**
+ * @brief Styles a QFrame widget by applying a border, border radius, and content margins.
+ *
+ * This method applies a stylesheet to the provided QFrame, setting a solid border
+ * with a radius specified by the borderRadius parameter. It also adjusts the layout's
+ * content margins to the provided contentMargin value.
+ *
+ * @param frame Pointer to the QFrame to be styled.
+ * @param layout Pointer to the QLayout associated with the QFrame.
+ * @param borderRadius The radius to be applied to the corners of the QFrame's border.
+ * @param contentMargin The margin to be applied around the contents of the QLayout.
+ */
+void StyleQFrameInPopupWindow(QFrame *frame, QLayout *layout, int borderRadius, int contentMargin);
 
 #endif // XILENS_WIDGETS_H
