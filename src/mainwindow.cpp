@@ -27,9 +27,8 @@
 
 MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiAPIWrapper)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_elapsedTime(0), m_elapsedTimeTextStream(&m_elapsedTimeText),
-      m_cameraInterface(), m_testMode(g_commandLineArguments.test_mode),
-      m_viewerThread(&MainWindow::ViewerWorkerThreadFunc, this), m_viewerThreadRunning(true), m_IOService(),
-      m_temperatureIOService(), m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)),
+      m_testMode(g_commandLineArguments.test_mode), m_viewerThread(&MainWindow::ViewerWorkerThreadFunc, this),
+      m_viewerThreadRunning(true), m_temperatureIOWork(new boost::asio::io_service::work(m_temperatureIOService)),
       m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0),
       m_bandSelectorSliderPopup(new QSliderPopup(1, 16, 10, Qt::Orientation::Horizontal)),
       m_rgbNormSliderPopup(new QSliderPopup(1, 30, 5, Qt::Orientation::Horizontal)),
