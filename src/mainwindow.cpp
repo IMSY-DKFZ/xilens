@@ -303,15 +303,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::RecordSnapshots()
 {
-    const int nrImages = m_snapshotPopup->GetNumberOfSnapshots();
+    const int nrImages = m_snapshotPopup->value();
     ToggleSnapshotUI(false);
 
-    std::string fileName = m_snapshotPopup->GetFileNameSnapshot().toUtf8().constData();
-
-    if (fileName.empty())
-    {
-        fileName = m_fileName.toUtf8().constData();
-    }
+    std::string fileName = m_snapshotPopup->text().toUtf8().constData();
     const QString filePath = GetFullFilenameStandardFormat(std::move(fileName), ".b2nd", "");
     const auto snapshotsFile = OpenFileForSnapshots(filePath);
     if (!snapshotsFile)
@@ -386,7 +381,7 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
 
 void MainWindow::HandleSnapshotButtonClicked()
 {
-    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->GetFileNameSnapshot());
+    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->text());
     if (invalidFileName)
     {
         return;

@@ -339,7 +339,7 @@ class QLineSpinPopup : public QWidget
 {
   public:
     /**
-     * @brief Constructs a popup widget containing a QLineEdit ("fileNameSnapshot") and a QSpinBox ("nSnapshots").
+     * @brief Constructs a popup widget containing a QLineEdit and a QSpinBox.
      *
      * The line edit and spin box are embedded within a horizontal-oriented layout to ensure proper placement.
      * The widget is styled as a frameless popup window.
@@ -353,7 +353,7 @@ class QLineSpinPopup : public QWidget
      *
      * @return The text entered into the QLineEdit.
      */
-    QString GetFileNameSnapshot() const
+    QString text() const
     {
         return m_lineEdit->text();
     }
@@ -363,7 +363,7 @@ class QLineSpinPopup : public QWidget
      *
      * @param fileName The file name to set in the QLineEdit.
      */
-    void SetFileNameSnapshot(const QString &fileName) const
+    void setText(const QString &fileName) const
     {
         m_lineEdit->setText(fileName);
     }
@@ -373,7 +373,7 @@ class QLineSpinPopup : public QWidget
      *
      * @return The current value of the QSpinBox.
      */
-    int GetNumberOfSnapshots() const
+    int value() const
     {
         return m_spinBox->value();
     }
@@ -383,18 +383,18 @@ class QLineSpinPopup : public QWidget
      *
      * @param value The value to set in the QSpinBox.
      */
-    void SetNumberOfSnapshots(const int value) const
+    void setValue(const int value) const
     {
         m_spinBox->setValue(value);
     }
 
     /**
-     * Line edit for entering the snapshot file name.
+     * Line edit for entering user specified text.
      */
     QLineEdit *m_lineEdit;
 
     /**
-     * Spin box for setting the number of snapshots.
+     * Spin box for setting user-defined integer values.
      */
     QSpinBox *m_spinBox;
 
