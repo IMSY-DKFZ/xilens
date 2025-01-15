@@ -282,7 +282,7 @@ class MainWindow : public QMainWindow
      *
      * @param value exposure value.
      */
-    void HandleExposureValueChanged(int value);
+    void HandleExposureValueChanged(int value) const;
 
     /**
      * Qt slot triggered when the image index slider in the Viewer tab of the application changes value.

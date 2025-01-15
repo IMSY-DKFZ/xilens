@@ -199,14 +199,14 @@ void QArrowToolButton::paintEvent(QPaintEvent *event)
     }
     else
     {
-        arrowColor = 0xffd740;
+        arrowColor = 0xffffff;
     }
 
     // Draw the arrow
     QPolygon arrow;
     QRect rect = ArrowRect();
-    arrow << QPoint(rect.left(), rect.top()) << QPoint(rect.right(), rect.top())
-          << QPoint(rect.center().x(), rect.bottom());
+    arrow << QPoint(rect.left(), rect.bottom()) << QPoint(rect.right(), rect.top())
+          << QPoint(rect.right(), rect.bottom());
 
     painter.setBrush(QBrush(arrowColor));
     painter.setPen(Qt::NoPen);

@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     ui->baseFolderLineEdit->insert(this->GetBaseFolder());
 
     // synchronize expSlider and exposure checkbox
-    QSlider *expSlider = ui->exposureSlider;
+    const QSlider *expSlider = ui->exposureSlider;
     QSpinBox *expSpinBox = ui->exposureSpinBox;
     // set default values
     expSpinBox->setValue(expSlider->value());
@@ -381,8 +381,7 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
 
 void MainWindow::HandleSnapshotButtonClicked()
 {
-    const auto invalidFileName = HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->text());
-    if (invalidFileName)
+    if (HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->text()))
     {
         return;
     }
@@ -477,7 +476,7 @@ void MainWindow::StopReferenceRecordingThread()
     }
 }
 
-void MainWindow::HandleExposureValueChanged(const int value)
+void MainWindow::HandleExposureValueChanged(const int value) const
 {
     m_cameraInterface.m_camera->SetExposureMs(value);
     UpdateExposure();
@@ -903,11 +902,11 @@ void MainWindow::StartRecording()
         m_threadGroup.create_thread([&] { return m_IOService.run(); });
     }
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage));
+        QObject::connect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::ThreadedRecordImage));
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages));
+        QObject::connect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::CountImages));
     HANDLE_CONNECTION_RESULT(
-        QObject::connect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
+        QObject::connect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay));
     m_updateFPSDisplayTimer->start(UPDATE_RATE_MS_FPS_TIMER);
@@ -915,12 +914,12 @@ void MainWindow::StartRecording()
 
 void MainWindow::StopRecording()
 {
-    HANDLE_CONNECTION_RESULT(QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this,
+    HANDLE_CONNECTION_RESULT(QObject::disconnect(&this->m_imageContainer, &ImageContainer::NewImage, this,
                                                  &MainWindow::ThreadedRecordImage));
     HANDLE_CONNECTION_RESULT(
-        QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::CountImages));
+        QObject::disconnect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::CountImages));
     HANDLE_CONNECTION_RESULT(
-        QObject::disconnect(&(this->m_imageContainer), &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
+        QObject::disconnect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay));
     QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, ""));
@@ -945,9 +944,7 @@ QString MainWindow::GetWritingFolder() const
 
 void MainWindow::CreateFolderIfNecessary(const QString &folder)
 {
-    const QDir folderDir(folder);
-
-    if (!folderDir.exists())
+    if (const QDir folderDir(folder); !folderDir.exists())
     {
         if (folderDir.mkpath(folder))
         {
@@ -1042,8 +1039,7 @@ void MainWindow::RecordReferenceImages(const QString &referenceType)
     int fileNum = 0;
     for (const QString &fileName : fileNameList)
     {
-        QRegularExpressionMatch match = re.match(fileName);
-        if (match.hasMatch())
+        if (QRegularExpressionMatch match = re.match(fileName); match.hasMatch())
         {
             fileNum = match.captured(1).toInt();
             ++fileNum;
@@ -1101,8 +1097,7 @@ void MainWindow::RestoreLineEditStyle(QLineEdit *lineEdit)
 
 void MainWindow::HandleViewerFileLineEditReturnPressed()
 {
-    const auto file = QFile(ui->viewerFileLineEdit->text());
-    if (file.exists())
+    if (const auto file = QFile(ui->viewerFileLineEdit->text()); file.exists())
     {
         m_viewerFilePath = ui->viewerFileLineEdit->text();
         OpenFileInViewer(m_viewerFilePath);
