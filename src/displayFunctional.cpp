@@ -119,6 +119,7 @@ void DisplayerFunctional::GetBand(cv::Mat &image, cv::Mat &band_image, const uns
 {
     if (band_nr < 1 || band_nr > (this->m_mosaicShape[0] * this->m_mosaicShape[1]))
     {
+        LOG_XILENS(error) << "Band number is out of the expected range: " << band_nr;
         throw std::out_of_range("Band number is out of the expected range.");
     }
     // compute location of first value

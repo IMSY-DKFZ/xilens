@@ -5,13 +5,16 @@
 
 #include <QMouseEvent>
 #include <QPainter>
-#include <QStyleOptionSlider>
+#include <QPainterPath>
+#include <QStyleOptionToolButton>
 #include <QToolTip>
 
+#include "constants.h"
 #include "widgets.h"
 
-QSliderLabeled::QSliderLabeled(QWidget *parent) : QSlider(parent)
+QSliderLabeled::QSliderLabeled(QWidget *parent) : QSlider(parent), m_labelInterval(0), m_displayLabels(true)
 {
+    m_penColor = QColor(255, 215, 64);
 }
 
 void QSliderLabeled::ApplyStyleSheet()
@@ -28,9 +31,9 @@ void QSliderLabeled::ApplyStyleSheet()
                               " max-height: %2px;"
                               " padding-top: %3px;"
                               "}")
-                          .arg(m_sliderSpread + textHeight)
-                          .arg(m_sliderSpread + textHeight)
-                          .arg(-m_sliderSpread / 2));
+                          .arg(m_displayLabels ? m_sliderSpread + textHeight : m_sliderSpread)
+                          .arg(m_displayLabels ? m_sliderSpread + textHeight : m_sliderSpread)
+                          .arg(m_displayLabels ? -m_sliderSpread / 2 : 0));
     }
     else if (orientation() == Qt::Orientation::Vertical)
     {
@@ -39,27 +42,25 @@ void QSliderLabeled::ApplyStyleSheet()
                               " max-width: %2px;"
                               " padding-right: %3px;"
                               "}")
-                          .arg(m_sliderSpread + textWidth)
-                          .arg(m_sliderSpread + textWidth)
-                          .arg(-m_sliderSpread / 2));
+                          .arg(m_displayLabels ? m_sliderSpread + textWidth : m_sliderSpread)
+                          .arg(m_displayLabels ? m_sliderSpread + textWidth : m_sliderSpread)
+                          .arg(m_displayLabels ? -m_sliderSpread / 2 : 0));
     }
 }
 
 void QSliderLabeled::paintEvent(QPaintEvent *event)
 {
     QSlider::paintEvent(event);
+    if (!m_displayLabels)
+    {
+        return;
+    }
     QPainter painter(this);
     painter.setPen(m_penColor);
 
     const int min = minimum();
     const int max = maximum();
-    int interval = tickInterval();
-    const auto intervalAtMaxLabels = (max - min) / m_maxNumberOfLabels;
-    // Modify the interval if the current interval would generate too many labels in the slider.
-    if (interval == 0 || (max - min) / interval > m_maxNumberOfLabels)
-    {
-        interval = intervalAtMaxLabels;
-    }
+    const auto interval = GetLabelInterval();
 
     if (orientation() == Qt::Horizontal)
     {
@@ -97,6 +98,24 @@ void QSliderLabeled::paintEvent(QPaintEvent *event)
     }
 }
 
+int QSliderLabeled::GetLabelInterval() const
+{
+    const int min = minimum();
+    const int max = maximum();
+    if (!m_labelInterval)
+    {
+        int interval = tickInterval();
+        const auto intervalAtMaxLabels = (max - min) / m_maxNumberOfLabels;
+        // Modify the interval if the current interval would generate too many labels in the slider.
+        if (interval == 0 || (max - min) / interval > m_maxNumberOfLabels)
+        {
+            interval = intervalAtMaxLabels;
+        }
+        return interval;
+    }
+    return m_labelInterval;
+}
+
 void QSliderLabeled::mouseMoveEvent(QMouseEvent *event)
 {
     QToolTip::showText(event->globalPosition().toPoint(), QString::number(value()), this);
@@ -109,17 +128,109 @@ void QSliderLabeled::UpdatePainterPen()
     m_penColor = penColor;
 }
 
-void QSliderLabeled::SetGrooveMargin(const int value)
+QSliderPopup::QSliderPopup(const int min, const int max, const int value, const Qt::Orientation orientation,
+                           QWidget *parent)
+    : QWidget(nullptr), m_slider(new QSliderLabeled(this)), m_layout(new QVBoxLayout(this)), m_frame(new QFrame(this))
 {
-    m_grooveMargin = value;
+    // Make the widget a frameless popup
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("QSliderPopupWindow");
+
+    m_slider->setRange(min, max);
+    m_slider->setValue(value);
+    m_slider->setOrientation(orientation);
+
+    m_backgroundFrameLayout = new QHBoxLayout(m_frame);
+    StyleQFrameInPopupWindow(m_frame, m_backgroundFrameLayout, m_windowBorderRadius, m_contentMargin);
+    m_backgroundFrameLayout->addWidget(m_slider);
+
+    m_layout->addWidget(m_frame);
 }
 
-void QSliderLabeled::SetMaxNumberOfLabels(const int value)
+void StyleQFrameInPopupWindow(QFrame *frame, QLayout *layout, const int borderRadius, const int contentMargin)
 {
-    m_maxNumberOfLabels = value;
+    frame->setObjectName("BackgroundFrame");
+    frame->setStyleSheet(QString("#BackgroundFrame { border: 3px solid %1; border-radius: %2px; }")
+                             .arg(COLOR_UI_PRIMARY, QString::number(borderRadius)));
+    layout->setContentsMargins(contentMargin, contentMargin, contentMargin, contentMargin);
 }
 
-void QSliderLabeled::SetSliderSpread(const int value)
+QLineSpinPopup::QLineSpinPopup(QWidget *parent)
+    : QWidget(nullptr), m_lineEdit(new QLineEdit(this)), m_spinBox(new QSpinBox(this)), m_layout(new QVBoxLayout(this)),
+      m_frame(new QFrame(this))
 {
-    m_sliderSpread = value;
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("QLineSpinPopupWindow");
+
+    m_spinBox->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox->setValue(1);
+
+    m_backgroundFrameLayout = new QHBoxLayout(m_frame);
+    StyleQFrameInPopupWindow(m_frame, m_backgroundFrameLayout, m_windowBorderRadius, m_contentMargin);
+    m_backgroundFrameLayout->addWidget(m_lineEdit);
+    m_backgroundFrameLayout->addWidget(m_spinBox);
+    m_backgroundFrameLayout->setSpacing(10);
+
+    m_layout->addWidget(m_frame);
+}
+
+QArrowToolButton::QArrowToolButton(QWidget *parent) : QToolButton(parent)
+{
+}
+
+void QArrowToolButton::paintEvent(QPaintEvent *event)
+{
+    QToolButton::paintEvent(event);
+    QPainter painter(this);
+    QStyleOptionToolButton option;
+    initStyleOption(&option);
+
+    // Determine arrow color based on the button state
+    QColor arrowColor;
+    if (!isEnabled())
+    {
+        arrowColor = 0x4f5b62;
+    }
+    else if (option.state == QStyle::State_Sunken || option.state == QStyle::State_MouseOver)
+    {
+        arrowColor = 0x707070;
+    }
+    else
+    {
+        arrowColor = 0xffffff;
+    }
+
+    // Draw the arrow
+    QPolygon arrow;
+    QRect rect = ArrowRect();
+    arrow << QPoint(rect.left(), rect.bottom()) << QPoint(rect.right(), rect.top())
+          << QPoint(rect.right(), rect.bottom());
+
+    painter.setBrush(QBrush(arrowColor));
+    painter.setPen(Qt::NoPen);
+    painter.drawPolygon(arrow);
+}
+
+void QArrowToolButton::mousePressEvent(QMouseEvent *event)
+{
+    // Check if the mouse click is inside the arrow's rectangle
+    if (ArrowRect().contains(event->pos()))
+    {
+        emit ArrowClicked();
+        return;
+    }
+    QToolButton::mousePressEvent(event);
+}
+
+QRect QArrowToolButton::ArrowRect() const
+{
+    int arrowSize = qMin(width(), height()) / 5;
+    // Ensure arrowSize is always an odd number, makes painted arrow straight
+    if (arrowSize % 2 == 0)
+    {
+        arrowSize++;
+    }
+    return {width() - arrowSize, height() - arrowSize, arrowSize, arrowSize};
 }

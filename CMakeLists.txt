@@ -62,7 +62,6 @@ endif()
 #-----------------------------------------------------------------------------------------------------------------------
 # Boost
 find_package(Boost REQUIRED system thread timer chrono log filesystem)
-include_directories(${Boost_INCLUDE_DIRS})
 # BLOSC2
 find_package(Blosc2 2.15.1 CONFIG REQUIRED)
 # Message pack for metadata serialization
@@ -72,12 +71,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets Svg)
 # OpenCV
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
-include_directories(${OpenCV_INCLUDE_DIRS})
 # XIMEA API
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(Ximea REQUIRED)
-include_directories(${Ximea_INCLUDE_DIRS})
-
 #-----------------------------------------------------------------------------------------------------------------------
 # XiLens library build
 #-----------------------------------------------------------------------------------------------------------------------
@@ -120,7 +116,9 @@ add_library(XILENS_LIB ${LIBTYPE}
         ${XILENS_LIB_HDR_MOC}
         ${XILENS_LIB_UI_MOC}
 )
+target_include_directories(XILENS_LIB PUBLIC ${Ximea_INCLUDE_DIRS})
 target_link_libraries(XILENS_LIB Qt6::Widgets Qt6::Svg)
+target_link_libraries(XILENS_LIB Boost::system Boost::thread Boost::timer Boost::chrono Boost::log Boost::filesystem)
 target_link_libraries(XILENS_LIB ${OpenCV_LIBS})
 target_link_libraries(XILENS_LIB ${Boost_LIBRARIES})
 target_link_libraries(XILENS_LIB ${Ximea_LIBRARIES})
