@@ -57,12 +57,6 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
     m_baseFolderPath = QDir::cleanPath(QDir::homePath());
     ui->baseFolderLineEdit->insert(this->GetBaseFolder());
 
-    // synchronize expSlider and exposure checkbox
-    const QSlider *expSlider = ui->exposureSlider;
-    QSpinBox *expSpinBox = ui->exposureSpinBox;
-    // set default values
-    expSpinBox->setValue(expSlider->value());
-
     LOG_XILENS(info) << "test mode (recording everything to same file) is set to: " << m_testMode << "\n";
     this->SetUpConnections();
     EnableUi(false);
@@ -74,8 +68,6 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleSnapshotButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QArrowToolButton::ArrowClicked, this,
                                               &MainWindow::HandleSnapshotToolButtonArrowClicked));
-    HANDLE_CONNECTION_RESULT(
-        QObject::connect(ui->exposureSlider, &QSlider::valueChanged, this, &MainWindow::HandleExposureValueChanged));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(ui->exposureSpinBox, &QSpinBox::valueChanged, this, &MainWindow::HandleExposureValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerImageSlider, &QSlider::valueChanged, this,
@@ -190,7 +182,6 @@ void MainWindow::EnableUi(const bool enable) const
 {
     EnableWidgetsInLayout(ui->mainUiVerticalLayout->layout(), enable);
     SetGraphicsViewScene();
-    EnableWidgetsInLayout(ui->exposureHorizontalLayout->layout(), enable);
     EnableWidgetsInLayout(ui->recordingControlsHorizontalLayout->layout(), enable);
     this->ui->logTextLineEdit->setEnabled(enable);
     this->m_bandSelectorSliderPopup->setEnabled(enable);
@@ -199,8 +190,6 @@ void MainWindow::EnableUi(const bool enable) const
 
 void MainWindow::SetUpCustomUiComponents() const
 {
-    //
-    this->ui->exposureSlider->SetLabelInterval(50);
     // reload camera list button
     QIcon reloadButtonIcon;
     reloadButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
@@ -590,7 +579,6 @@ void MainWindow::ViewerWorkerThreadFunc()
 void MainWindow::UpdateExposure() const
 {
     // lock ui elements before updating them
-    const QSignalBlocker exposureSliderLock(ui->exposureSlider);
     const QSignalBlocker exposureSpinBoxLock(ui->exposureSpinBox);
     const int exposureMilliseconds = m_cameraInterface.m_camera->GetExposureMs();
     // update the estimated framerate
@@ -598,7 +586,6 @@ void MainWindow::UpdateExposure() const
     ui->hzLabel->setText(QString::number(1000.0 / (exposureMilliseconds * (nrSkipFrames + 1)), 'g', 2));
     // set exposure values to bot spinbox and slider
     ui->exposureSpinBox->setValue(exposureMilliseconds);
-    ui->exposureSlider->setValue(exposureMilliseconds);
 }
 
 void MainWindow::HandleRecordButtonClicked(const bool clicked)
@@ -994,7 +981,6 @@ void MainWindow::StopPollingThread()
 void MainWindow::HandleAutoexposureToolButtonClicked(const bool setAutoexposure) const
 {
     this->m_cameraInterface.m_camera->AutoExposure(setAutoexposure);
-    ui->exposureSlider->setEnabled(!setAutoexposure);
     ui->exposureSpinBox->setEnabled(!setAutoexposure);
     UpdateExposure();
 }
