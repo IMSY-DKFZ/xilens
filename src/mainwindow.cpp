@@ -182,7 +182,6 @@ void MainWindow::EnableUi(const bool enable) const
 {
     EnableWidgetsInLayout(ui->mainUiVerticalLayout->layout(), enable);
     SetGraphicsViewScene();
-    EnableWidgetsInLayout(ui->exposureHorizontalLayout->layout(), enable);
     EnableWidgetsInLayout(ui->recordingControlsHorizontalLayout->layout(), enable);
     this->ui->logTextLineEdit->setEnabled(enable);
     this->m_bandSelectorSliderPopup->setEnabled(enable);
