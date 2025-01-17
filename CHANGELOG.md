@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adds image viewer tab to open recorded .b2nd files and scroll over images.
 - Adds missing camera models to JSON file.
 - Adds documentation for all classes in XiLens.
+- Splitter introduced in Record tab to be able to hide the left panel while recording.
 
 ### Changed
 
