@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
       m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0),
       m_bandSelectorSliderPopup(new QSliderPopup(1, 16, 10, Qt::Orientation::Horizontal)),
       m_rgbNormSliderPopup(new QSliderPopup(1, 30, 5, Qt::Orientation::Horizontal)),
-      m_snapshotPopup(new QLineSpinPopup(this))
+      m_snapshotPopup(new QLineSpinPopup(this)), m_saturationSpinBoxesPopup(new QDoubleSpinBoxesPopup(this))
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 void MainWindow::SetUpConnections()
 {
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QToolButton::clicked, this,
-                                              &MainWindow::HandleSnapshotButtonClicked));
+                                              &MainWindow::HandleSnapshotToolButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QArrowToolButton::ArrowClicked, this,
                                               &MainWindow::HandleSnapshotToolButtonArrowClicked));
     HANDLE_CONNECTION_RESULT(
@@ -116,6 +116,12 @@ void MainWindow::SetUpConnections()
         QObject::connect(m_display, &Displayer::ImageReadyToUpdateRaw, this, &MainWindow::UpdateRawImage));
     HANDLE_CONNECTION_RESULT(QObject::connect(m_display, &Displayer::SaturationPercentageReady, this,
                                               &MainWindow::UpdateSaturationPercentageLCDDisplays));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup, &QDoubleSpinBoxesPopup::minValueChanged, this,
+                                              &MainWindow::HandleSaturationMinValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup, &QDoubleSpinBoxesPopup::maxValueChanged, this,
+                                              &MainWindow::HandleSaturationMaxValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->saturationToolButton, &QArrowToolButton::ArrowClicked, this,
+                                              &MainWindow::HandleSaturationToolButtonArrowClicked));
 }
 
 void MainWindow::HandleConnectionResult(const bool status, const char *file, const int line, const char *func)
@@ -368,7 +374,7 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
     msgBox.exec();
 }
 
-void MainWindow::HandleSnapshotButtonClicked()
+void MainWindow::HandleSnapshotToolButtonClicked()
 {
     if (HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->text()))
     {
@@ -760,6 +766,16 @@ bool MainWindow::GetNormalize() const
 unsigned MainWindow::GetBand() const
 {
     return this->m_bandSelectorSliderPopup->value();
+}
+
+int MainWindow::GetSaturationMinValue() const
+{
+    return this->m_saturationSpinBoxesPopup->minValue();
+}
+
+int MainWindow::GetSaturationMaxValue() const
+{
+    return this->m_saturationSpinBoxesPopup->maxValue();
 }
 
 unsigned MainWindow::GetBGRNorm() const
@@ -1265,6 +1281,24 @@ void MainWindow::HandleReloadCamerasToolButtonClicked()
 
     // restore button style
     ui->reloadCamerasToolButton->setDown(false);
+}
+
+void MainWindow::HandleSaturationToolButtonArrowClicked() const
+{
+    constexpr int popupWidth = 100;
+    constexpr int popupHeight = 50;
+    ShowPopupOnToolButtonInteraction(ui->saturationToolButton, m_saturationSpinBoxesPopup, popupWidth, popupHeight,
+                                     true);
+}
+
+void MainWindow::HandleSaturationMinValueChanged(const int value) const
+{
+    m_display->UpdateLut(value, m_saturationSpinBoxesPopup->maxValue());
+}
+
+void MainWindow::HandleSaturationMaxValueChanged(const int value) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), value);
 }
 
 void MainWindow::UpdateSaturationPercentageLCDDisplays(const double percentageBelowThreshold,

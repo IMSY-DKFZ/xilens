@@ -315,17 +315,18 @@ void WaitMilliseconds(const int milliseconds)
     boost::this_thread::sleep_for(boost::chrono::milliseconds(milliseconds));
 }
 
-cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color)
+cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color, const int minValue,
+                  const int maxValue)
 {
     cv::Mat Lut(1, 256, CV_8UC3);
-    for (uint i = 0; i < 256; ++i)
+    for (int i = 0; i < 256; ++i)
     {
         Lut.at<cv::Vec3b>(0, i) = cv::Vec3b(i, i, i);
-        if (i > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE)
+        if (i > maxValue)
         {
             Lut.at<cv::Vec3b>(0, i) = saturation_color;
         }
-        if (i < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE)
+        if (i < minValue)
         {
             Lut.at<cv::Vec3b>(0, i) = dark_color;
         }

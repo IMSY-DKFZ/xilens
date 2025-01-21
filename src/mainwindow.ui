@@ -661,7 +661,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QToolButton" name="saturationToolButton">
+                   <widget class="QArrowToolButton" name="saturationToolButton">
                     <property name="minimumSize">
                      <size>
                       <width>40</width>

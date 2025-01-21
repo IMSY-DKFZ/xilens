@@ -88,7 +88,9 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, const bool equaliz
 {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
+    std::unique_lock lock(m_LutMutex);
     LUT(mask, m_lut, mask);
+    lock.unlock();
     if (equalize_hist)
     {
         this->m_clahe->apply(raw_image, raw_image);
@@ -262,7 +264,8 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     // Update saturation display and display images through the main thread
     auto bgrQImage = GetQImageFromMatrix(bgrImage, QImage::Format_RGB888);
     auto rawQImage = GetQImageFromMatrix(rawImageToDisplay, QImage::Format_BGR888);
-    auto saturationValues = GetSaturationPercentages(rawImage);
+    auto saturationValues = GetSaturationPercentages(rawImage, m_mainWindow->GetSaturationMinValue(),
+                                                     m_mainWindow->GetSaturationMaxValue());
     emit ImageReadyToUpdateRGB(bgrQImage);
     emit ImageReadyToUpdateRaw(rawQImage);
     emit SaturationPercentageReady(saturationValues.first, saturationValues.second);
@@ -319,13 +322,19 @@ void DisplayerFunctional::SetCameraProperties(const QString cameraModel)
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }
 
+void DisplayerFunctional::UpdateLut(const int minValue, const int maxValue)
+{
+    std::unique_lock lock(m_LutMutex);
+    m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR, minValue, maxValue);
+}
+
 QImage GetQImageFromMatrix(const cv::Mat &image, const QImage::Format format)
 {
     QImage qtImage(image.data, image.cols, image.rows, static_cast<long>(image.step), format);
     return qtImage;
 }
 
-std::pair<double, double> GetSaturationPercentages(const cv::Mat &image)
+std::pair<double, double> GetSaturationPercentages(const cv::Mat &image, const int minValue, const int maxValue)
 {
     if (image.empty() || image.type() != CV_8UC1)
     {
@@ -334,11 +343,11 @@ std::pair<double, double> GetSaturationPercentages(const cv::Mat &image)
                                     cv::typeToString(image.type()));
     }
 
-    const int aboveThresholdCount = countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    const int aboveThresholdCount = countNonZero(image > maxValue);
     const auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
     double percentageAboveThreshold = static_cast<double>(aboveThresholdCount) / totalPixels * 100.0;
 
-    const int belowThresholdCount = countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    const int belowThresholdCount = countNonZero(image < minValue);
     double percentageBelowThreshold = static_cast<double>(belowThresholdCount) / totalPixels * 100.0;
     return std::make_pair(percentageBelowThreshold, percentageAboveThreshold);
 }

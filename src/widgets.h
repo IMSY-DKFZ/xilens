@@ -30,14 +30,14 @@ class QSliderLabeled : public QSlider
 {
   public:
     /**
-     * Constructor of the labeled QSlider.
+     * @brief Constructor of the labeled QSlider.
      *
      * @param parent parent class.
      */
     explicit QSliderLabeled(QWidget *parent = nullptr);
 
     /**
-     * Sets the margin of the groove of the slider.
+     * @brief Sets the margin of the groove of the slider.
      *
      * @param value
      */
@@ -47,7 +47,7 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Sets Maximum number of labels to display in the slider.
+     * @brief Sets Maximum number of labels to display in the slider.
      *
      * @param value maximum number of labels.
      */
@@ -57,14 +57,14 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Applies a custom style sheet that defines the width and height of the slider based on the orientation
+     * @brief Applies a custom style sheet that defines the width and height of the slider based on the orientation
      * of the slider.
      */
     void ApplyStyleSheet();
 
     /**
-     * Sets the maximum spread of the slider. This will represent the maximum height when slider is horizontal and
-     * the maximum width when it is vertical.
+     * @brief Sets the maximum spread of the slider. This will represent the maximum height when slider is horizontal
+     * and the maximum width when it is vertical.
      *
      * @param value the slider spread.
      */
@@ -102,16 +102,16 @@ class QSliderLabeled : public QSlider
 
   protected:
     /**
-     * paint event used to draw the labels on the slider. This overrides the paint event, but it calls the original
-     * method before drawing the text.
+     * @brief paint event used to draw the labels on the slider. This overrides the paint event, but it calls the
+     * original method before drawing the text.
      *
      * @param event paint event parameters.
      */
     void paintEvent(QPaintEvent *event) override;
 
     /**
-     * show event that overwrites the original QSlider show event to apply a custom style sheet before  showing the
-     * slider.
+     * @brief show event that overwrites the original QSlider show event to apply a custom style sheet before  showing
+     * the slider.
      *
      * @param event show event parameters.
      */
@@ -142,7 +142,8 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Triggered when the mouse is moved over the labeled QSlider.
+     * @brief Triggered when the mouse is moved over the labeled QSlider.
+     *
      * It shows a tooltip with the corresponding value of the slider at the current mouse position using
      * the `QToolTip` class. It then calls the `mouseMoveEvent()` method of the parent class to handle any other events.
      *
@@ -165,24 +166,25 @@ class QSliderLabeled : public QSlider
     int m_labelInterval;
 
     /**
-     * Maximum number of labels to display.
+     * @brief Maximum number of labels to display.
      */
     int m_maxNumberOfLabels = 8;
 
     /**
-     * Size of the slider in pixels. Represents the maximum height when slider is horizontal and the maximum width when
-     * it is vertical.
+     * @brief Size of the slider in pixels. Represents the maximum height when slider is horizontal and the maximum
+     * width when it is vertical.
      */
     int m_sliderSpread = 48;
 
   private:
     /**
-     * The color of the pen to use when drawing the text.
+     * @brief The color of the pen to use when drawing the text.
      */
     QColor m_penColor;
 
     /**
-     * Updates the painter's pen color based on the enabled state of the QSliderLabeled widget.
+     * @brief Updates the painter's pen color based on the enabled state of the QSliderLabeled widget.
+     *
      * The pen color is set to a specific color if the widget is enabled, and to a different color if it is disabled.
      */
     void UpdatePainterPen();
@@ -389,20 +391,131 @@ class QLineSpinPopup : public QWidget
     }
 
     /**
-     * Line edit for entering user specified text.
+     * @brief Line edit for entering user specified text.
      */
     QLineEdit *m_lineEdit;
 
     /**
-     * Spin box for setting user-defined integer values.
+     * @brief Spin box for setting user-defined integer values.
      */
     QSpinBox *m_spinBox;
 
   private:
     /**
-     * Layout for arranging the widgets.
+     * @brief Layout for arranging the widgets.
      */
     QVBoxLayout *m_layout;
+
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
+};
+
+/**
+ * @brief Custom widget providing a pop-up interface for managing two spin box elements.
+ *
+ * This widget allows the creation of a pop-up window containing multiple spin box widgets.
+ * It is designed for use cases where multiple integer input fields need to be displayed and adjusted.
+ */
+class QDoubleSpinBoxesPopup : public QWidget
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Custom popup widget containing two spin box widgets.
+     *
+     * It is particularly useful for scenarios where a grouped input of integer values is required, enabling
+     * users to input several related integer values within a single popup.
+     * The layout and number of spin boxes can be customized.
+     */
+    explicit QDoubleSpinBoxesPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Retrieves the minimum value set in the first spin box widget.
+     *
+     * @return The integer value currently set as the minimum in the first spin box.
+     */
+    int minValue() const
+    {
+        return m_spinBox1->value();
+    }
+
+    /**
+     * @brief Retrieves the maximum value set in the second spin box widget.
+     *
+     * @return The integer value currently set as the maximum in the second spin box.
+     */
+    int maxValue() const
+    {
+        return m_spinBox2->value();
+    }
+
+    /**
+     * @brief Sets the minimum value for the first spin box widget.
+     *
+     * @param value The integer value to be set as the minimum in the first spin box.
+     */
+    void setMinValue(const int value) const
+    {
+        m_spinBox1->setValue(value);
+    }
+
+    /**
+     * @brief Sets the maximum value for the second spin box widget.
+     *
+     * @param value The integer value to be set as the maximum in the second spin box.
+     */
+    void setMaxValue(const int value) const
+    {
+        m_spinBox2->setValue(value);
+    }
+
+    /**
+     * @brief Pointer to the first spin box widget for setting and retrieving minimum integer values.
+     */
+    QSpinBox *m_spinBox1;
+
+    /**
+     * @brief Pointer to the second spin box widget for setting and retrieving maximum integer values.
+     */
+    QSpinBox *m_spinBox2;
+
+  signals:
+    /**
+     * @brief Signal emitted when the minimum value in the first spin box widget is changed.
+     *
+     * @param value The new minimum value set in the spin box.
+     */
+    void minValueChanged(int value);
+
+    /**
+     * @brief Signal emitted when the maximum value of the second spin box widget is changes.
+     *
+     * @param value The new maximum value of the slider after the change.
+     */
+    void maxValueChanged(int value);
+
+  private:
+    /**
+     * @brief Layout for arranging the widgets.
+     */
+    QHBoxLayout *m_layout;
 
     /**
      * @brief Layout used for the background frame where all components are placed.

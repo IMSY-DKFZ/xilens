@@ -176,6 +176,35 @@ QLineSpinPopup::QLineSpinPopup(QWidget *parent)
     m_layout->addWidget(m_frame);
 }
 
+QDoubleSpinBoxesPopup::QDoubleSpinBoxesPopup(QWidget *parent)
+    : QWidget(nullptr), m_spinBox1(new QSpinBox(this)), m_spinBox2(new QSpinBox(this)), m_layout(new QHBoxLayout(this)),
+      m_frame(new QFrame(this))
+{
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("QLineSpinPopupWindow");
+
+    m_spinBox1->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox2->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox1->setValue(UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    m_spinBox2->setValue(OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    m_spinBox1->setToolTip("Minimum value");
+    m_spinBox2->setToolTip("Maximum value");
+    m_spinBox1->setMinimumWidth(90);
+    m_spinBox2->setMinimumWidth(90);
+
+    m_backgroundFrameLayout = new QHBoxLayout(m_frame);
+    StyleQFrameInPopupWindow(m_frame, m_backgroundFrameLayout, m_windowBorderRadius, m_contentMargin);
+    m_backgroundFrameLayout->addWidget(m_spinBox1);
+    m_backgroundFrameLayout->addWidget(m_spinBox2);
+    m_backgroundFrameLayout->setSpacing(10);
+
+    m_layout->addWidget(m_frame);
+
+    connect(m_spinBox1, &QSpinBox::valueChanged, this, &QDoubleSpinBoxesPopup::minValueChanged);
+    connect(m_spinBox2, &QSpinBox::valueChanged, this, &QDoubleSpinBoxesPopup::maxValueChanged);
+}
+
 QArrowToolButton::QArrowToolButton(QWidget *parent) : QToolButton(parent)
 {
 }

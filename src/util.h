@@ -16,8 +16,9 @@
 #include <string>
 
 /**
- * Handles the result from the XiAPI, shows an error message and throws a
+ * @brief Handles the result from the XiAPI, shows an error message and throws a
  * runtime error if not XI_OK
+ *
  * @throw runtime
  */
 #define HandleResult(res, place)                                                                                       \
@@ -29,7 +30,8 @@
     }
 
 /**
- * Handles the result after BLOSC2 operations when return code is != 0
+ * @brief Handles the result after BLOSC2 operations when return code is != 0
+ *
  * @throws runtime
  */
 #define HandleBLOSCResult(res, place)                                                                                  \
@@ -50,48 +52,49 @@ class FileImage
 {
   public:
     /**
-     * exposure time in microseconds
+     * @brief exposure time in microseconds.
      */
     std::vector<int> m_exposureMetadata;
 
     /**
-     * number of frame acquired by the camera
+     * @brief number of frame acquired by the camera.
      */
     std::vector<int> m_acqNframeMetadata;
 
     /**
-     * string determining the type of filter array of an RGB camera
+     * @brief string determining the type of filter array of an RGB camera.
      */
     std::vector<std::string> m_colorFilterArray;
 
     /**
-     * string determining the time stamp when images where acquired
+     * @brief string determining the time stamp when images where acquired.
      */
     std::vector<std::string> m_timeStamp;
 
     /**
-     * additional metadata to append to the NDArrays. Each vector will be appended to the vl metadata of the array
-     * using the key of the map as identifier.
+     * @brief additional metadata to append to the NDArrays. Each vector will be appended to the vl metadata of the
+     * array using the key of the map as identifier.
      */
     QMap<QString, std::vector<float>> m_additionalMetadata;
 
     /**
-     * path to file location
+     * @brief path to file location.
      */
     char *m_filePath;
 
     /**
-     * Storage context
+     * @brief Storage context.
      */
     b2nd_context_t *m_ctx;
 
     /**
-     * Array storage created temporarily for BLOSC
+     * @brief Array storage created temporarily for BLOSC.
      */
     b2nd_array_t *m_src; // New member to store array
 
     /**
-     * Opens a file and throws runtime error when opening fails
+     * @brief Opens a file and throws runtime error when opening fails.
+     *
      * @param filePath path to file to open
      * @param imageHeight height of image to store in file
      * @param imageWidth width of image to store in file
@@ -100,26 +103,26 @@ class FileImage
     FileImage(const char *filePath, unsigned int imageHeight, unsigned int imageWidth);
 
     /**
-     * Frees blosc2 context and releases the resources associated with the file.
+     * @brief Frees blosc2 context and releases the resources associated with the file.
      */
     ~FileImage();
 
     /**
-     * Writes the content of an image into a file in UINT16 format
+     * @brief Writes the content of an image into a file in UINT16 format.
+     *
      * @param image Ximea image where data is stored
      * @param additionalMetadata Additional metadata to be stored in the array
      */
     void WriteImageData(XI_IMG image, QMap<QString, float> additionalMetadata);
 
     /**
-     * Appends metadata to BLOSC ND array. This method should be called before
+     *@brief Appends metadata to BLOSC ND array. This method should be called before
      * closing the file.
-     *
      */
     void AppendMetadata();
 
     /**
-     * Checks for each expected metadata key, that the length matches the number of images
+     * @brief Checks for each expected metadata key, that the length matches the number of images
      * in the file. Returns false if metadata has inconsistent shape or if it does not exist for any key.
      *
      * @param src BLOSC ND-Array to check.
@@ -130,7 +133,7 @@ class FileImage
 };
 
 /**
- * Appends variable length metadata to a BLOSC n-dimensional array
+ * @brief Appends variable length metadata to a BLOSC n-dimensional array
  *
  * @param src BLOSC n-dimensional array where the metadata will be added
  * @param key string to be used as a key for naming the medata data variable
@@ -139,7 +142,7 @@ class FileImage
 void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer &newData);
 
 /**
- * Unpacks the metadata in array and computes the number of elements corresponding to the specified key.
+ * @brief Unpacks the metadata in array and computes the number of elements corresponding to the specified key.
  *
  * @param src BLOSC ND-Array from which the metadata should be analyzed.
  * @param key Identifier of the metadata layer from which the number of elements is desired.
@@ -148,7 +151,7 @@ void AppendBLOSCVLMetadata(b2nd_array_t *src, const char *key, msgpack::sbuffer 
 int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key);
 
 /**
- * Packs and appends the metadata associated with a BLOSC NDarray
+ * @brief Packs and appends the metadata associated with a BLOSC NDarray
  *
  * @tparam T data type of the metadata
  * @param src pointer to BLOSC array where the metadata will be appended
@@ -158,7 +161,7 @@ int GetBLOSCVLMetadataLength(const b2nd_array_t *src, const char *key);
 template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *key, const std::vector<T> &metadata);
 
 /**
- * Converts the XIMEA color filter array identifier to a string representation
+ * @brief Converts the XIMEA color filter array identifier to a string representation
  *
  * @param colorFilterArray XIMEA color filter array representation
  * @return string representing the color filter array
@@ -166,19 +169,22 @@ template <typename T> void PackAndAppendMetadata(b2nd_array_t *src, const char *
 std::string ColorFilterToString(XI_COLOR_FILTER_ARRAY colorFilterArray);
 
 /**
- * waits a certain amount of milliseconds on a boost thread
+ * @brief waits a certain amount of milliseconds on a boost thread.
  * @param milliseconds amount of time to WaitMilliseconds
  */
 void WaitMilliseconds(int milliseconds);
 
 /**
- * Created a look up table (LUT) that can be used to define the colors of pixels
+ * @brief Created a look up table (LUT) that can be used to define the colors of pixels
  * in an image that are over-saturated or under-exposed.
+ *
  * @param saturation_color color of pixels that are over-saturated
  * @param dark_color color of pixels that are under-exposed
- * @return matrix with LUT
+ * @param minValue saturation minimum value.
+ * @param maxValue saturation maximum value.
+ * @return matrix with LUT.
  */
-cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color);
+cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color, int minValue, int maxValue);
 
 /**
  * @brief Structure used to store command line arguments parsed by the user.
@@ -200,16 +206,14 @@ struct CommandLineArguments
 void XIIMGtoMat(const XI_IMG &xi_img, cv::Mat &mat_img);
 
 /**
- * Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`
- *
- * @return
+ * @brief Generates a timestamp with the format `yyyyMMdd_hh-mm-ss-zzz`.
  */
 QString GetTimeStamp();
 
 /**
- * Contains the CLI arguments that can be parsed through the terminal by the user. This is initialized at start of
- * the program, before the `Qt` application is initialized.
+ * @brief Contains the CLI arguments that can be parsed through the terminal by the user. This is initialized at start
+ * of the program, before the `Qt` application is initialized.
  */
-extern struct CommandLineArguments g_commandLineArguments;
+extern CommandLineArguments g_commandLineArguments;
 
 #endif // UTIL_H

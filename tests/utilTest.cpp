@@ -23,7 +23,8 @@ TEST(CreateLutTest, VerifyLutColorValues)
     cv::Vec3b test_saturation_color(255, 255, 255);
     cv::Vec3b test_dark_color(0, 0, 0);
 
-    cv::Mat result_lut = CreateLut(test_saturation_color, test_dark_color);
+    cv::Mat result_lut = CreateLut(test_saturation_color, test_dark_color, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE,
+                                   OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
 
     ASSERT_EQ(result_lut.cols, 256);
     ASSERT_EQ(result_lut.type(), CV_8UC3);

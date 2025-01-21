@@ -8,6 +8,7 @@
 #include <QApplication>
 
 #include "mocks.h"
+#include "src/constants.h"
 #include "src/displayFunctional.h"
 
 /**
@@ -34,7 +35,8 @@ TEST(DisplayerFunctional, DisplayImage)
 TEST(GetSaturationPercentagesTest, ValidInput)
 {
     cv::Mat image = (cv::Mat_<uchar>(2, 5) << 5, 5, 5, 5, 5, 250, 250, 250, 250, 250);
-    auto [belowThreshold, aboveThreshold] = GetSaturationPercentages(image);
+    auto [belowThreshold, aboveThreshold] =
+        GetSaturationPercentages(image, OVEREXPOSURE_PIXEL_BOUNDARY_VALUE, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
     EXPECT_NEAR(belowThreshold, 50.0, 0.01);
     EXPECT_NEAR(aboveThreshold, 50.0, 0.01);
 }
@@ -42,12 +44,22 @@ TEST(GetSaturationPercentagesTest, ValidInput)
 TEST(GetSaturationPercentagesTest, EmptyMatrix)
 {
     cv::Mat image;
-    EXPECT_THROW({ auto result = GetSaturationPercentages(image); }, std::invalid_argument);
+    EXPECT_THROW(
+        {
+            auto result =
+                GetSaturationPercentages(image, OVEREXPOSURE_PIXEL_BOUNDARY_VALUE, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+        },
+        std::invalid_argument);
 }
 
 TEST(GetSaturationPercentagesTest, IncorrectMatrixType)
 {
     cv::Mat image = cv::Mat::zeros(3, 3, CV_32F);
 
-    EXPECT_THROW({ auto result = GetSaturationPercentages(image); }, std::invalid_argument);
+    EXPECT_THROW(
+        {
+            auto result =
+                GetSaturationPercentages(image, OVEREXPOSURE_PIXEL_BOUNDARY_VALUE, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+        },
+        std::invalid_argument);
 }
