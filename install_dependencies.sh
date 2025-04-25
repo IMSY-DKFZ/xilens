@@ -13,7 +13,7 @@ fi
 xargs -a "$DEPENDENCIES_FILE" apt install --no-install-recommends -y
 
 # install XiAPI
-wget --progress=bar:force:noscroll https://www.ximea.com/downloads/recent/XIMEA_Linux_SP.tgz
+wget --progress=bar:force:noscroll https://www.ximea.com/getattachment/281fd5c5-3335-4279-a494-f49c004f00c6/XIMEA_Linux_SP.tgz
 tar xzf XIMEA_Linux_SP.tgz
 cd package || exit
 sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
