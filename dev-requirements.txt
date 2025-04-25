@@ -5,4 +5,3 @@ libgtest-dev
 gcovr
 libopencv-dev
 libboost-all-dev
-libtiff5
