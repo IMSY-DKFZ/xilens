@@ -6,3 +6,4 @@ libopencv-core-dev
 libopencv-imgproc-dev
 libboost-dev
 libboost-log-dev
+libtiff5
