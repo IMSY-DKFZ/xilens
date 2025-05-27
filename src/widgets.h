@@ -539,6 +539,142 @@ class QDoubleSpinBoxesPopup : public QWidget
 };
 
 /**
+ * @brief Popup widget that provides spin boxes for adjusting RGB channel values.
+ *
+ * This class represents a popup widget containing three separate spin boxes, each corresponding to one
+ * of the RGB (Red, Green, Blue) color channels. It allows fine-grained control over the adjustment of
+ * individual channel number.
+ *
+ * The spin boxes can be used to independently select which channel of a spectral image should be used to construct
+ * an RGB image.
+ */
+class QRgbChannelSpinBoxesPopup : public QWidget
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Popup widget for managing RGB channel values using spin boxes.
+     *
+     * @param parent The parent widget for this popup widget. Defaults to `nullptr`.
+     */
+    explicit QRgbChannelSpinBoxesPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Updates the RGB values of the spin boxes and emits a value change signal.
+     *
+     * This function updates the values of the internal spin boxes representing
+     * the red, green, and blue channels. It also emits a signal with the updated
+     * RGB values as a vector, notifying other connected components of the change.
+     *
+     * @param red The new value for the red channel.
+     * @param green The new value for the green channel.
+     * @param blue The new value for the blue channel.
+     */
+    void UpdateRgb(int red, int green, int blue) const;
+
+    /**
+     * @brief Retrieves the current RGB values from the spin boxes.
+     *
+     * This method returns the current values of the red, green, and blue channels
+     * as integers stored in a vector. These values represent the state of the
+     * RGB spin boxes in the popup widget.
+     *
+     * @return A vector of integers containing the RGB values in the order: red, green, blue.
+     */
+    std::vector<int> getRgb() const;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox1;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox2;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox3;
+
+  signals:
+    /**
+     * @brief Signal emitted when the RGB values change.
+     *
+     * This signal is emitted whenever the values of the RGB spin boxes are updated
+     * either through user input or programmatically. The updated RGB values are
+     * passed as a vector of integers in the order: red, green, blue.
+     *
+     * @param rgb A vector containing the updated RGB values in the order: red, green, blue.
+     */
+    void ValueChanged(std::vector<int> rgb) const;
+
+  private slots:
+    /**
+     * @brief Handles the red channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void RedValueChanged(int value) const;
+
+    /**
+     * @brief Handles the green channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void GreenValueChanged(int value) const;
+
+    /**
+     * @brief Handles the blue channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void BlueValueChanged(int value) const;
+
+  private:
+    /**
+     * @brief Layout for arranging the widgets.
+     */
+    QHBoxLayout *m_layout;
+
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
+};
+
+/**
  * @brief A custom tool button with an arrow indicator in the bottom right corner.
  *
  * A specialized tool button designed for use in interfaces where an arrow

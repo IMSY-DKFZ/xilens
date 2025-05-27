@@ -492,9 +492,18 @@ class MainWindow : public QMainWindow
      */
     void HandleSaturationMaxValueChanged(int value) const;
 
+    /**
+     * @brief Handles the event when the arrow button of the RGB Channel Tool Button is clicked.
+     *
+     * This method manages the display of a popup menu or container in response to an interaction
+     * with the RGB Channel Tool Button. It ensures proper positioning and dimensions of the popup
+     * and aligns it with the related UI element for seamless user interaction.
+     */
+    void HandleRgbChannelToolButtonClicked() const;
+
   private:
     /**
-     * @brief Setups all UI Qt connections to handle all user interactions with the UI.
+     * @brief Sets up all UI Qt connections to handle all user interactions with the UI.
      */
     void SetUpConnections();
 
@@ -799,6 +808,22 @@ class MainWindow : public QMainWindow
                                                  bool centerAlign);
 
     /**
+     * @brief Adjusts UI components and settings based on the specific camera type and model.
+     *
+     * This method is responsible for enabling or disabling spectral-specific UI components depending on
+     * whether the provided camera type supports spectral imaging.
+     *
+     * If the camera model is invalid or not found in the mapping system, the function logs an error and
+     * throws a runtime exception.
+     *
+     * @param cameraType A string representing the type of the camera (e.g., spectral or other types).
+     * @param cameraModel A string representing the specific model of the camera to be handled.
+     *
+     * @throws std::runtime_error If the camera model is not found in the camera mapping system.
+     */
+    void HandleCameraSpecificUiComponents(const QString &cameraType, const QString &cameraModel) const;
+
+    /**
      * @brief The file name where videos are to be stored.
      */
     QString m_fileName;
@@ -1049,6 +1074,12 @@ class MainWindow : public QMainWindow
      * @brief Popup widget containing two spin boxes to adjust saturation values.
      */
     QDoubleSpinBoxesPopup *m_saturationSpinBoxesPopup;
+
+    /**
+     * @brief Popup widget containing spinners that control the channels used to reconstruct an RGB image for a
+     * spectral camera.
+     */
+    QRgbChannelSpinBoxesPopup *m_rgbChannelSpinBoxesPopup;
 };
 
 #endif // MAINWINDOW_H

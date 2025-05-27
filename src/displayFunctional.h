@@ -80,6 +80,18 @@ class DisplayerFunctional : public Displayer
     void UpdateLut(int minValue, int maxValue) override;
 
     /**
+     * @brief Updates the BGR channel values for the displayer.
+     *
+     * This method is used to set the values of the Blue, Green, and Red channels
+     * for processing or rendering purposes. The values provided in the input
+     * parameter define the specific intensities or configurations for each channel.
+     *
+     * @param bgrChannels A vector containing the values for the Blue, Green, and
+     * Red channels, typically in the order [Blue, Green, Red].
+     */
+    void UpdateBGRChannels(const std::vector<int> &bgrChannels) override;
+
+    /**
      * @brief Type of camera being used: spectral, gray, etc.
      */
     QString m_cameraType = CAMERA_TYPE_SPECTRAL;
@@ -164,6 +176,14 @@ class DisplayerFunctional : public Displayer
      * @brief Class to do histogram normalization with CLAHE.
      */
     cv::Ptr<cv::CLAHE> m_clahe = cv::createCLAHE();
+
+    /**
+     * @brief Stores the indices of the BGR color channels.
+     *
+     * This vector is used to define the mapping or order of the BGR channels
+     * for processing, ensuring consistency in color-related operations.
+     */
+    std::vector<int> m_bgrChannels;
 
     /**
      * @brief Processes a XIMEA image to display a Raw and RGB representation of the image in the main UI.

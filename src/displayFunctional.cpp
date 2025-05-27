@@ -273,19 +273,13 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) const
 {
-    if (!getCameraMapper().contains(m_cameraModel))
-    {
-        LOG_XILENS(error) << "Could not find camera model in Mapper: " << m_cameraModel.toStdString();
-        throw std::runtime_error("Could not find camera in Mapper");
-    }
-    auto bgrChannels = getCameraMapper().value(m_cameraModel).bgrChannels;
-    if (bgrChannels.empty())
+    if (m_bgrChannels.empty())
     {
         LOG_XILENS(error) << "Empty BGR channel indices";
         throw std::runtime_error("Empty RGB channel indices");
     }
     std::vector<cv::Mat> channels;
-    for (const int i : bgrChannels)
+    for (const int i : m_bgrChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
@@ -326,6 +320,11 @@ void DisplayerFunctional::UpdateLut(const int minValue, const int maxValue)
 {
     std::unique_lock lock(m_LutMutex);
     m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR, minValue, maxValue);
+}
+
+void DisplayerFunctional::UpdateBGRChannels(const std::vector<int> &bgrChannels)
+{
+    m_bgrChannels = bgrChannels;
 }
 
 QImage GetQImageFromMatrix(const cv::Mat &image, const QImage::Format format)

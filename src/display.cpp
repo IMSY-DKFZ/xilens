@@ -20,3 +20,7 @@ void Displayer::StartDisplayer()
 void Displayer::UpdateLut(int minValue, int maxValue)
 {
 }
+
+void Displayer::UpdateBGRChannels(const std::vector<int> &bgrChannels)
+{
+}

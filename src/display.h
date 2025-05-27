@@ -64,6 +64,18 @@ class Displayer : public QObject
      */
     virtual void UpdateLut(int minValue, int maxValue);
 
+    /**
+     * @brief Updates the BGR channel values for the displayer.
+     *
+     * This method is used to set the values of the Blue, Green, and Red channels
+     * for processing or rendering purposes. The values provided in the input
+     * parameter define the specific intensities or configurations for each channel.
+     *
+     * @param bgrChannels A vector containing the values for the Blue, Green, and
+     * Red channels, typically in the order [Blue, Green, Red].
+     */
+    virtual void UpdateBGRChannels(const std::vector<int> &bgrChannels);
+
   signals:
     /**
      * @brief Qt signal emitted when an RGB image is ready to be displayed in the UI.
