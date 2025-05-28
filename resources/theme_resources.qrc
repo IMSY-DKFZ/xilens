@@ -35,6 +35,7 @@
     <file>theme/disabled/record_dark.svg</file>
     <file>theme/disabled/record_stop.svg</file>
     <file>theme/disabled/record_white.svg</file>
+    <file>theme/disabled/rgb_channel.svg</file>
     <file>theme/disabled/rgb_norm.svg</file>
     <file>theme/disabled/rightarrow.svg</file>
     <file>theme/disabled/rightarrow2.svg</file>
@@ -83,6 +84,7 @@
     <file>theme/primary/record_dark.svg</file>
     <file>theme/primary/record_stop.svg</file>
     <file>theme/primary/record_white.svg</file>
+    <file>theme/primary/rgb_channel.svg</file>
     <file>theme/primary/rgb_norm.svg</file>
     <file>theme/primary/rightarrow.svg</file>
     <file>theme/primary/rightarrow2.svg</file>
@@ -131,6 +133,7 @@
     <file>theme/active/record_dark.svg</file>
     <file>theme/active/record_stop.svg</file>
     <file>theme/active/record_white.svg</file>
+    <file>theme/active/rgb_channel.svg</file>
     <file>theme/active/rgb_norm.svg</file>
     <file>theme/active/rightarrow.svg</file>
     <file>theme/active/rightarrow2.svg</file>

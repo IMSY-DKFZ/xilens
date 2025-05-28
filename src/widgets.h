@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QEvent>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QToolButton>
@@ -30,14 +31,14 @@ class QSliderLabeled : public QSlider
 {
   public:
     /**
-     * Constructor of the labeled QSlider.
+     * @brief Constructor of the labeled QSlider.
      *
      * @param parent parent class.
      */
     explicit QSliderLabeled(QWidget *parent = nullptr);
 
     /**
-     * Sets the margin of the groove of the slider.
+     * @brief Sets the margin of the groove of the slider.
      *
      * @param value
      */
@@ -47,7 +48,7 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Sets Maximum number of labels to display in the slider.
+     * @brief Sets Maximum number of labels to display in the slider.
      *
      * @param value maximum number of labels.
      */
@@ -57,14 +58,14 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Applies a custom style sheet that defines the width and height of the slider based on the orientation
+     * @brief Applies a custom style sheet that defines the width and height of the slider based on the orientation
      * of the slider.
      */
     void ApplyStyleSheet();
 
     /**
-     * Sets the maximum spread of the slider. This will represent the maximum height when slider is horizontal and
-     * the maximum width when it is vertical.
+     * @brief Sets the maximum spread of the slider. This will represent the maximum height when slider is horizontal
+     * and the maximum width when it is vertical.
      *
      * @param value the slider spread.
      */
@@ -102,16 +103,16 @@ class QSliderLabeled : public QSlider
 
   protected:
     /**
-     * paint event used to draw the labels on the slider. This overrides the paint event, but it calls the original
-     * method before drawing the text.
+     * @brief paint event used to draw the labels on the slider. This overrides the paint event, but it calls the
+     * original method before drawing the text.
      *
      * @param event paint event parameters.
      */
     void paintEvent(QPaintEvent *event) override;
 
     /**
-     * show event that overwrites the original QSlider show event to apply a custom style sheet before  showing the
-     * slider.
+     * @brief show event that overwrites the original QSlider show event to apply a custom style sheet before  showing
+     * the slider.
      *
      * @param event show event parameters.
      */
@@ -142,7 +143,8 @@ class QSliderLabeled : public QSlider
     }
 
     /**
-     * Triggered when the mouse is moved over the labeled QSlider.
+     * @brief Triggered when the mouse is moved over the labeled QSlider.
+     *
      * It shows a tooltip with the corresponding value of the slider at the current mouse position using
      * the `QToolTip` class. It then calls the `mouseMoveEvent()` method of the parent class to handle any other events.
      *
@@ -165,24 +167,25 @@ class QSliderLabeled : public QSlider
     int m_labelInterval;
 
     /**
-     * Maximum number of labels to display.
+     * @brief Maximum number of labels to display.
      */
     int m_maxNumberOfLabels = 8;
 
     /**
-     * Size of the slider in pixels. Represents the maximum height when slider is horizontal and the maximum width when
-     * it is vertical.
+     * @brief Size of the slider in pixels. Represents the maximum height when slider is horizontal and the maximum
+     * width when it is vertical.
      */
     int m_sliderSpread = 48;
 
   private:
     /**
-     * The color of the pen to use when drawing the text.
+     * @brief The color of the pen to use when drawing the text.
      */
     QColor m_penColor;
 
     /**
-     * Updates the painter's pen color based on the enabled state of the QSliderLabeled widget.
+     * @brief Updates the painter's pen color based on the enabled state of the QSliderLabeled widget.
+     *
      * The pen color is set to a specific color if the widget is enabled, and to a different color if it is disabled.
      */
     void UpdatePainterPen();
@@ -389,20 +392,395 @@ class QLineSpinPopup : public QWidget
     }
 
     /**
-     * Line edit for entering user specified text.
+     * @brief Line edit for entering user specified text.
      */
     QLineEdit *m_lineEdit;
 
     /**
-     * Spin box for setting user-defined integer values.
+     * @brief Spin box for setting user-defined integer values.
      */
     QSpinBox *m_spinBox;
 
   private:
     /**
-     * Layout for arranging the widgets.
+     * @brief Layout for arranging the widgets.
      */
     QVBoxLayout *m_layout;
+
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
+};
+
+/**
+ * @brief Custom widget providing a pop-up interface for managing two spin box elements.
+ *
+ * This widget allows the creation of a pop-up window containing multiple spin box widgets.
+ * It is designed for use cases where multiple integer input fields need to be displayed and adjusted.
+ */
+class QDoubleSpinBoxesPopup : public QWidget
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Custom popup widget containing two spin box widgets.
+     *
+     * It is particularly useful for scenarios where a grouped input of integer values is required, enabling
+     * users to input several related integer values within a single popup.
+     * The layout and number of spin boxes can be customized.
+     */
+    explicit QDoubleSpinBoxesPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Retrieves the minimum value set in the first spin box widget.
+     *
+     * @return The integer value currently set as the minimum in the first spin box.
+     */
+    int minValue() const
+    {
+        return m_spinBox1->value();
+    }
+
+    /**
+     * @brief Retrieves the maximum value set in the second spin box widget.
+     *
+     * @return The integer value currently set as the maximum in the second spin box.
+     */
+    int maxValue() const
+    {
+        return m_spinBox2->value();
+    }
+
+    /**
+     * @brief Sets the minimum value for the first spin box widget.
+     *
+     * @param value The integer value to be set as the minimum in the first spin box.
+     */
+    void setMinValue(const int value) const
+    {
+        m_spinBox1->setValue(value);
+    }
+
+    /**
+     * @brief Sets the maximum value for the second spin box widget.
+     *
+     * @param value The integer value to be set as the maximum in the second spin box.
+     */
+    void setMaxValue(const int value) const
+    {
+        m_spinBox2->setValue(value);
+    }
+
+    /**
+     * @brief Pointer to the first spin box widget for setting and retrieving minimum integer values.
+     */
+    QSpinBox *m_spinBox1;
+
+    /**
+     * @brief Pointer to the second spin box widget for setting and retrieving maximum integer values.
+     */
+    QSpinBox *m_spinBox2;
+
+  signals:
+    /**
+     * @brief Signal emitted when the minimum value in the first spin box widget is changed.
+     *
+     * @param value The new minimum value set in the spin box.
+     */
+    void minValueChanged(int value);
+
+    /**
+     * @brief Signal emitted when the maximum value of the second spin box widget is changes.
+     *
+     * @param value The new maximum value of the slider after the change.
+     */
+    void maxValueChanged(int value);
+
+  private:
+    /**
+     * @brief Layout for arranging the widgets.
+     */
+    QHBoxLayout *m_layout;
+
+    /**
+     * @brief Frame where all UI components will be placed.
+     */
+    QFrame *m_frame;
+
+    /**
+     * @brief Content margin used for spacing UI components inside a frame.
+     */
+    static constexpr int m_contentMargin = 10;
+
+    /**
+     * @brief Default border radius value for the popup window frame styling.
+     */
+    static constexpr int m_windowBorderRadius = 5;
+
+  protected:
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+};
+
+/**
+ * @brief Custom widget combining QDoubleSpinBox and color picker popup buttons.
+ *
+ * A specialized widget that incorporates both a QDoubleSpinBox for numerical input and a color picker popup
+ * for selecting colors. This widget is designed for scenarios where both numerical values and corresponding
+ * color selections are required within the same interface.
+ */
+class QDoubleSpinBoxesWithColorPickersPopup : public QDoubleSpinBoxesPopup
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Popup widget that combines double spin boxes with color pickers.
+     *
+     * This widget extends the functionality of QDoubleSpinBoxesPopup by adding two color picker buttons to the layout.
+     * The color buttons allow users to select colors associated with the spin boxes. The buttons are styled and
+     * arranged alongside the spin boxes, providing an integrated user interface for numerical and color input.
+     *
+     * @param parent The parent widget for this popup. If no parent is provided, the popup will not belong to any other
+     * widget.
+     */
+    explicit QDoubleSpinBoxesWithColorPickersPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Retrieves the color associated with the left color picker.
+     *
+     * @return The current QColor value associated with the left color picker.
+     */
+    QColor getLeftColor() const;
+
+    /**
+     * @brief Retrieves the color associated with the right color picker.
+     *
+     * @return The current QColor value associated with the right color picker.
+     */
+    QColor getRightColor() const;
+
+    /**
+     * @brief Sets the color associated with the left color picker.
+     *
+     * @param color The new QColor to be set for the left color picker.
+     */
+    void setLeftColor(const QColor &color);
+
+    /**
+     * @brief Sets the color associated with the right color picker.
+     *
+     * @param color The new QColor to be set for the right color picker.
+     */
+    void setRightColor(const QColor &color);
+
+  signals:
+    /**
+     * @brief Signal emitted when the left color is changed.
+     *
+     * @param color The new QColor value for the left color picker.
+     */
+    void leftColorChanged(const QColor &color);
+
+    /**
+     * @brief Signal emitted when the right color is changed.
+     *
+     * @param color The new QColor value for the right color picker.
+     */
+    void rightColorChanged(const QColor &color);
+
+  private slots:
+    /**
+     * @brief Handles the left color button click event and opens a color selection dialog.
+     *
+     * This method is invoked when the left color button is clicked by the user. It opens
+     * a QColorDialog to allow the user to select a color. If the user selects a valid color
+     * and confirms their choice, the selected color is applied to the left color picker.
+     * Otherwise, no changes are made to the left color.
+     */
+    void onLeftColorButtonClicked();
+
+    /**
+     * @brief Slot invoked when the right color picker button is clicked.
+     *
+     * This method is invoked when the right color button is clicked by the user. It opens
+     * a QColorDialog to allow the user to select a color. If the user selects a valid color
+     * and confirms their choice, the selected color is applied to the right color picker.
+     * Otherwise, no changes are made to the right color.
+     */
+    void onRightColorButtonClicked();
+
+  private:
+    /**
+     * @brief Updates the styles of the color picker buttons to reflect the current colors.
+     *
+     * This method updates the stylesheets of the left and right color picker buttons using the
+     * current values of `m_leftColor` and `m_rightColor`. The button background is set to the
+     * respective color values, and additional button styling includes a solid border and rounded corners.
+     */
+    void updateColorButtonStyles() const;
+
+    /**
+     * @brief Button used to select and display the color associated with the left color picker.
+     *
+     * This QPushButton serves as the interactive widget for opening a color dialog and displaying
+     * the selected color for the left color picker in the popup. The button is styled to visually
+     * represent the currently selected color and is integrated into the layout.
+     */
+    QPushButton *m_leftColorButton;
+
+    /**
+     * @brief Button used to select and display the color associated with the right color picker.
+     *
+     * This QPushButton serves as the interactive widget for opening a color dialog and displaying
+     * the selected color for the right color picker in the popup. The button is styled to visually
+     * represent the currently selected color and is integrated into the layout.
+     */
+    QPushButton *m_rightColorButton;
+
+    /**
+     * @brief Stores the color associated with the left color picker.
+     */
+    QColor m_leftColor;
+
+    /**
+     * @brief Stores the color value associated with the right color picker button.
+     */
+    QColor m_rightColor;
+};
+
+/**
+ * @brief Popup widget that provides spin boxes for adjusting RGB channel values.
+ *
+ * This class represents a popup widget containing three separate spin boxes, each corresponding to one
+ * of the RGB (Red, Green, Blue) color channels. It allows fine-grained control over the adjustment of
+ * individual channel number.
+ *
+ * The spin boxes can be used to independently select which channel of a spectral image should be used to construct
+ * an RGB image.
+ */
+class QRgbChannelSpinBoxesPopup : public QWidget
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Popup widget for managing RGB channel values using spin boxes.
+     *
+     * @param parent The parent widget for this popup widget. Defaults to `nullptr`.
+     */
+    explicit QRgbChannelSpinBoxesPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Retrieves the current RGB values from the spin boxes.
+     *
+     * This method returns the current values of the red, green, and blue channels
+     * as integers stored in a vector. These values represent the state of the
+     * RGB spin boxes in the popup widget.
+     *
+     * @return A vector of integers containing the RGB values in the order: red, green, blue.
+     */
+    std::vector<int> getRgb() const;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox1;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox2;
+
+    /**
+     * @brief Spin box for managing one of the RGB channel values.
+     *
+     * Represents a spin box widget used to manage the value of one of the RGB channels
+     * (red, green, or blue). This spin box allows users to input integer values within
+     * a defined range. It is part of the popup widget and interacts with the corresponding
+     * signals and slots for handling RGB value changes.
+     */
+    QSpinBox *m_spinBox3;
+
+  signals:
+    /**
+     * @brief Signal emitted when the RGB values change.
+     *
+     * This signal is emitted whenever the values of the RGB spin boxes are updated
+     * either through user input or programmatically. The updated RGB values are
+     * passed as a vector of integers in the order: red, green, blue.
+     *
+     * @param rgb A vector containing the updated RGB values in the order: red, green, blue.
+     */
+    void ValueChanged(std::vector<int> rgb) const;
+
+  private slots:
+    /**
+     * @brief Handles the red channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void RedValueChanged(int value) const;
+
+    /**
+     * @brief Handles the green channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void GreenValueChanged(int value) const;
+
+    /**
+     * @brief Handles the blue channel value change and emits a signal with updated RGB values.
+     *
+     * @param value The new value for the red channel as an integer.
+     */
+    void BlueValueChanged(int value) const;
+
+  public slots:
+    /**
+     * @brief Updates the RGB values of the spin boxes and emits a value change signal.
+     *
+     * This function updates the values of the internal spin boxes representing
+     * the red, green, and blue channels. It also emits a signal with the updated
+     * RGB values as a vector, notifying other connected components of the change.
+     *
+     * @param red The new value for the red channel.
+     * @param green The new value for the green channel.
+     * @param blue The new value for the blue channel.
+     */
+    void UpdateRgb(int red, int green, int blue) const;
+
+  private:
+    /**
+     * @brief Layout for arranging the widgets.
+     */
+    QHBoxLayout *m_layout;
 
     /**
      * @brief Layout used for the background frame where all components are placed.

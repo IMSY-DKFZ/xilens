@@ -383,7 +383,7 @@
                </layout>
               </widget>
               <widget class="QWidget" name="layoutWidget">
-               <layout class="QVBoxLayout" name="graphicsVerticalLayout" stretch="0,1,1">
+               <layout class="QVBoxLayout" name="graphicsVerticalLayout" stretch="0,0">
                 <property name="spacing">
                  <number>0</number>
                 </property>
@@ -534,6 +534,34 @@
                    </spacer>
                   </item>
                   <item>
+                   <widget class="QToolButton" name="rgbChannelToolButton">
+                    <property name="minimumSize">
+                     <size>
+                      <width>40</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>Channels to reconstruct RGB image</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="iconSize">
+                     <size>
+                      <width>32</width>
+                      <height>32</height>
+                     </size>
+                    </property>
+                    <property name="autoRaise">
+                     <bool>true</bool>
+                    </property>
+                    <property name="arrowType">
+                     <enum>Qt::NoArrow</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QToolButton" name="rgbNormToolButton">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -661,7 +689,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QToolButton" name="saturationToolButton">
+                   <widget class="QArrowToolButton" name="saturationToolButton">
                     <property name="minimumSize">
                      <size>
                       <width>40</width>
@@ -697,62 +725,71 @@
                  </layout>
                 </item>
                 <item>
-                 <widget class="QGraphicsView" name="rawImageGraphicsView">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>512</width>
-                    <height>272</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Raw image</string>
-                  </property>
-                  <property name="verticalScrollBarPolicy">
-                   <enum>Qt::ScrollBarAlwaysOff</enum>
-                  </property>
-                  <property name="horizontalScrollBarPolicy">
-                   <enum>Qt::ScrollBarAlwaysOff</enum>
-                  </property>
-                  <property name="renderHints">
-                   <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGraphicsView" name="rgbImageGraphicsView">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>512</width>
-                    <height>272</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>RGB image</string>
-                  </property>
-                  <property name="verticalScrollBarPolicy">
-                   <enum>Qt::ScrollBarAlwaysOff</enum>
-                  </property>
-                  <property name="horizontalScrollBarPolicy">
-                   <enum>Qt::ScrollBarAlwaysOff</enum>
-                  </property>
-                  <property name="renderHints">
-                   <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform</set>
-                  </property>
+                 <widget class="QWidget" name="graphicsViewWidget" native="true">
+                  <layout class="QVBoxLayout" name="verticalLayout_3">
+                   <item>
+                    <widget class="QSplitter" name="graphicsViewSplitter">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <widget class="QGraphicsView" name="rawImageGraphicsView">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>512</width>
+                        <height>272</height>
+                       </size>
+                      </property>
+                      <property name="toolTip">
+                       <string>Raw image</string>
+                      </property>
+                      <property name="verticalScrollBarPolicy">
+                       <enum>Qt::ScrollBarAlwaysOff</enum>
+                      </property>
+                      <property name="horizontalScrollBarPolicy">
+                       <enum>Qt::ScrollBarAlwaysOff</enum>
+                      </property>
+                      <property name="renderHints">
+                       <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform</set>
+                      </property>
+                     </widget>
+                     <widget class="QGraphicsView" name="rgbImageGraphicsView">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>512</width>
+                        <height>272</height>
+                       </size>
+                      </property>
+                      <property name="toolTip">
+                       <string>RGB image</string>
+                      </property>
+                      <property name="verticalScrollBarPolicy">
+                       <enum>Qt::ScrollBarAlwaysOff</enum>
+                      </property>
+                      <property name="horizontalScrollBarPolicy">
+                       <enum>Qt::ScrollBarAlwaysOff</enum>
+                      </property>
+                      <property name="renderHints">
+                       <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform</set>
+                      </property>
+                     </widget>
+                    </widget>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
                </layout>

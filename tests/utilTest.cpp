@@ -20,30 +20,32 @@ TEST(UtilTest, HandleResultTest)
 
 TEST(CreateLutTest, VerifyLutColorValues)
 {
-    cv::Vec3b test_saturation_color(255, 255, 255);
-    cv::Vec3b test_dark_color(0, 0, 0);
+    QColor testSaturationColor(255, 255, 255);
+    QColor testDarkColor(0, 0, 0);
 
-    cv::Mat result_lut = CreateLut(test_saturation_color, test_dark_color);
+    cv::Mat resultLut = CreateLut(testSaturationColor, testDarkColor, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE,
+                                  OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
 
-    ASSERT_EQ(result_lut.cols, 256);
-    ASSERT_EQ(result_lut.type(), CV_8UC3);
+    ASSERT_EQ(resultLut.cols, 256);
+    ASSERT_EQ(resultLut.type(), CV_8UC3);
 
     for (uint i = 0; i < 256; ++i)
     {
-        cv::Vec3b expected_color;
+        cv::Vec3b expectedColor;
         if (i > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE)
         {
-            expected_color = test_saturation_color;
+            expectedColor =
+                cv::Vec3b(testSaturationColor.blue(), testSaturationColor.green(), testSaturationColor.red());
         }
         else if (i < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE)
         {
-            expected_color = test_dark_color;
+            expectedColor = cv::Vec3b(testDarkColor.blue(), testDarkColor.green(), testDarkColor.red());
         }
         else
         {
-            expected_color = cv::Vec3b(i, i, i);
+            expectedColor = cv::Vec3b(i, i, i);
         }
-        ASSERT_EQ(result_lut.at<cv::Vec3b>(0, i), expected_color);
+        ASSERT_EQ(resultLut.at<cv::Vec3b>(0, i), expectedColor);
     }
 }
 

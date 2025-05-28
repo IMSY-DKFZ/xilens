@@ -32,7 +32,9 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
       m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0),
       m_bandSelectorSliderPopup(new QSliderPopup(1, 16, 10, Qt::Orientation::Horizontal)),
       m_rgbNormSliderPopup(new QSliderPopup(1, 30, 5, Qt::Orientation::Horizontal)),
-      m_snapshotPopup(new QLineSpinPopup(this))
+      m_snapshotPopup(new QLineSpinPopup(this)),
+      m_saturationSpinBoxesPopup(new QDoubleSpinBoxesWithColorPickersPopup(this)),
+      m_rgbChannelSpinBoxesPopup(new QRgbChannelSpinBoxesPopup(this))
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
     m_cameraInterface.Initialize(this->m_xiAPIWrapper);
@@ -65,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
 void MainWindow::SetUpConnections()
 {
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QToolButton::clicked, this,
-                                              &MainWindow::HandleSnapshotButtonClicked));
+                                              &MainWindow::HandleSnapshotToolButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->recordSnapshotToolButton, &QArrowToolButton::ArrowClicked, this,
                                               &MainWindow::HandleSnapshotToolButtonArrowClicked));
     HANDLE_CONNECTION_RESULT(
@@ -116,6 +118,22 @@ void MainWindow::SetUpConnections()
         QObject::connect(m_display, &Displayer::ImageReadyToUpdateRaw, this, &MainWindow::UpdateRawImage));
     HANDLE_CONNECTION_RESULT(QObject::connect(m_display, &Displayer::SaturationPercentageReady, this,
                                               &MainWindow::UpdateSaturationPercentageLCDDisplays));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup, &QDoubleSpinBoxesPopup::minValueChanged, this,
+                                              &MainWindow::HandleSaturationMinValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup, &QDoubleSpinBoxesPopup::maxValueChanged, this,
+                                              &MainWindow::HandleSaturationMaxValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup,
+                                              &QDoubleSpinBoxesWithColorPickersPopup::leftColorChanged, this,
+                                              &MainWindow::HandleSaturationDarkColorChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup,
+                                              &QDoubleSpinBoxesWithColorPickersPopup::rightColorChanged, this,
+                                              &MainWindow::HandleSaturationSaturatedColorChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->saturationToolButton, &QArrowToolButton::ArrowClicked, this,
+                                              &MainWindow::HandleSaturationToolButtonArrowClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->rgbChannelToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleRgbChannelToolButtonClicked));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_rgbChannelSpinBoxesPopup, &QRgbChannelSpinBoxesPopup::ValueChanged,
+                                              m_display, &Displayer::UpdateBGRChannels));
 }
 
 void MainWindow::HandleConnectionResult(const bool status, const char *file, const int line, const char *func)
@@ -246,6 +264,12 @@ void MainWindow::SetUpCustomUiComponents() const
     recordSnapshotsButtonIcon.addFile(":/icon/theme/disabled/snapshot.svg", QSize(), QIcon::Disabled);
     recordSnapshotsButtonIcon.addFile(":/icon/theme/active/snapshot.svg", QSize(), QIcon::Active);
     this->ui->recordSnapshotToolButton->setIcon(recordSnapshotsButtonIcon);
+    // RGB channel selector
+    QIcon rgbChannelButtonIcon;
+    rgbChannelButtonIcon.addFile(":/icon/theme/primary/rgb_channel.svg", QSize(), QIcon::Normal);
+    rgbChannelButtonIcon.addFile(":/icon/theme/disabled/rgb_channel.svg", QSize(), QIcon::Disabled);
+    rgbChannelButtonIcon.addFile(":/icon/theme/active/rgb_channel.svg", QSize(), QIcon::Active);
+    this->ui->rgbChannelToolButton->setIcon(rgbChannelButtonIcon);
 }
 
 void MainWindow::Display()
@@ -368,7 +392,7 @@ void MainWindow::ShowErrorDialog(const QString &text, const QString &informative
     msgBox.exec();
 }
 
-void MainWindow::HandleSnapshotButtonClicked()
+void MainWindow::HandleSnapshotToolButtonClicked()
 {
     if (HandleFileNameSnapshotsLineEditTextEdited(m_snapshotPopup->text()))
     {
@@ -760,6 +784,16 @@ bool MainWindow::GetNormalize() const
 unsigned MainWindow::GetBand() const
 {
     return this->m_bandSelectorSliderPopup->value();
+}
+
+int MainWindow::GetSaturationMinValue() const
+{
+    return this->m_saturationSpinBoxesPopup->minValue();
+}
+
+int MainWindow::GetSaturationMaxValue() const
+{
+    return this->m_saturationSpinBoxesPopup->maxValue();
 }
 
 unsigned MainWindow::GetBGRNorm() const
@@ -1211,14 +1245,7 @@ void MainWindow::HandleCameraListComboBoxCurrentIndexChanged(const int index)
             // set new camera index
             m_cameraInterface.SetCameraIndex(index);
             this->EnableUi(true);
-            if (cameraType == CAMERA_TYPE_SPECTRAL)
-            {
-                QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, true));
-            }
-            else
-            {
-                QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, false));
-            }
+            HandleCameraSpecificUiComponents(cameraType, cameraModel);
         }
         else
         {
@@ -1265,6 +1292,46 @@ void MainWindow::HandleReloadCamerasToolButtonClicked()
 
     // restore button style
     ui->reloadCamerasToolButton->setDown(false);
+}
+
+void MainWindow::HandleSaturationToolButtonArrowClicked() const
+{
+    constexpr int popupWidth = 100;
+    constexpr int popupHeight = 50;
+    ShowPopupOnToolButtonInteraction(ui->saturationToolButton, m_saturationSpinBoxesPopup, popupWidth, popupHeight,
+                                     true);
+}
+
+void MainWindow::HandleSaturationMinValueChanged(const int value) const
+{
+    m_display->UpdateLut(value, m_saturationSpinBoxesPopup->maxValue(), m_saturationSpinBoxesPopup->getLeftColor(),
+                         m_saturationSpinBoxesPopup->getRightColor());
+}
+
+void MainWindow::HandleSaturationMaxValueChanged(const int value) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), value, m_saturationSpinBoxesPopup->getLeftColor(),
+                         m_saturationSpinBoxesPopup->getRightColor());
+}
+
+void MainWindow::HandleSaturationDarkColorChanged(const QColor &color) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), m_saturationSpinBoxesPopup->maxValue(), color,
+                         m_saturationSpinBoxesPopup->getRightColor());
+}
+
+void MainWindow::HandleSaturationSaturatedColorChanged(const QColor &color) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), m_saturationSpinBoxesPopup->maxValue(),
+                         m_saturationSpinBoxesPopup->getLeftColor(), color);
+}
+
+void MainWindow::HandleRgbChannelToolButtonClicked() const
+{
+    constexpr int popupWidth = 200;
+    constexpr int popupHeight = 50;
+    ShowPopupOnToolButtonInteraction(ui->rgbChannelToolButton, m_rgbChannelSpinBoxesPopup, popupWidth, popupHeight,
+                                     true);
 }
 
 void MainWindow::UpdateSaturationPercentageLCDDisplays(const double percentageBelowThreshold,
@@ -1340,4 +1407,45 @@ bool MainWindow::IsSaturationButtonChecked() const
 void MainWindow::SetRecordedCount(const int count)
 {
     m_recordedCount = count;
+}
+
+void MainWindow::HandleCameraSpecificUiComponents(const QString &cameraType, const QString &cameraModel) const
+{
+    const bool enableSpectralComponents = cameraType == CAMERA_TYPE_SPECTRAL;
+    QMetaObject::invokeMethod(this->ui->bandSelectorToolButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, enableSpectralComponents));
+    QMetaObject::invokeMethod(this->ui->rgbChannelToolButton, "setEnabled", Qt::QueuedConnection,
+                              Q_ARG(bool, enableSpectralComponents));
+    QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, enableSpectralComponents));
+
+    // get default rgb camera channels
+    if (enableSpectralComponents)
+    {
+        if (!getCameraMapper().contains(cameraModel))
+        {
+            LOG_XILENS(error) << "Could not find camera model in Mapper: " << cameraModel.toStdString();
+            throw std::runtime_error("Could not find camera in Mapper");
+        }
+
+        // Update RGB channels
+        const auto bgrChannels = getCameraMapper().value(cameraModel).bgrChannels;
+        if (bgrChannels.empty())
+        {
+            LOG_XILENS(error) << "Empty BGR channel indices";
+            throw std::runtime_error("Empty RGB channel indices");
+        }
+        this->m_rgbChannelSpinBoxesPopup->UpdateRgb(bgrChannels.at(2), bgrChannels.at(1), bgrChannels.at(0));
+        QMetaObject::invokeMethod(this->m_rgbChannelSpinBoxesPopup, "UpdateRgb", Qt::QueuedConnection,
+                                  Q_ARG(const int, bgrChannels.at(2)), Q_ARG(const int, bgrChannels.at(1)),
+                                  Q_ARG(const int, bgrChannels.at(0)));
+        this->m_display->UpdateBGRChannels(bgrChannels);
+
+        // Update maximum channels in all components
+        auto mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
+        const int nChannels = std::accumulate(mosaicShape.begin(), mosaicShape.end(), 1, std::multiplies<>());
+        this->m_bandSelectorSliderPopup->SetMaximum(nChannels);
+        this->m_rgbChannelSpinBoxesPopup->m_spinBox1->setMaximum(nChannels);
+        this->m_rgbChannelSpinBoxesPopup->m_spinBox2->setMaximum(nChannels);
+        this->m_rgbChannelSpinBoxesPopup->m_spinBox3->setMaximum(nChannels);
+    }
 }

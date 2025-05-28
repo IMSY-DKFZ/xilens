@@ -3,6 +3,8 @@
  * License: see LICENSE.md file
  *******************************************************/
 
+#include <QColorDialog>
+#include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
@@ -176,6 +178,110 @@ QLineSpinPopup::QLineSpinPopup(QWidget *parent)
     m_layout->addWidget(m_frame);
 }
 
+QDoubleSpinBoxesPopup::QDoubleSpinBoxesPopup(QWidget *parent)
+    : QWidget(nullptr), m_spinBox1(new QSpinBox(this)), m_spinBox2(new QSpinBox(this)), m_layout(new QHBoxLayout(this)),
+      m_frame(new QFrame(this))
+{
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("QDoubleSpinBoxesPopupWindow");
+
+    m_spinBox1->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox2->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox1->setValue(UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    m_spinBox2->setValue(OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    m_spinBox1->setToolTip("Minimum value");
+    m_spinBox2->setToolTip("Maximum value");
+    m_spinBox1->setMinimumWidth(90);
+    m_spinBox2->setMinimumWidth(90);
+
+    m_backgroundFrameLayout = new QHBoxLayout(m_frame);
+    StyleQFrameInPopupWindow(m_frame, m_backgroundFrameLayout, m_windowBorderRadius, m_contentMargin);
+    m_backgroundFrameLayout->addWidget(m_spinBox1);
+    m_backgroundFrameLayout->addWidget(m_spinBox2);
+    m_backgroundFrameLayout->setSpacing(10);
+
+    m_layout->addWidget(m_frame);
+
+    connect(m_spinBox1, &QSpinBox::valueChanged, this, &QDoubleSpinBoxesPopup::minValueChanged);
+    connect(m_spinBox2, &QSpinBox::valueChanged, this, &QDoubleSpinBoxesPopup::maxValueChanged);
+}
+
+QDoubleSpinBoxesWithColorPickersPopup::QDoubleSpinBoxesWithColorPickersPopup(QWidget *parent)
+    : QDoubleSpinBoxesPopup(parent), m_leftColorButton(new QPushButton(this)),
+      m_rightColorButton(new QPushButton(this)), m_leftColor(DEFAULT_DARK_COLOR), m_rightColor(DEFAULT_SATURATION_COLOR)
+{
+    // Set a fixed size for color buttons
+    m_leftColorButton->setFixedSize(30, 30);
+    m_rightColorButton->setFixedSize(30, 30);
+
+    // Update initial button styles
+    this->updateColorButtonStyles();
+
+    // Insert color buttons into the layout
+    m_backgroundFrameLayout->insertWidget(0, m_leftColorButton);
+    m_backgroundFrameLayout->addWidget(m_rightColorButton);
+
+    // Connect signals
+    connect(m_leftColorButton, &QPushButton::clicked, this,
+            &QDoubleSpinBoxesWithColorPickersPopup::onLeftColorButtonClicked);
+    connect(m_rightColorButton, &QPushButton::clicked, this,
+            &QDoubleSpinBoxesWithColorPickersPopup::onRightColorButtonClicked);
+}
+
+QColor QDoubleSpinBoxesWithColorPickersPopup::getLeftColor() const
+{
+    return m_leftColor;
+}
+
+QColor QDoubleSpinBoxesWithColorPickersPopup::getRightColor() const
+{
+    return m_rightColor;
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::setLeftColor(const QColor &color)
+{
+    if (m_leftColor != color)
+    {
+        m_leftColor = color;
+        this->updateColorButtonStyles();
+        emit leftColorChanged(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::setRightColor(const QColor &color)
+{
+    if (m_rightColor != color)
+    {
+        m_rightColor = color;
+        this->updateColorButtonStyles();
+        emit rightColorChanged(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::onLeftColorButtonClicked()
+{
+    if (const QColor color = QColorDialog::getColor(m_leftColor, this, "Select Left Color"); color.isValid())
+    {
+        this->setLeftColor(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::onRightColorButtonClicked()
+{
+    if (const QColor color = QColorDialog::getColor(m_rightColor, this, "Select Right Color"); color.isValid())
+    {
+        this->setRightColor(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::updateColorButtonStyles() const
+{
+    const QString buttonStyle = "QPushButton { background-color: %1; border: 0px solid #666; border-radius: 4px; }";
+    m_leftColorButton->setStyleSheet(buttonStyle.arg(m_leftColor.name()));
+    m_rightColorButton->setStyleSheet(buttonStyle.arg(m_rightColor.name()));
+}
+
 QArrowToolButton::QArrowToolButton(QWidget *parent) : QToolButton(parent)
 {
 }
@@ -233,4 +339,68 @@ QRect QArrowToolButton::ArrowRect() const
         arrowSize++;
     }
     return {width() - arrowSize, height() - arrowSize, arrowSize, arrowSize};
+}
+
+QRgbChannelSpinBoxesPopup::QRgbChannelSpinBoxesPopup(QWidget *parent)
+    : QWidget(parent), m_spinBox1(new QSpinBox(this)), m_spinBox2(new QSpinBox(this)), m_spinBox3(new QSpinBox(this)),
+      m_layout(new QHBoxLayout(this)), m_frame(new QFrame(this))
+{
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);
+    setAttribute(Qt::WA_TranslucentBackground);
+    setObjectName("QRgbChannelSpinBoxesPopupWindow");
+
+    m_spinBox1->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox2->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox3->setRange(1, std::numeric_limits<int>::max());
+    m_spinBox1->setToolTip("Red channel");
+    m_spinBox1->setToolTip("Green channel");
+    m_spinBox1->setToolTip("Blue channel");
+    m_spinBox1->setMinimumWidth(90);
+    m_spinBox2->setMinimumWidth(90);
+    m_spinBox3->setMinimumWidth(90);
+
+    m_backgroundFrameLayout = new QHBoxLayout(m_frame);
+    StyleQFrameInPopupWindow(m_frame, m_backgroundFrameLayout, m_windowBorderRadius, m_contentMargin);
+    QString labelStyle = QString("<b><font color='%1'>%2:</font></b>");
+    m_backgroundFrameLayout->addWidget(new QLabel(labelStyle.arg(COLOR_UI_PRIMARY).arg("R")), 0, Qt::AlignRight);
+    m_backgroundFrameLayout->addWidget(m_spinBox1);
+    m_backgroundFrameLayout->addWidget(new QLabel(labelStyle.arg(COLOR_UI_PRIMARY).arg("G")), 0, Qt::AlignRight);
+    m_backgroundFrameLayout->addWidget(m_spinBox2);
+    m_backgroundFrameLayout->addWidget(new QLabel(labelStyle.arg(COLOR_UI_PRIMARY).arg("B")), 0, Qt::AlignRight);
+    m_backgroundFrameLayout->addWidget(m_spinBox3);
+    m_backgroundFrameLayout->setSpacing(10);
+
+    m_layout->addWidget(m_frame);
+
+    connect(m_spinBox1, &QSpinBox::valueChanged, this, &QRgbChannelSpinBoxesPopup::RedValueChanged);
+    connect(m_spinBox2, &QSpinBox::valueChanged, this, &QRgbChannelSpinBoxesPopup::GreenValueChanged);
+    connect(m_spinBox3, &QSpinBox::valueChanged, this, &QRgbChannelSpinBoxesPopup::BlueValueChanged);
+}
+
+void QRgbChannelSpinBoxesPopup::UpdateRgb(const int red, const int green, const int blue) const
+{
+    m_spinBox1->setValue(red);
+    m_spinBox2->setValue(green);
+    m_spinBox3->setValue(blue);
+    emit ValueChanged({red, green, blue});
+}
+
+void QRgbChannelSpinBoxesPopup::RedValueChanged(const int value) const
+{
+    emit ValueChanged({m_spinBox1->value(), m_spinBox2->value(), m_spinBox3->value()});
+}
+
+void QRgbChannelSpinBoxesPopup::GreenValueChanged(const int value) const
+{
+    emit ValueChanged({m_spinBox1->value(), m_spinBox2->value(), m_spinBox3->value()});
+}
+
+void QRgbChannelSpinBoxesPopup::BlueValueChanged(const int value) const
+{
+    emit ValueChanged({m_spinBox1->value(), m_spinBox2->value(), m_spinBox3->value()});
+}
+
+std::vector<int> QRgbChannelSpinBoxesPopup::getRgb() const
+{
+    return {m_spinBox1->value(), m_spinBox2->value(), m_spinBox3->value()};
 }

@@ -88,7 +88,9 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, const bool equaliz
 {
     cv::Mat mask = raw_image.clone();
     cvtColor(mask, mask, cv::COLOR_GRAY2RGB);
+    std::unique_lock lock(m_LutMutex);
     LUT(mask, m_lut, mask);
+    lock.unlock();
     if (equalize_hist)
     {
         this->m_clahe->apply(raw_image, raw_image);
@@ -98,18 +100,21 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, const bool equaliz
     if (m_mainWindow->IsSaturationButtonChecked())
     {
         // Parallel execution on each pixel using C++11 lambda.
-        raw_image.forEach<Pixel>([mask](Pixel &p, const int position[]) -> void {
-            if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
+        raw_image.forEach<Pixel>([&](Pixel &p, const int position[]) -> void {
+            if (auto maskPixel = mask.at<cv::Vec3b>(position[0], position[1]);
+                maskPixel[0] == m_saturatedColor.blue() && maskPixel[1] == m_saturatedColor.green() &&
+                maskPixel[2] == m_saturatedColor.red())
             {
-                p.x = SATURATION_COLOR[0];
-                p.y = SATURATION_COLOR[1];
-                p.z = SATURATION_COLOR[2];
+                p.x = m_saturatedColor.blue();
+                p.y = m_saturatedColor.green();
+                p.z = m_saturatedColor.red();
             }
-            else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
+            else if (maskPixel[0] == m_darkColor.blue() && maskPixel[1] == m_darkColor.green() &&
+                     maskPixel[2] == m_darkColor.red())
             {
-                p.x = DARK_COLOR[0];
-                p.y = DARK_COLOR[1];
-                p.z = DARK_COLOR[2];
+                p.x = m_darkColor.blue();
+                p.y = m_darkColor.green();
+                p.z = m_darkColor.red();
             }
         });
     }
@@ -262,7 +267,8 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
     // Update saturation display and display images through the main thread
     auto bgrQImage = GetQImageFromMatrix(bgrImage, QImage::Format_RGB888);
     auto rawQImage = GetQImageFromMatrix(rawImageToDisplay, QImage::Format_BGR888);
-    auto saturationValues = GetSaturationPercentages(rawImage);
+    auto saturationValues = GetSaturationPercentages(rawImage, m_mainWindow->GetSaturationMinValue(),
+                                                     m_mainWindow->GetSaturationMaxValue());
     emit ImageReadyToUpdateRGB(bgrQImage);
     emit ImageReadyToUpdateRaw(rawQImage);
     emit SaturationPercentageReady(saturationValues.first, saturationValues.second);
@@ -270,19 +276,13 @@ void DisplayerFunctional::ProcessImage(XI_IMG &image)
 
 void DisplayerFunctional::GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) const
 {
-    if (!getCameraMapper().contains(m_cameraModel))
-    {
-        LOG_XILENS(error) << "Could not find camera model in Mapper: " << m_cameraModel.toStdString();
-        throw std::runtime_error("Could not find camera in Mapper");
-    }
-    auto bgrChannels = getCameraMapper().value(m_cameraModel).bgrChannels;
-    if (bgrChannels.empty())
+    if (m_bgrChannels.empty())
     {
         LOG_XILENS(error) << "Empty BGR channel indices";
         throw std::runtime_error("Empty RGB channel indices");
     }
     std::vector<cv::Mat> channels;
-    for (const int i : bgrChannels)
+    for (const int i : m_bgrChannels)
     {
         cv::Mat band_image = InitializeBandImage(image);
         this->GetBand(image, band_image, i);
@@ -319,13 +319,27 @@ void DisplayerFunctional::SetCameraProperties(const QString cameraModel)
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }
 
+void DisplayerFunctional::UpdateLut(const int minValue, const int maxValue, const QColor &darkColor,
+                                    const QColor &saturatedColor)
+{
+    std::unique_lock lock(m_LutMutex);
+    m_lut = CreateLut(saturatedColor, darkColor, minValue, maxValue);
+    m_darkColor = darkColor;
+    m_saturatedColor = saturatedColor;
+}
+
+void DisplayerFunctional::UpdateBGRChannels(const std::vector<int> &bgrChannels)
+{
+    m_bgrChannels = bgrChannels;
+}
+
 QImage GetQImageFromMatrix(const cv::Mat &image, const QImage::Format format)
 {
     QImage qtImage(image.data, image.cols, image.rows, static_cast<long>(image.step), format);
     return qtImage;
 }
 
-std::pair<double, double> GetSaturationPercentages(const cv::Mat &image)
+std::pair<double, double> GetSaturationPercentages(const cv::Mat &image, const int minValue, const int maxValue)
 {
     if (image.empty() || image.type() != CV_8UC1)
     {
@@ -334,11 +348,11 @@ std::pair<double, double> GetSaturationPercentages(const cv::Mat &image)
                                     cv::typeToString(image.type()));
     }
 
-    const int aboveThresholdCount = countNonZero(image > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    const int aboveThresholdCount = countNonZero(image > maxValue);
     const auto totalPixels = static_cast<double>(image.total()); // Total number of pixels in the matrix
     double percentageAboveThreshold = static_cast<double>(aboveThresholdCount) / totalPixels * 100.0;
 
-    const int belowThresholdCount = countNonZero(image < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    const int belowThresholdCount = countNonZero(image < minValue);
     double percentageBelowThreshold = static_cast<double>(belowThresholdCount) / totalPixels * 100.0;
     return std::make_pair(percentageBelowThreshold, percentageAboveThreshold);
 }
