@@ -9,6 +9,7 @@
 #include <QColor>
 #include <QEvent>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QToolButton>
@@ -518,11 +519,6 @@ class QDoubleSpinBoxesPopup : public QWidget
     QHBoxLayout *m_layout;
 
     /**
-     * @brief Layout used for the background frame where all components are placed.
-     */
-    QHBoxLayout *m_backgroundFrameLayout;
-
-    /**
      * @brief Frame where all UI components will be placed.
      */
     QFrame *m_frame;
@@ -536,6 +532,138 @@ class QDoubleSpinBoxesPopup : public QWidget
      * @brief Default border radius value for the popup window frame styling.
      */
     static constexpr int m_windowBorderRadius = 5;
+
+  protected:
+    /**
+     * @brief Layout used for the background frame where all components are placed.
+     */
+    QHBoxLayout *m_backgroundFrameLayout;
+};
+
+/**
+ * @brief Custom widget combining QDoubleSpinBox and color picker popup buttons.
+ *
+ * A specialized widget that incorporates both a QDoubleSpinBox for numerical input and a color picker popup
+ * for selecting colors. This widget is designed for scenarios where both numerical values and corresponding
+ * color selections are required within the same interface.
+ */
+class QDoubleSpinBoxesWithColorPickersPopup : public QDoubleSpinBoxesPopup
+{
+    Q_OBJECT
+  public:
+    /**
+     * @brief Popup widget that combines double spin boxes with color pickers.
+     *
+     * This widget extends the functionality of QDoubleSpinBoxesPopup by adding two color picker buttons to the layout.
+     * The color buttons allow users to select colors associated with the spin boxes. The buttons are styled and
+     * arranged alongside the spin boxes, providing an integrated user interface for numerical and color input.
+     *
+     * @param parent The parent widget for this popup. If no parent is provided, the popup will not belong to any other
+     * widget.
+     */
+    explicit QDoubleSpinBoxesWithColorPickersPopup(QWidget *parent = nullptr);
+
+    /**
+     * @brief Retrieves the color associated with the left color picker.
+     *
+     * @return The current QColor value associated with the left color picker.
+     */
+    QColor getLeftColor() const;
+
+    /**
+     * @brief Retrieves the color associated with the right color picker.
+     *
+     * @return The current QColor value associated with the right color picker.
+     */
+    QColor getRightColor() const;
+
+    /**
+     * @brief Sets the color associated with the left color picker.
+     *
+     * @param color The new QColor to be set for the left color picker.
+     */
+    void setLeftColor(const QColor &color);
+
+    /**
+     * @brief Sets the color associated with the right color picker.
+     *
+     * @param color The new QColor to be set for the right color picker.
+     */
+    void setRightColor(const QColor &color);
+
+  signals:
+    /**
+     * @brief Signal emitted when the left color is changed.
+     *
+     * @param color The new QColor value for the left color picker.
+     */
+    void leftColorChanged(const QColor &color);
+
+    /**
+     * @brief Signal emitted when the right color is changed.
+     *
+     * @param color The new QColor value for the right color picker.
+     */
+    void rightColorChanged(const QColor &color);
+
+  private slots:
+    /**
+     * @brief Handles the left color button click event and opens a color selection dialog.
+     *
+     * This method is invoked when the left color button is clicked by the user. It opens
+     * a QColorDialog to allow the user to select a color. If the user selects a valid color
+     * and confirms their choice, the selected color is applied to the left color picker.
+     * Otherwise, no changes are made to the left color.
+     */
+    void onLeftColorButtonClicked();
+
+    /**
+     * @brief Slot invoked when the right color picker button is clicked.
+     *
+     * This method is invoked when the right color button is clicked by the user. It opens
+     * a QColorDialog to allow the user to select a color. If the user selects a valid color
+     * and confirms their choice, the selected color is applied to the right color picker.
+     * Otherwise, no changes are made to the right color.
+     */
+    void onRightColorButtonClicked();
+
+  private:
+    /**
+     * @brief Updates the styles of the color picker buttons to reflect the current colors.
+     *
+     * This method updates the stylesheets of the left and right color picker buttons using the
+     * current values of `m_leftColor` and `m_rightColor`. The button background is set to the
+     * respective color values, and additional button styling includes a solid border and rounded corners.
+     */
+    void updateColorButtonStyles() const;
+
+    /**
+     * @brief Button used to select and display the color associated with the left color picker.
+     *
+     * This QPushButton serves as the interactive widget for opening a color dialog and displaying
+     * the selected color for the left color picker in the popup. The button is styled to visually
+     * represent the currently selected color and is integrated into the layout.
+     */
+    QPushButton *m_leftColorButton;
+
+    /**
+     * @brief Button used to select and display the color associated with the right color picker.
+     *
+     * This QPushButton serves as the interactive widget for opening a color dialog and displaying
+     * the selected color for the right color picker in the popup. The button is styled to visually
+     * represent the currently selected color and is integrated into the layout.
+     */
+    QPushButton *m_rightColorButton;
+
+    /**
+     * @brief Stores the color associated with the left color picker.
+     */
+    QColor m_leftColor;
+
+    /**
+     * @brief Stores the color value associated with the right color picker button.
+     */
+    QColor m_rightColor;
 };
 
 /**
@@ -558,19 +686,6 @@ class QRgbChannelSpinBoxesPopup : public QWidget
      * @param parent The parent widget for this popup widget. Defaults to `nullptr`.
      */
     explicit QRgbChannelSpinBoxesPopup(QWidget *parent = nullptr);
-
-    /**
-     * @brief Updates the RGB values of the spin boxes and emits a value change signal.
-     *
-     * This function updates the values of the internal spin boxes representing
-     * the red, green, and blue channels. It also emits a signal with the updated
-     * RGB values as a vector, notifying other connected components of the change.
-     *
-     * @param red The new value for the red channel.
-     * @param green The new value for the green channel.
-     * @param blue The new value for the blue channel.
-     */
-    void UpdateRgb(int red, int green, int blue) const;
 
     /**
      * @brief Retrieves the current RGB values from the spin boxes.
@@ -646,6 +761,20 @@ class QRgbChannelSpinBoxesPopup : public QWidget
      * @param value The new value for the red channel as an integer.
      */
     void BlueValueChanged(int value) const;
+
+  public slots:
+    /**
+     * @brief Updates the RGB values of the spin boxes and emits a value change signal.
+     *
+     * This function updates the values of the internal spin boxes representing
+     * the red, green, and blue channels. It also emits a signal with the updated
+     * RGB values as a vector, notifying other connected components of the change.
+     *
+     * @param red The new value for the red channel.
+     * @param green The new value for the green channel.
+     * @param blue The new value for the blue channel.
+     */
+    void UpdateRgb(int red, int green, int blue) const;
 
   private:
     /**

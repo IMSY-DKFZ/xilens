@@ -32,7 +32,8 @@ MainWindow::MainWindow(QWidget *parent, const std::shared_ptr<XiAPIWrapper> &xiA
       m_recordedCount(0), m_imageCounter(0), m_skippedCounter(0),
       m_bandSelectorSliderPopup(new QSliderPopup(1, 16, 10, Qt::Orientation::Horizontal)),
       m_rgbNormSliderPopup(new QSliderPopup(1, 30, 5, Qt::Orientation::Horizontal)),
-      m_snapshotPopup(new QLineSpinPopup(this)), m_saturationSpinBoxesPopup(new QDoubleSpinBoxesPopup(this)),
+      m_snapshotPopup(new QLineSpinPopup(this)),
+      m_saturationSpinBoxesPopup(new QDoubleSpinBoxesWithColorPickersPopup(this)),
       m_rgbChannelSpinBoxesPopup(new QRgbChannelSpinBoxesPopup(this))
 {
     this->m_xiAPIWrapper = xiAPIWrapper == nullptr ? this->m_xiAPIWrapper : xiAPIWrapper;
@@ -121,6 +122,12 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleSaturationMinValueChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup, &QDoubleSpinBoxesPopup::maxValueChanged, this,
                                               &MainWindow::HandleSaturationMaxValueChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup,
+                                              &QDoubleSpinBoxesWithColorPickersPopup::leftColorChanged, this,
+                                              &MainWindow::HandleSaturationDarkColorChanged));
+    HANDLE_CONNECTION_RESULT(QObject::connect(m_saturationSpinBoxesPopup,
+                                              &QDoubleSpinBoxesWithColorPickersPopup::rightColorChanged, this,
+                                              &MainWindow::HandleSaturationSaturatedColorChanged));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->saturationToolButton, &QArrowToolButton::ArrowClicked, this,
                                               &MainWindow::HandleSaturationToolButtonArrowClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->rgbChannelToolButton, &QToolButton::clicked, this,
@@ -1297,12 +1304,26 @@ void MainWindow::HandleSaturationToolButtonArrowClicked() const
 
 void MainWindow::HandleSaturationMinValueChanged(const int value) const
 {
-    m_display->UpdateLut(value, m_saturationSpinBoxesPopup->maxValue());
+    m_display->UpdateLut(value, m_saturationSpinBoxesPopup->maxValue(), m_saturationSpinBoxesPopup->getLeftColor(),
+                         m_saturationSpinBoxesPopup->getRightColor());
 }
 
 void MainWindow::HandleSaturationMaxValueChanged(const int value) const
 {
-    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), value);
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), value, m_saturationSpinBoxesPopup->getLeftColor(),
+                         m_saturationSpinBoxesPopup->getRightColor());
+}
+
+void MainWindow::HandleSaturationDarkColorChanged(const QColor &color) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), m_saturationSpinBoxesPopup->maxValue(), color,
+                         m_saturationSpinBoxesPopup->getRightColor());
+}
+
+void MainWindow::HandleSaturationSaturatedColorChanged(const QColor &color) const
+{
+    m_display->UpdateLut(m_saturationSpinBoxesPopup->minValue(), m_saturationSpinBoxesPopup->maxValue(),
+                         m_saturationSpinBoxesPopup->getLeftColor(), color);
 }
 
 void MainWindow::HandleRgbChannelToolButtonClicked() const
@@ -1415,8 +1436,8 @@ void MainWindow::HandleCameraSpecificUiComponents(const QString &cameraType, con
         }
         this->m_rgbChannelSpinBoxesPopup->UpdateRgb(bgrChannels.at(2), bgrChannels.at(1), bgrChannels.at(0));
         QMetaObject::invokeMethod(this->m_rgbChannelSpinBoxesPopup, "UpdateRgb", Qt::QueuedConnection,
-                                  Q_ARG(int, bgrChannels.at(2)), Q_ARG(int, bgrChannels.at(1)),
-                                  Q_ARG(int, bgrChannels.at(0)));
+                                  Q_ARG(const int, bgrChannels.at(2)), Q_ARG(const int, bgrChannels.at(1)),
+                                  Q_ARG(const int, bgrChannels.at(0)));
         this->m_display->UpdateBGRChannels(bgrChannels);
 
         // Update maximum channels in all components

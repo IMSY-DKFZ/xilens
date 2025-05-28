@@ -5,6 +5,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include <QColor>
 #include <QImage>
 #include <QObject>
 #include <QString>
@@ -61,8 +62,10 @@ class Displayer : public QObject
      *
      * @param minValue The minimum value for the LUT.
      * @param maxValue The maximum value for the LUT.
+     * @param darkColor The color used to highlight underexposed regions in an image.
+     * @param saturatedColor The color used to highlight overexposed regions in an image.
      */
-    virtual void UpdateLut(int minValue, int maxValue);
+    virtual void UpdateLut(int minValue, int maxValue, const QColor &darkColor, const QColor &saturatedColor);
 
     /**
      * @brief Updates the BGR channel values for the displayer.
@@ -102,6 +105,16 @@ class Displayer : public QObject
      * @brief Condition variable used to wait until a new image is available to be processed.
      */
     boost::condition_variable m_displayCondition;
+
+    /**
+     * @brief The color used to highlight underexposed regions of the image.
+     */
+    QColor m_darkColor;
+
+    /**
+     * The color used to highlight overexposed regions of the image.
+     */
+    QColor m_saturatedColor;
 
   public slots:
 

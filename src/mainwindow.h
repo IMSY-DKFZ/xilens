@@ -493,6 +493,29 @@ class MainWindow : public QMainWindow
     void HandleSaturationMaxValueChanged(int value) const;
 
     /**
+     * @brief Updates the LUT (Lookup Table) in the display based on the provided dark color and other UI parameters.
+     *
+     * This method reacts to changes in the dark color selection by the user. It updates the corresponding LUT
+     * in the display using the minimum and maximum values from the saturation spin boxes along with the provided color
+     * and the right color from the spin boxes popup.
+     *
+     * @param color The new dark color selected by the user.
+     */
+    void HandleSaturationDarkColorChanged(const QColor &color) const;
+
+    /**
+     * @brief Updates the LUT (Lookup Table) in the display based on the provided saturated color and other UI
+     * parameters.
+     *
+     * This method reacts to changes in the saturated color selection by the user. It updates the corresponding LUT
+     * in the display using the minimum and maximum values from the saturation spin boxes along with the provided color
+     * and the right color from the spin boxes popup.
+     *
+     * @param color The new saturated color selected by the user.
+     */
+    void HandleSaturationSaturatedColorChanged(const QColor &color) const;
+
+    /**
      * @brief Handles the event when the arrow button of the RGB Channel Tool Button is clicked.
      *
      * This method manages the display of a popup menu or container in response to an interaction
@@ -1071,9 +1094,9 @@ class MainWindow : public QMainWindow
     QLineSpinPopup *m_snapshotPopup;
 
     /**
-     * @brief Popup widget containing two spin boxes to adjust saturation values.
+     * @brief Popup widget containing two spin boxes to adjust saturation values and the corresponding colors.
      */
-    QDoubleSpinBoxesPopup *m_saturationSpinBoxesPopup;
+    QDoubleSpinBoxesWithColorPickersPopup *m_saturationSpinBoxesPopup;
 
     /**
      * @brief Popup widget containing spinners that control the channels used to reconstruct an RGB image for a

@@ -5,6 +5,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QColor>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
@@ -25,14 +26,14 @@ constexpr int MAX_HEIGHT_DISPLAY_WINDOW = 544;
  *
  * This color is represented as a BGR vector with values (180, 105, 255).
  */
-const auto SATURATION_COLOR = cv::Vec3b(180, 105, 255);
+constexpr auto DEFAULT_SATURATION_COLOR = QColor(255, 105, 180);
 
 /**
  * @brief Color used to represent dark pixels.
  *
  * This color is represented as a BGR vector with values (0, 0, 255).
  */
-const auto DARK_COLOR = cv::Vec3b(0, 0, 255);
+constexpr auto DEFAULT_DARK_COLOR = QColor(255, 0, 0);
 
 /**
  * @brief File name where logs are stored.

@@ -3,6 +3,7 @@
  * License: see LICENSE.md file
  *******************************************************/
 
+#include <QColorDialog>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
@@ -206,6 +207,81 @@ QDoubleSpinBoxesPopup::QDoubleSpinBoxesPopup(QWidget *parent)
     connect(m_spinBox2, &QSpinBox::valueChanged, this, &QDoubleSpinBoxesPopup::maxValueChanged);
 }
 
+QDoubleSpinBoxesWithColorPickersPopup::QDoubleSpinBoxesWithColorPickersPopup(QWidget *parent)
+    : QDoubleSpinBoxesPopup(parent), m_leftColorButton(new QPushButton(this)),
+      m_rightColorButton(new QPushButton(this)), m_leftColor(DEFAULT_DARK_COLOR), m_rightColor(DEFAULT_SATURATION_COLOR)
+{
+    // Set a fixed size for color buttons
+    m_leftColorButton->setFixedSize(30, 30);
+    m_rightColorButton->setFixedSize(30, 30);
+
+    // Update initial button styles
+    this->updateColorButtonStyles();
+
+    // Insert color buttons into the layout
+    m_backgroundFrameLayout->insertWidget(0, m_leftColorButton);
+    m_backgroundFrameLayout->addWidget(m_rightColorButton);
+
+    // Connect signals
+    connect(m_leftColorButton, &QPushButton::clicked, this,
+            &QDoubleSpinBoxesWithColorPickersPopup::onLeftColorButtonClicked);
+    connect(m_rightColorButton, &QPushButton::clicked, this,
+            &QDoubleSpinBoxesWithColorPickersPopup::onRightColorButtonClicked);
+}
+
+QColor QDoubleSpinBoxesWithColorPickersPopup::getLeftColor() const
+{
+    return m_leftColor;
+}
+
+QColor QDoubleSpinBoxesWithColorPickersPopup::getRightColor() const
+{
+    return m_rightColor;
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::setLeftColor(const QColor &color)
+{
+    if (m_leftColor != color)
+    {
+        m_leftColor = color;
+        this->updateColorButtonStyles();
+        emit leftColorChanged(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::setRightColor(const QColor &color)
+{
+    if (m_rightColor != color)
+    {
+        m_rightColor = color;
+        this->updateColorButtonStyles();
+        emit rightColorChanged(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::onLeftColorButtonClicked()
+{
+    if (const QColor color = QColorDialog::getColor(m_leftColor, this, "Select Left Color"); color.isValid())
+    {
+        this->setLeftColor(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::onRightColorButtonClicked()
+{
+    if (const QColor color = QColorDialog::getColor(m_rightColor, this, "Select Right Color"); color.isValid())
+    {
+        this->setRightColor(color);
+    }
+}
+
+void QDoubleSpinBoxesWithColorPickersPopup::updateColorButtonStyles() const
+{
+    const QString buttonStyle = "QPushButton { background-color: %1; border: 0px solid #666; border-radius: 4px; }";
+    m_leftColorButton->setStyleSheet(buttonStyle.arg(m_leftColor.name()));
+    m_rightColorButton->setStyleSheet(buttonStyle.arg(m_rightColor.name()));
+}
+
 QArrowToolButton::QArrowToolButton(QWidget *parent) : QToolButton(parent)
 {
 }
@@ -266,7 +342,7 @@ QRect QArrowToolButton::ArrowRect() const
 }
 
 QRgbChannelSpinBoxesPopup::QRgbChannelSpinBoxesPopup(QWidget *parent)
-    : QWidget(nullptr), m_spinBox1(new QSpinBox(this)), m_spinBox2(new QSpinBox(this)), m_spinBox3(new QSpinBox(this)),
+    : QWidget(parent), m_spinBox1(new QSpinBox(this)), m_spinBox2(new QSpinBox(this)), m_spinBox3(new QSpinBox(this)),
       m_layout(new QHBoxLayout(this)), m_frame(new QFrame(this))
 {
     setWindowFlags(Qt::FramelessWindowHint | Qt::Popup);

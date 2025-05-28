@@ -100,18 +100,21 @@ void DisplayerFunctional::PrepareRawImage(cv::Mat &raw_image, const bool equaliz
     if (m_mainWindow->IsSaturationButtonChecked())
     {
         // Parallel execution on each pixel using C++11 lambda.
-        raw_image.forEach<Pixel>([mask](Pixel &p, const int position[]) -> void {
-            if (mask.at<cv::Vec3b>(position[0], position[1]) == SATURATION_COLOR)
+        raw_image.forEach<Pixel>([&](Pixel &p, const int position[]) -> void {
+            if (auto maskPixel = mask.at<cv::Vec3b>(position[0], position[1]);
+                maskPixel[0] == m_saturatedColor.blue() && maskPixel[1] == m_saturatedColor.green() &&
+                maskPixel[2] == m_saturatedColor.red())
             {
-                p.x = SATURATION_COLOR[0];
-                p.y = SATURATION_COLOR[1];
-                p.z = SATURATION_COLOR[2];
+                p.x = m_saturatedColor.blue();
+                p.y = m_saturatedColor.green();
+                p.z = m_saturatedColor.red();
             }
-            else if (mask.at<cv::Vec3b>(position[0], position[1]) == DARK_COLOR)
+            else if (maskPixel[0] == m_darkColor.blue() && maskPixel[1] == m_darkColor.green() &&
+                     maskPixel[2] == m_darkColor.red())
             {
-                p.x = DARK_COLOR[0];
-                p.y = DARK_COLOR[1];
-                p.z = DARK_COLOR[2];
+                p.x = m_darkColor.blue();
+                p.y = m_darkColor.green();
+                p.z = m_darkColor.red();
             }
         });
     }
@@ -316,10 +319,13 @@ void DisplayerFunctional::SetCameraProperties(const QString cameraModel)
     this->m_mosaicShape = getCameraMapper().value(cameraModel).mosaicShape;
 }
 
-void DisplayerFunctional::UpdateLut(const int minValue, const int maxValue)
+void DisplayerFunctional::UpdateLut(const int minValue, const int maxValue, const QColor &darkColor,
+                                    const QColor &saturatedColor)
 {
     std::unique_lock lock(m_LutMutex);
-    m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR, minValue, maxValue);
+    m_lut = CreateLut(saturatedColor, darkColor, minValue, maxValue);
+    m_darkColor = darkColor;
+    m_saturatedColor = saturatedColor;
 }
 
 void DisplayerFunctional::UpdateBGRChannels(const std::vector<int> &bgrChannels)

@@ -76,8 +76,10 @@ class DisplayerFunctional : public Displayer
      *
      * @param minValue The minimum value for the LUT.
      * @param maxValue The maximum value for the LUT.
+     * @param darkColor The color used to highlight underexposed regions of the image.
+     * @param saturatedColor The color used to highlight overexposed regions of the image.
      */
-    void UpdateLut(int minValue, int maxValue) override;
+    void UpdateLut(int minValue, int maxValue, const QColor &darkColor, const QColor &saturatedColor) override;
 
     /**
      * @brief Updates the BGR channel values for the displayer.
@@ -110,8 +112,8 @@ class DisplayerFunctional : public Displayer
      * @brief Look up table used to assign pixel colors to undersaturated and
      * oversaturated pixels
      */
-    cv::Mat m_lut =
-        CreateLut(SATURATION_COLOR, DARK_COLOR, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE, OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
+    cv::Mat m_lut = CreateLut(DEFAULT_SATURATION_COLOR, DEFAULT_DARK_COLOR, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE,
+                              OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
 
   protected:
     /**
@@ -202,6 +204,7 @@ class DisplayerFunctional : public Displayer
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
      * histogram normalization in case it is specified.
+     * It also applies a LUT to colorize undersaturated and oversaturated regions of the image.
      *
      * @param raw_image the image to be processed.
      * @param equalize_hist if image should be normalized.

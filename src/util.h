@@ -8,6 +8,7 @@
 #include <b2nd.h>
 #include <xiApi.h>
 
+#include <QColor>
 #include <QMap>
 #include <QString>
 #include <boost/log/trivial.hpp>
@@ -178,13 +179,13 @@ void WaitMilliseconds(int milliseconds);
  * @brief Created a look up table (LUT) that can be used to define the colors of pixels
  * in an image that are over-saturated or under-exposed.
  *
- * @param saturation_color color of pixels that are over-saturated
- * @param dark_color color of pixels that are under-exposed
+ * @param saturationColor color of pixels that are over-saturated.
+ * @param darkColor color of pixels that are under-exposed.
  * @param minValue saturation minimum value.
  * @param maxValue saturation maximum value.
  * @return matrix with LUT.
  */
-cv::Mat CreateLut(const cv::Vec3b &saturation_color, const cv::Vec3b &dark_color, int minValue, int maxValue);
+cv::Mat CreateLut(const QColor &saturationColor, const QColor &darkColor, int minValue, int maxValue);
 
 /**
  * @brief Structure used to store command line arguments parsed by the user.
