@@ -59,7 +59,7 @@ From the root directory of ``XiLens`` do the following.
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr  ..
 make all -j
-ctest # to check that all tests pass
+ctest -L XilensTests -j # to check that all tests pass
 sudo make install # installs the desktop app on the system and can be accessed from the app launcher
 ```
 

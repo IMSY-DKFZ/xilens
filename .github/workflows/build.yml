@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          CTEST_OUTPUT_ON_FAILURE=1 xvfb-run -a --server-args="-screen 0 1024x768x24" ctest -j -L XilensTests
+          CTEST_OUTPUT_ON_FAILURE=1 xvfb-run -a --server-args="-screen 0 1024x768x24" ctest -L XilensTests -j
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and install DEB package
