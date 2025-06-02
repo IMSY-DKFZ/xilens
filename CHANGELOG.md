@@ -12,12 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New check for metadata to make sure metadata is consistent before appending data to an existing file.
 - New option to not display slider tick labels on the custom QSliderLabeled component.
 - New custom Widgets to display controls like sliders on pup-up windows when clicking on a tool button.
+- New custom Widget to control overexposure and underexposure colors and limits.
+- New custom Widget to manually select the image channels used to create an RGB image reconstruction for spectral cameras.
+- New separator between displayed images to enlarge either one of them when needed.
 
 ### Changed
 
 - Refactors snapshot recording method to make it more modular.
 - Moves controls from toolbox to ToolButtons.
 - Expands image viewer to cover the entire area of the UI.
+- Integrates blosc2 as a submodule of xilens to simplify development and easier use of xilens.
 
 ### Removed
 

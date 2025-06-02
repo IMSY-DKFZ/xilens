@@ -11,7 +11,7 @@ sudo apt install ./xilens*.deb
 This will install ``XiLens`` and its dependencies that are available in ``apt``.
 
 !!! warning "Dependencies"
-    ``XiLens`` still depends on ``BLOSC2`` and `XiAPI`. These packages are not available via `apt`, which is why they
+    ``XiLens`` still depends on `XiAPI`. This package is not available via `apt`, which is why they
     are not installed by `apt` when installing the `.deb` package.
     These additional dependencies can be installed by running:
 
@@ -37,18 +37,18 @@ build as in the following commands.
 
 !!! warning "Installation directory"
 
-    You should run this from a directory where BLOSC2 and XiAPI will be downloaded.
+    You should run this from a directory where XiAPI will be downloaded.
 
 ```bash
 chmod +x install_dependencies.sh
 sudo ./install_dependencies.sh --user
 ```
 
-This takes care of installing dependencies including the xiAPI package provided by XIMEA and BLOSC2.
+This takes care of installing dependencies including the xiAPI package provided by XIMEA.
 
 !!! warning "User vs. Development dependencies"
 
-    The previous script will install ``BLOSC2`` and ``XiAPI`` on your system!
+    The previous script will install ``XiAPI`` on your system!
     If you are building the application for development purposes, you should remove the flag `--user` to install the
     development dependencies instead.
 

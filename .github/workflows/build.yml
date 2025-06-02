@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v4.1.7
+        with:
+          submodules: 'recursive'
       - name: Install apt dependencies
         run: |
           sudo apt update
@@ -33,7 +35,7 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          CTEST_OUTPUT_ON_FAILURE=1 xvfb-run -a --server-args="-screen 0 1024x768x24" make test -j
+          CTEST_OUTPUT_ON_FAILURE=1 xvfb-run -a --server-args="-screen 0 1024x768x24" ctest -j -L XilensTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and install DEB package
@@ -72,14 +74,6 @@ jobs:
           cd package
           sed -i '/^[^#]/ s/\(^.*udevadm control --reload.*$\)/#\ \1/' scripts/install_steps
           sudo ./install
-          cd ..
-          git clone https://github.com/Blosc/c-blosc2.git
-          cd c-blosc2
-          git checkout v2.15.1
-          mkdir build
-          cd build
-          cmake -DCMAKE_INSTALL_PREFIX=/usr ..
-          sudo make install -j
       - name: Check app installation
         run: |
           xilens --version

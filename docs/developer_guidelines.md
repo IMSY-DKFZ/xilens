@@ -25,7 +25,7 @@ The docstrings follow the ``Doxygen`` format, while the code style follows the `
 ## Tests
 As mentioned before, your code should ideally be tested thoroughly. For this we use `GoogleTests`. You can find
 examples of it in the already created unittests in our repository.
-To run all tests you can run ``make test`` from the build directory after correctly configuring it.
+To run all tests you can run ``ctest -L XilensTests`` from the build directory after correctly configuring it.
 
 ## Documentation
 Ideally all your code should be documented, the markup used for the documentation is [Doxygen-style](https://www

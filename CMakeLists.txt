@@ -62,8 +62,6 @@ endif()
 #-----------------------------------------------------------------------------------------------------------------------
 # Boost
 find_package(Boost REQUIRED system thread timer chrono log filesystem)
-# BLOSC2
-find_package(Blosc2 2.15.1 CONFIG REQUIRED)
 # Message pack for metadata serialization
 find_package(msgpack REQUIRED)
 # Qt
@@ -74,6 +72,13 @@ find_package(OpenCV REQUIRED COMPONENTS core imgproc highgui)
 # XIMEA API
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 find_package(Ximea REQUIRED)
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Submodules
+#-----------------------------------------------------------------------------------------------------------------------
+# C-Blosc2
+add_subdirectory(submodules/c-blosc2)
+
 #-----------------------------------------------------------------------------------------------------------------------
 # XiLens library build
 #-----------------------------------------------------------------------------------------------------------------------
@@ -117,12 +122,13 @@ add_library(XILENS_LIB ${LIBTYPE}
         ${XILENS_LIB_UI_MOC}
 )
 target_include_directories(XILENS_LIB PUBLIC ${Ximea_INCLUDE_DIRS})
+target_include_directories(XILENS_LIB PUBLIC ${CMAKE_SOURCE_DIR}/submodules/c-blosc2/include ${CMAKE_SOURCE_DIR}/submodules/c-blosc2/plugins/NDim/include)
 target_link_libraries(XILENS_LIB Qt6::Widgets Qt6::Svg)
 target_link_libraries(XILENS_LIB Boost::system Boost::thread Boost::timer Boost::chrono Boost::log Boost::filesystem)
 target_link_libraries(XILENS_LIB ${OpenCV_LIBS})
 target_link_libraries(XILENS_LIB ${Boost_LIBRARIES})
 target_link_libraries(XILENS_LIB ${Ximea_LIBRARIES})
-target_link_libraries(XILENS_LIB Blosc2::blosc2_shared)
+target_link_libraries(XILENS_LIB blosc2_shared)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # XiLens executable
@@ -174,9 +180,9 @@ add_executable(
         tests/constantsTest.cpp
         ${XILENS_LIB_UI_MOC}
 )
-target_link_libraries(XILENS_TESTS GTest::gtest_main XILENS_LIB Blosc2::blosc2_shared)
+target_link_libraries(XILENS_TESTS GTest::gtest_main XILENS_LIB)
 include(GoogleTest)
-gtest_discover_tests(XILENS_TESTS)
+gtest_discover_tests(XILENS_TESTS PROPERTIES LABELS "XilensTests")
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Packaging
