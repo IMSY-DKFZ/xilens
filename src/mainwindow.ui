@@ -157,7 +157,7 @@
                        <bool>false</bool>
                       </property>
                       <property name="placeholderText">
-                       <string/>
+                       <string>Path to a folder ...</string>
                       </property>
                      </widget>
                     </item>
@@ -204,7 +204,7 @@
                        <string/>
                       </property>
                       <property name="placeholderText">
-                       <string/>
+                       <string>File name to store ...</string>
                       </property>
                      </widget>
                     </item>
@@ -374,7 +374,7 @@
                      <string/>
                     </property>
                     <property name="placeholderText">
-                     <string/>
+                     <string>Write a message to log ...</string>
                     </property>
                    </widget>
                   </item>
@@ -832,8 +832,11 @@
                   <property name="toolTip">
                    <string>Path to .b2nd file</string>
                   </property>
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
                   <property name="placeholderText">
-                   <string/>
+                   <string>Path to file ...</string>
                   </property>
                  </widget>
                 </item>
