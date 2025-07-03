@@ -524,6 +524,21 @@ class MainWindow : public QMainWindow
      */
     void HandleRgbChannelToolButtonClicked() const;
 
+    /**
+     * @brief Handles the "About" action triggered by the user to display application information.
+     */
+    void HandleAboutActionTriggered();
+
+    /**
+     * @brief Handles the action triggered for opening the documentation URL.
+     */
+    static void HandleDocumentationActionTriggered();
+
+    /**
+     * @brief Handles the action triggered for "How to Cite" to display information on how to cite XiLens.
+     */
+    void HandleHowToCiteActionTriggered();
+
   private:
     /**
      * @brief Sets up all UI Qt connections to handle all user interactions with the UI.

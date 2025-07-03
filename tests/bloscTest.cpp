@@ -146,7 +146,7 @@ void CreateBLOSCArray(char *urlpath, bool consistentMetadata)
 
 TEST(BLOSC, BloscAppend)
 {
-    char *urlpath = strdup("test_image_dataset.b2nd");
+    char *urlpath = strdup("test_image_append_to_new_file_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
     CreateBLOSCArray(urlpath, true);
     blosc2_remove_urlpath(urlpath);
@@ -154,7 +154,7 @@ TEST(BLOSC, BloscAppend)
 
 TEST(BLOSC, BloscAppendToExistingFile)
 {
-    char *urlpath = strdup("test_image_dataset.b2nd");
+    char *urlpath = strdup("test_image_append_to_existing_file_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
     CreateBLOSCArray(urlpath, true);
     CreateBLOSCArray(urlpath, true);
@@ -163,7 +163,7 @@ TEST(BLOSC, BloscAppendToExistingFile)
 
 TEST(BLOSC, BloscCheckMetadata)
 {
-    char *urlpath = strdup("test_image_dataset_consistent_metadata.b2nd");
+    char *urlpath = strdup("test_image_consistent_metadata_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
     CreateBLOSCArray(urlpath, true);
     b2nd_array_t *src;
@@ -178,7 +178,7 @@ TEST(BLOSC, BloscCheckMetadata)
 
 TEST(BLOSC, BloscCheckInconsistentMetadata)
 {
-    char *urlpath = strdup("test_image_dataset_consistent_metadata.b2nd");
+    char *urlpath = strdup("test_image_inconsistent_metadata_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
     CreateBLOSCArray(urlpath, false);
     b2nd_array_t *src;
