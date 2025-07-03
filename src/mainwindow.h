@@ -462,6 +462,11 @@ class MainWindow : public QMainWindow
     void HandleViewerFileLineEditReturnPressed();
 
     /**
+     * @brief Handles viewer file reloading when the button is pressed in the UI interface.
+     */
+    void HandleReloadViewerFileToolButtonClicked();
+
+    /**
      * @brief Qt slot triggered when the saturation tool button arrow is clicked.
      *
      * This method is responsible for managing the behavior and display of the saturation tool button's popup menu
