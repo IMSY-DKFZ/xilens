@@ -3,8 +3,6 @@
 Welcome to the ``XiLens`` documentation. This project aims at providing an application
 that can be used to record data from all the `XIMEA` camera families.
 
-![image](resources/ui-animation.gif)
-
 !!! note "Main features"
 
     * Compatible with all `XIMEA` cameras: spectral, RGB & gray cameras.
