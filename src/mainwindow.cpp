@@ -3,10 +3,12 @@
  * License: see LICENSE.md file
  *******************************************************/
 #include <QCloseEvent>
+#include <QDesktopServices>
 #include <QFileDialog>
 #include <QGraphicsItem>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QUrl>
 #include <b2nd.h>
 #include <boost/chrono.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -134,6 +136,12 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleRgbChannelToolButtonClicked));
     HANDLE_CONNECTION_RESULT(QObject::connect(m_rgbChannelSpinBoxesPopup, &QRgbChannelSpinBoxesPopup::ValueChanged,
                                               m_display, &Displayer::UpdateBGRChannels));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::HandleAboutActionTriggered));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->actionDocumentation, &QAction::triggered, this,
+                                              &MainWindow::HandleDocumentationActionTriggered));
+    HANDLE_CONNECTION_RESULT(
+        QObject::connect(ui->actionHowToCite, &QAction::triggered, this, &MainWindow::HandleHowToCiteActionTriggered));
 }
 
 void MainWindow::HandleConnectionResult(const bool status, const char *file, const int line, const char *func)
@@ -1332,6 +1340,43 @@ void MainWindow::HandleRgbChannelToolButtonClicked() const
     constexpr int popupHeight = 50;
     ShowPopupOnToolButtonInteraction(ui->rgbChannelToolButton, m_rgbChannelSpinBoxesPopup, popupWidth, popupHeight,
                                      true);
+}
+
+void MainWindow::HandleAboutActionTriggered()
+{
+    static QString aboutText =
+        "XiLens is an application for camera control and image recording.\n\n"
+        "Version: " PROJECT_VERSION_MAJOR "." PROJECT_VERSION_MINOR "." PROJECT_VERSION_PATCH "\n"
+        "Build details:\n"
+        "\tCommit SHA: " GIT_COMMIT "\n"
+        "\tSystem: " CMAKE_SYSTEM "\n"
+        "\tProcessor: " CMAKE_SYSTEM_PROCESSOR "\n"
+        "\tCompiler: " CMAKE_CXX_COMPILER "\n"
+        "\tDate: " BUILD_TIMESTAMP "\n\n"
+        "© 2025 Intelligent Medical Systems. All rights reserved.\n\n"
+        "Source code can be found in:\nhttps://github.com/IMSY-DKFZ/xilens";
+    QMessageBox msgBox(this);
+    msgBox.setText(aboutText);
+    msgBox.setWindowTitle("About XiLens");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.exec();
+}
+
+void MainWindow::HandleDocumentationActionTriggered()
+{
+    QDesktopServices::openUrl(QUrl("https://xilens.readthedocs.io"));
+}
+
+void MainWindow::HandleHowToCiteActionTriggered()
+{
+    static QString citeText =
+        "To learn how to cite this software please check the \"Cite this repository\" option in:\n\n"
+        "https://github.com/IMSY-DKFZ/xilens";
+    QMessageBox msgBox(this);
+    msgBox.setText(citeText);
+    msgBox.setWindowTitle("How to cite XiLens");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.exec();
 }
 
 void MainWindow::UpdateSaturationPercentageLCDDisplays(const double percentageBelowThreshold,
