@@ -3,6 +3,10 @@
 Welcome to the ``XiLens`` documentation. This project aims at providing an application
 that can be used to record data from all the `XIMEA` camera families.
 
+!!! note "Graphical user interface manual"
+
+    The Graphical User interface manual cna be found in the [repository wiki](https://github.com/IMSY-DKFZ/xilens/wiki).
+
 !!! note "Main features"
 
     * Compatible with all `XIMEA` cameras: spectral, RGB & gray cameras.
