@@ -81,7 +81,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     xiImage.exposure_time_us = 40000;
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
-    const char *urlpath = strdup("test_image.b2nd");
+    const char *urlpath = strdup("test_image_contents_after_writing.b2nd");
 
     blosc2_init();
     blosc2_remove_urlpath(urlpath);
@@ -240,7 +240,7 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     xiImage.exposure_time_us = 40000;
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
-    const char *urlpath = strdup("test_image.b2nd");
+    const char *urlpath = strdup("test_image_append_metadata_twice.b2nd");
 
     blosc2_init();
     blosc2_remove_urlpath(urlpath);
@@ -272,7 +272,7 @@ TEST_F(FileImageWriteTest, ExpectThrowOnInconsistentMetadata)
     xiImage.exposure_time_us = 40000;
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
-    const char *urlpath = strdup("test_image_inconsistent_metadata.b2nd");
+    const char *urlpath = strdup("test_image_throw_on_inconsistent_metadata.b2nd");
 
     blosc2_init();
     blosc2_remove_urlpath(urlpath);
