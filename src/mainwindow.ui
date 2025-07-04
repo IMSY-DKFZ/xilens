@@ -812,6 +812,9 @@
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
                  <widget class="QPushButton" name="viewerFileButton">
+                  <property name="toolTip">
+                   <string>Select file to display</string>
+                  </property>
                   <property name="text">
                    <string>Select File</string>
                   </property>
@@ -819,6 +822,9 @@
                 </item>
                 <item>
                  <widget class="QToolButton" name="reloadViewerFileToolButton">
+                  <property name="toolTip">
+                   <string>Reload file</string>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -865,6 +871,9 @@
                   <width>512</width>
                   <height>272</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>Image viewer display</string>
                 </property>
                </widget>
               </item>
