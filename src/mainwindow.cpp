@@ -218,6 +218,14 @@ void MainWindow::EnableUi(const bool enable) const
 
 void MainWindow::SetUpCustomUiComponents() const
 {
+    // set tool tips
+    m_bandSelectorSliderPopup->setToolTip("Image band to display");
+    m_rgbNormSliderPopup->setToolTip("RGB image intensity level");
+    m_snapshotPopup->m_lineEdit->setToolTip("File name");
+    m_snapshotPopup->m_lineEdit->setPlaceholderText("File name ...");
+    m_snapshotPopup->m_spinBox->setToolTip("Number of images to record");
+    m_saturationSpinBoxesPopup->setToolTips("Under-exposure color", "Over-exposure color", "Minimum value",
+                                            "Maximum value");
     // reload camera list button
     QIcon reloadButtonIcon;
     reloadButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);

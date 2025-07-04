@@ -109,6 +109,9 @@
                   </property>
                   <item>
                    <widget class="QToolButton" name="reloadCamerasToolButton">
+                    <property name="toolTip">
+                     <string>Scan connected cameras</string>
+                    </property>
                     <property name="text">
                      <string/>
                     </property>
