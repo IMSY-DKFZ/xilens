@@ -36,8 +36,8 @@ RUN xvfb-run -a --server-args="-screen 0 1024x768x24" make package -j
 RUN dpkg -i xilens*.deb
 
 # run tests
-ENV QT_QPA_PLATFORM offscreen
+ENV QT_QPA_PLATFORM=offscreen
 RUN xvfb-run -a --server-args="-screen 0 1024x768x24" ctest --output-on-failure
 
 # run application
-CMD QT_GRAPHICSSYSTEM="native" QT_X11_NO_MITSHM=1 /home/xilens/build/xilens
+CMD ["/bin/sh", "-c", "QT_GRAPHICSSYSTEM=native QT_X11_NO_MITSHM=1 /home/xilens/cmake-build/xilens"]

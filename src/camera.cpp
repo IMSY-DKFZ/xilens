@@ -169,13 +169,12 @@ void XiQFamily::UpdateCameraTemperature()
     }
 }
 
-void Camera::SetExposure(int exp)
+void Camera::SetExposure(const int exp) const
 {
-    int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != *m_cameraHandle)
     {
         // Setting "exposure" parameter (10ms=10000us)
-        stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
+        const int stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_EXPOSURE, exp);
         HandleResult(stat, "xiSetParam (exposure set)");
         LOG_XILENS(info) << "set exposure to " << exp / 1000 << "ms\n" << std::flush;
     }
@@ -185,12 +184,12 @@ void Camera::SetExposure(int exp)
     }
 }
 
-void Camera::SetExposureMs(int exp)
+void Camera::SetExposureMs(const int exp) const
 {
     this->SetExposure(exp * 1000);
 }
 
-int Camera::GetExposure()
+int Camera::GetExposure() const
 {
     int stat = XI_OK;
     int exp = 40000;
@@ -209,17 +208,16 @@ int Camera::GetExposure()
     return exp;
 }
 
-int Camera::GetExposureMs()
+int Camera::GetExposureMs() const
 {
     return (this->GetExposure() + 5) / 1000;
 }
 
-void Camera::AutoExposure(bool on)
+void Camera::AutoExposure(const bool on) const
 {
-    int stat = XI_INVALID_HANDLE;
     if (INVALID_HANDLE_VALUE != *m_cameraHandle)
     {
-        stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_AEAG, on);
+        const int stat = this->m_apiWrapper->xiSetParamInt(*m_cameraHandle, XI_PRM_AEAG, on);
         HandleResult(stat, "xiSetParam (autoexposure on/off)");
     }
     else

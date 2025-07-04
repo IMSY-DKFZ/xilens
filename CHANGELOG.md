@@ -5,23 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.3]
 
 ### Added
 
--
+- New check for metadata to make sure metadata is consistent before appending data to an existing file.
+- New option to not display slider tick labels on the custom QSliderLabeled component.
+- New custom Widgets to display controls like sliders on pup-up windows when clicking on a tool button.
+- New custom Widget to control overexposure and underexposure colors and limits.
+- New custom Widget to manually select the image channels used to create an RGB image reconstruction for spectral cameras.
+- New separator between displayed images to enlarge either one of them when needed.
+- New menu bar with help and documentation options.
+- New reload button in the viewer tab to reload the viewer file object.
 
 ### Changed
 
--
+- Refactors the snapshot recording method to make it more modular.
+- Moves controls from toolbox to ToolButtons.
+- Expands image viewer to cover the entire area of the UI.
 
 ### Removed
 
--
+- Removes unused includes.
+- Removes exposure slider.
 
 ### Fixed
 
--
+- Fixes deprecation warnings when building docker image
 
 ## [0.2.2]
 
@@ -30,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adds image viewer tab to open recorded .b2nd files and scroll over images.
 - Adds missing camera models to JSON file.
 - Adds documentation for all classes in XiLens.
+- Splitter introduced in Record tab to be able to hide the left panel while recording.
 
 ### Changed
 

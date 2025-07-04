@@ -10,6 +10,7 @@
 #include <xiApi.h>
 
 #include <chrono>
+#include <constants.h>
 #include <msgpack.hpp>
 
 #include "src/util.h"
@@ -22,7 +23,7 @@
         throw std::runtime_error(errormsg.str());                                                                      \
     }
 
-void CreateBLOSCArray(char *urlpath)
+void CreateBLOSCArray(char *urlpath, bool consistentMetadata)
 {
     blosc2_init();
     auto *image = new XI_IMG;
@@ -119,6 +120,23 @@ void CreateBLOSCArray(char *urlpath)
     msgpack::pack(sbufString, stringArray);
     AppendBLOSCVLMetadata(src, "stringMetadata", sbufString);
 
+    for (auto key : EXPECTED_METADATA_KEYS)
+    {
+        std::vector<int> metadata;
+        if (consistentMetadata)
+        {
+            metadata.resize(N_images);
+        }
+        else
+        {
+            metadata.resize(N_images - 1);
+        }
+        std::iota(metadata.begin(), metadata.end(), 0);
+        msgpack::sbuffer metadataBuffer;
+        msgpack::pack(metadataBuffer, metadata);
+        AppendBLOSCVLMetadata(src, key.toUtf8().constData(), metadataBuffer);
+    }
+
     b2nd_free(src);
     b2nd_free_ctx(ctx);
     blosc2_destroy();
@@ -128,17 +146,47 @@ void CreateBLOSCArray(char *urlpath)
 
 TEST(BLOSC, BloscAppend)
 {
-    char *urlpath = strdup("test_image_dataset.b2nd");
+    char *urlpath = strdup("test_image_append_to_new_file_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
-    CreateBLOSCArray(urlpath);
+    CreateBLOSCArray(urlpath, true);
     blosc2_remove_urlpath(urlpath);
 }
 
 TEST(BLOSC, BloscAppendToExistingFile)
 {
-    char *urlpath = strdup("test_image_dataset.b2nd");
+    char *urlpath = strdup("test_image_append_to_existing_file_dataset.b2nd");
     blosc2_remove_urlpath(urlpath);
-    CreateBLOSCArray(urlpath);
-    CreateBLOSCArray(urlpath);
+    CreateBLOSCArray(urlpath, true);
+    CreateBLOSCArray(urlpath, true);
     blosc2_remove_urlpath(urlpath);
+}
+
+TEST(BLOSC, BloscCheckMetadata)
+{
+    char *urlpath = strdup("test_image_consistent_metadata_dataset.b2nd");
+    blosc2_remove_urlpath(urlpath);
+    CreateBLOSCArray(urlpath, true);
+    b2nd_array_t *src;
+    auto result = b2nd_open(urlpath, &src);
+    if (result < 0)
+    {
+        throw std::runtime_error("Error opening file");
+    }
+    result = FileImage::CheckFileMetadata(src);
+    ASSERT_TRUE(result);
+}
+
+TEST(BLOSC, BloscCheckInconsistentMetadata)
+{
+    char *urlpath = strdup("test_image_inconsistent_metadata_dataset.b2nd");
+    blosc2_remove_urlpath(urlpath);
+    CreateBLOSCArray(urlpath, false);
+    b2nd_array_t *src;
+    auto result = b2nd_open(urlpath, &src);
+    if (result < 0)
+    {
+        throw std::runtime_error("Error opening file");
+    }
+    result = FileImage::CheckFileMetadata(src);
+    ASSERT_FALSE(result);
 }

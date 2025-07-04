@@ -6,8 +6,6 @@
 #ifndef XILENS_CAMERA_H
 #define XILENS_CAMERA_H
 
-#include <QMap>
-#include <QString>
 #include <boost/thread.hpp>
 #include <xiApi.h>
 
@@ -32,6 +30,8 @@ class CameraFamily
     boost::mutex m_mutexCameraTemperature;
 
   public:
+    virtual ~CameraFamily() = default;
+
     explicit CameraFamily(HANDLE *handle) : m_cameraHandle(handle)
     {
     }
@@ -218,6 +218,8 @@ class Camera
     HANDLE *m_cameraHandle;
 
   public:
+    virtual ~Camera() = default;
+
     /**
      * Constructor of camera class
      *
@@ -241,8 +243,6 @@ class Camera
     /**
      * initializes camera by setting parameters such as framerate, binning mode,
      * etc.
-     *
-     * @param cameraHandle camera handle for communication with the camera
      */
     virtual int InitializeCamera();
 
@@ -260,7 +260,7 @@ class Camera
      *
      * @param exp The exposure value to be set.
      */
-    void SetExposure(int exp);
+    void SetExposure(int exp) const;
 
     /**
      * \brief Sets the exposure time in milliseconds.
@@ -270,7 +270,7 @@ class Camera
      *
      * \param exp The exposure time in milliseconds.
      */
-    void SetExposureMs(int exp);
+    void SetExposureMs(int exp) const;
 
     /**
      * @brief Retrieves the exposure value.
@@ -281,7 +281,7 @@ class Camera
      *
      * @return The exposure value.
      */
-    int GetExposure();
+    int GetExposure() const;
 
     /**
      * @brief Retrieves the exposure time in milliseconds.
@@ -290,7 +290,7 @@ class Camera
      *
      * @return The exposure time in milliseconds.
      */
-    int GetExposureMs();
+    int GetExposureMs() const;
 
     /**
      * \brief A method to control auto exposure settings.
@@ -299,7 +299,7 @@ class Camera
      * camera. It is used to adjust the camera settings automatically based on the
      * lighting conditions.
      */
-    void AutoExposure(bool on);
+    void AutoExposure(bool on) const;
 };
 
 /**
@@ -320,8 +320,6 @@ class SpectralCamera : public Camera
     /**
      * Initializes the camera by setting parameters common to all cameras and also
      * specific values for spectral cameras.
-     *
-     * @param cameraHandle camera handle for management of all interactions with
      * it
      */
     int InitializeCamera() override;
@@ -346,8 +344,6 @@ class GrayCamera : public Camera
     /**
      * Initializes the camera by setting parameters common to all cameras and also
      * specific values for gray scale cameras.
-     *
-     * @param cameraHandle camera handle used to manage all interactions with it
      */
     int InitializeCamera() override;
 };
@@ -371,8 +367,6 @@ class RGBCamera : public Camera
     /**
      * Initializes the camera by setting parameters common to all cameras and also
      * specific values for RGB cameras.
-     *
-     * @param cameraHandle camera handle used to manage all interactions with it
      */
     int InitializeCamera() override;
 };

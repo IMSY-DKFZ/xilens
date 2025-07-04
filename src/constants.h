@@ -5,35 +5,35 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QColor>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
 #include <QString>
-#include <QVariant>
 #include <opencv2/opencv.hpp>
 
 /**
  * @brief Maximum width of image to display.
  */
-const int MAX_WIDTH_DISPLAY_WINDOW = 1024;
+constexpr int MAX_WIDTH_DISPLAY_WINDOW = 1024;
 /**
  * @brief Maximum height of image to display.
  */
-const int MAX_HEIGHT_DISPLAY_WINDOW = 544;
+constexpr int MAX_HEIGHT_DISPLAY_WINDOW = 544;
 
 /**
  * @brief Color used to represent saturation pixels.
  *
  * This color is represented as a BGR vector with values (180, 105, 255).
  */
-const cv::Vec3b SATURATION_COLOR = cv::Vec3b(180, 105, 255);
+constexpr auto DEFAULT_SATURATION_COLOR = QColor(255, 105, 180);
 
 /**
  * @brief Color used to represent dark pixels.
  *
  * This color is represented as a BGR vector with values (0, 0, 255).
  */
-const cv::Vec3b DARK_COLOR = cv::Vec3b(0, 0, 255);
+constexpr auto DEFAULT_DARK_COLOR = QColor(255, 0, 0);
 
 /**
  * @brief File name where logs are stored.
@@ -59,7 +59,7 @@ const QString SENSOR_BOARD_TEMP = "temperature_sensor_board";
 /**
  * @brief Variable used to identify how ofter temperature is queried from the camera.
  */
-const int TEMP_LOG_INTERVAL = 5;
+constexpr int TEMP_LOG_INTERVAL = 5;
 
 /**
  * @brief Original style of input component.
@@ -73,20 +73,20 @@ const QString FIELD_EDITED_STYLE = "QLineEdit {background-color: rgba(117, 52, 1
 /**
  * @brief Maximum framerate at which images are polled from camera.
  */
-const int FRAMERATE_MAX = 80;
+constexpr int FRAMERATE_MAX = 80;
 
 /**
  * @brief maximum value in range [0, 255] above which pixels are considered over-saturated.
  *
  * The maximum value is `225` in the range `[0,255]`, which corresponds to `900` in the range `[0, 1024]`.
  */
-const int OVEREXPOSURE_PIXEL_BOUNDARY_VALUE = 225;
+constexpr int OVEREXPOSURE_PIXEL_BOUNDARY_VALUE = 225;
 /**
  * @brief minimum value in range [0, 255] below which pixels are considered under-saturated.
  *
  * The minimum value is `10` in the range `[0,255]`, which corresponds to `40` in the range `[0, 1024]`.
  */
-const int UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE = 10;
+constexpr int UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE = 10;
 
 /**
  * @brief Name of spectral camera type.
@@ -132,19 +132,19 @@ const QString CAMERA_FAMILY_XIX = "xiX";
 /**
  * @brief Vector of supported camera types.
  */
-const std::vector<QString> SUPPORTED_CAMERA_TYPES = {CAMERA_TYPE_SPECTRAL, CAMERA_TYPE_GRAY, CAMERA_TYPE_RGB};
+const std::vector SUPPORTED_CAMERA_TYPES = {CAMERA_TYPE_SPECTRAL, CAMERA_TYPE_GRAY, CAMERA_TYPE_RGB};
 
 /**
  * @brief Vector of supported camera families.
  */
-const std::vector<QString> SUPPORTED_CAMERA_FAMILIES = {CAMERA_FAMILY_XISPEC, CAMERA_FAMILY_XIC,   CAMERA_FAMILY_XIQ,
-                                                        CAMERA_FAMILY_XIB,    CAMERA_FAMILY_XIB64, CAMERA_FAMILY_XIRAY,
-                                                        CAMERA_FAMILY_XIX};
+const std::vector SUPPORTED_CAMERA_FAMILIES = {CAMERA_FAMILY_XISPEC, CAMERA_FAMILY_XIC,   CAMERA_FAMILY_XIQ,
+                                               CAMERA_FAMILY_XIB,    CAMERA_FAMILY_XIB64, CAMERA_FAMILY_XIRAY,
+                                               CAMERA_FAMILY_XIX};
 
 /**
  * @brief Number of images to record for reference images for `white` and `dark`.
  */
-const int NR_REFERENCE_IMAGES_TO_RECORD = 100;
+constexpr int NR_REFERENCE_IMAGES_TO_RECORD = 100;
 
 /**
  * @brief Structure to hold metadata from camera such as type, family, etc.
@@ -227,31 +227,46 @@ QMap<QString, CameraData> &getCameraMapper();
 /**
  * @brief Name of key to be used to store exposure time in the metadata of the arrays.
  */
-constexpr const char *EXPOSURE_KEY = "exposure_us";
+constexpr auto EXPOSURE_KEY = "exposure_us";
 
 /**
  * @brief Name of key to be used to store frame number in the metadata of the arrays.
  */
-constexpr const char *FRAME_NUMBER_KEY = "acq_nframe";
+constexpr auto FRAME_NUMBER_KEY = "acq_nframe";
 
 /**
  * @brief Name of key to be used to store filter array format in the metadata of the arrays.
  */
-constexpr const char *COLOR_FILTER_ARRAY_FORMAT_KEY = "color_filter_array";
+constexpr auto COLOR_FILTER_ARRAY_FORMAT_KEY = "color_filter_array";
 
 /**
  * @brief Name of key to be used to store time stamp in the metadata of the arrays.
  */
-constexpr const char *TIME_STAMP_KEY = "time_stamp";
+constexpr auto TIME_STAMP_KEY = "time_stamp";
+
+/**
+ * @brief List of metadata keys expected to be present in an image file.
+ *
+ * This vector contains the predefined keys required for metadata validation
+ * during file operations. Each key corresponds to a specific piece of image
+ * metadata, such as exposure time, frame number, color filter array format,
+ * timestamp, and sensor board temperature.
+ */
+const std::vector<QString> EXPECTED_METADATA_KEYS = {EXPOSURE_KEY, FRAME_NUMBER_KEY, COLOR_FILTER_ARRAY_FORMAT_KEY,
+                                                     TIME_STAMP_KEY, SENSOR_BOARD_TEMP};
 
 /**
  * @brief Maximum number of frames used to compute the frames per second at which recordings happen.
  */
-const int MAX_FRAMES_TO_COMPUTE_FPS = 10;
+constexpr int MAX_FRAMES_TO_COMPUTE_FPS = 10;
 
 /**
  * @brief Rate in milliseconds at which the frames per second display in the UI is updated.
  */
-const int UPDATE_RATE_MS_FPS_TIMER = 2000;
+constexpr int UPDATE_RATE_MS_FPS_TIMER = 2000;
 
+/**
+ * @brief default color of UI enabled elements
+ */
+constexpr auto COLOR_UI_PRIMARY = "#ffd740";
 #endif

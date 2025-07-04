@@ -18,7 +18,7 @@ ImageContainer::ImageContainer() : m_PollImage(true)
     m_Image.size = sizeof(XI_IMG);
 }
 
-void ImageContainer::Initialize(std::shared_ptr<XiAPIWrapper> apiWrapper)
+void ImageContainer::Initialize(const std::shared_ptr<XiAPIWrapper> &apiWrapper)
 {
     this->m_apiWrapper = apiWrapper;
 }
@@ -44,7 +44,7 @@ ImageContainer::~ImageContainer()
     LOG_XILENS(info) << "Destroying image container";
 }
 
-void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
+void ImageContainer::PollImage(const HANDLE *cameraHandle, const int pollingRate)
 {
     static unsigned lastImageId = 0;
     static int stat;
@@ -64,6 +64,7 @@ void ImageContainer::PollImage(HANDLE *cameraHandle, int pollingRate)
                 {
                     this->StopPolling();
                     LOG_XILENS(error) << "Error while trying to get image from device";
+                    LOG_XILENS(error) << "Error message: " << e.what();
                     this->CloseFile();
                     throw;
                 }

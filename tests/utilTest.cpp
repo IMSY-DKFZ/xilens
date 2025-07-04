@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "src/constants.h"
+#include "src/errors.h"
 #include "src/util.h"
 
 TEST(UtilTest, HandleResultTest)
@@ -19,30 +20,32 @@ TEST(UtilTest, HandleResultTest)
 
 TEST(CreateLutTest, VerifyLutColorValues)
 {
-    cv::Vec3b test_saturation_color(255, 255, 255);
-    cv::Vec3b test_dark_color(0, 0, 0);
+    QColor testSaturationColor(255, 255, 255);
+    QColor testDarkColor(0, 0, 0);
 
-    cv::Mat result_lut = CreateLut(test_saturation_color, test_dark_color);
+    cv::Mat resultLut = CreateLut(testSaturationColor, testDarkColor, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE,
+                                  OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
 
-    ASSERT_EQ(result_lut.cols, 256);
-    ASSERT_EQ(result_lut.type(), CV_8UC3);
+    ASSERT_EQ(resultLut.cols, 256);
+    ASSERT_EQ(resultLut.type(), CV_8UC3);
 
     for (uint i = 0; i < 256; ++i)
     {
-        cv::Vec3b expected_color;
+        cv::Vec3b expectedColor;
         if (i > OVEREXPOSURE_PIXEL_BOUNDARY_VALUE)
         {
-            expected_color = test_saturation_color;
+            expectedColor =
+                cv::Vec3b(testSaturationColor.blue(), testSaturationColor.green(), testSaturationColor.red());
         }
         else if (i < UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE)
         {
-            expected_color = test_dark_color;
+            expectedColor = cv::Vec3b(testDarkColor.blue(), testDarkColor.green(), testDarkColor.red());
         }
         else
         {
-            expected_color = cv::Vec3b(i, i, i);
+            expectedColor = cv::Vec3b(i, i, i);
         }
-        ASSERT_EQ(result_lut.at<cv::Vec3b>(0, i), expected_color);
+        ASSERT_EQ(resultLut.at<cv::Vec3b>(0, i), expectedColor);
     }
 }
 
@@ -78,7 +81,7 @@ TEST_F(FileImageWriteTest, CheckContentsAfterWriting)
     xiImage.exposure_time_us = 40000;
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
-    const char *urlpath = strdup("test_image.b2nd");
+    const char *urlpath = strdup("test_image_contents_after_writing.b2nd");
 
     blosc2_init();
     blosc2_remove_urlpath(urlpath);
@@ -237,7 +240,7 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     xiImage.exposure_time_us = 40000;
     xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
     std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
-    const char *urlpath = strdup("test_image.b2nd");
+    const char *urlpath = strdup("test_image_append_metadata_twice.b2nd");
 
     blosc2_init();
     blosc2_remove_urlpath(urlpath);
@@ -257,4 +260,35 @@ TEST_F(FileImageWriteTest, AppendMetadataTwice)
     }
     fileImage.AppendMetadata();
     blosc2_destroy();
+    blosc2_remove_urlpath(urlpath);
+}
+
+TEST_F(FileImageWriteTest, ExpectThrowOnInconsistentMetadata)
+{
+    uint32_t nrImages = 10;
+    XI_IMG xiImage;
+    xiImage.width = 64;
+    xiImage.height = 64;
+    xiImage.exposure_time_us = 40000;
+    xiImage.bp = malloc(static_cast<size_t>(xiImage.width) * static_cast<size_t>(xiImage.height) * sizeof(uint16_t));
+    std::fill_n((uint16_t *)xiImage.bp, xiImage.width * xiImage.height, 12345);
+    const char *urlpath = strdup("test_image_throw_on_inconsistent_metadata.b2nd");
+
+    blosc2_init();
+    blosc2_remove_urlpath(urlpath);
+
+    FileImage fileImage(urlpath, xiImage.height, xiImage.width);
+    QMap<QString, float> additionalMetadata = {{"extraMetadata", 1.0}};
+    for (int i = 0; i < nrImages; i++)
+    {
+        fileImage.WriteImageData(xiImage, additionalMetadata);
+    }
+    fileImage.AppendMetadata();
+
+    auto new_data = std::vector<int>{1};
+    PackAndAppendMetadata(fileImage.m_src, EXPECTED_METADATA_KEYS[0].toUtf8().constData(), new_data);
+
+    EXPECT_THROW(FileImage(urlpath, xiImage.height, xiImage.width), XiLensError);
+
+    blosc2_remove_urlpath(urlpath);
 }

@@ -7,13 +7,9 @@
 
 #include <xiApi.h>
 
-#include <QImage>
-#include <QObject>
-#include <QTimer>
 #include <boost/thread.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
-#include <string>
 
 #include "constants.h"
 #include "display.h"
@@ -35,34 +31,36 @@ class DisplayerFunctional : public Displayer
 
   public:
     /**
-     * Constructor of functional displayer
+     * @brief Constructor of functional displayer
      *
      * @param mainWindow reference to main window application
      */
     explicit DisplayerFunctional(MainWindow *mainWindow);
 
     /**
-     * Constructor of functional displayer
-     *
-     * @param mainWindow reference to main window application
+     * @brief Constructor of functional displayer
      */
-    explicit DisplayerFunctional() : Displayer(){};
+    explicit DisplayerFunctional()
+    {
+    }
 
     /**
-     * Destructor of the DisplayerFunctional class. It destroy the windows created
+     * @brief Destructor of the DisplayerFunctional class. It destroys the windows created
      * by the displayer.
      */
     ~DisplayerFunctional() override;
 
     /**
-     * Assigns camera properties such as type and mosaic shape.
+     * @brief Assigns camera properties such as type and mosaic shape.
      *
      * @param cameraModel camera type to set
      */
     void SetCameraProperties(QString cameraModel) override;
 
     /**
-     * Down-samples image in case it is bigger than maximum dimensions defined by
+     * @brief Down-samples image in case it is bigger than maximum dimensions.
+     *
+     * The maximum dimensions are defined by:
      * constants::MAX_WIDTH_DISPLAY_WINDOW and
      * constants::MAX_HEIGHT_DISPLAY_WINDOW
      *
@@ -71,38 +69,64 @@ class DisplayerFunctional : public Displayer
     static void DownsampleImageIfNecessary(cv::Mat &image);
 
     /**
-     * type of camera being used: spectral, gray, etc.
+     * @brief Updates the lookup table (LUT) with the specified minimum and maximum values.
+     *
+     * This method adjusts the LUT range to enhance or modify the image display settings based
+     * on the given values. It allows flexibility in defining the lower and upper bounds of the LUT.
+     *
+     * @param minValue The minimum value for the LUT.
+     * @param maxValue The maximum value for the LUT.
+     * @param darkColor The color used to highlight underexposed regions of the image.
+     * @param saturatedColor The color used to highlight overexposed regions of the image.
+     */
+    void UpdateLut(int minValue, int maxValue, const QColor &darkColor, const QColor &saturatedColor) override;
+
+    /**
+     * @brief Updates the BGR channel values for the displayer.
+     *
+     * This method is used to set the values of the Blue, Green, and Red channels
+     * for processing or rendering purposes. The values provided in the input
+     * parameter define the specific intensities or configurations for each channel.
+     *
+     * @param bgrChannels A vector containing the values for the Blue, Green, and
+     * Red channels, typically in the order [Blue, Green, Red].
+     */
+    void UpdateBGRChannels(const std::vector<int> &bgrChannels) override;
+
+    /**
+     * @brief Type of camera being used: spectral, gray, etc.
      */
     QString m_cameraType = CAMERA_TYPE_SPECTRAL;
 
     /**
-     * camera model used to identify camera properties.
+     * @brief Camera model used to identify camera properties.
      */
     QString m_cameraModel;
 
     /**
-     * Mosaic shape, particularly used for mosaic type cameras
+     * @brief Mosaic shape, particularly used for mosaic type cameras
      */
     std::vector<int> m_mosaicShape;
 
     /**
-     * Look up table used to assign pixel colors to undersaturated and
+     * @brief Look up table used to assign pixel colors to undersaturated and
      * oversaturated pixels
      */
-    cv::Mat m_lut = CreateLut(SATURATION_COLOR, DARK_COLOR);
+    cv::Mat m_lut = CreateLut(DEFAULT_SATURATION_COLOR, DEFAULT_DARK_COLOR, UNDEREXPOSURE_PIXEL_BOUNDARY_VALUE,
+                              OVEREXPOSURE_PIXEL_BOUNDARY_VALUE);
 
   protected:
     /**
-     * reference to main window, necessary to detect if normalization is turned on
-     * / which band to display
+     * @brief reference to the main window, necessary to read UI element values.
      */
     MainWindow *m_mainWindow{};
 
   public slots:
 
     /**
-     * Qt slot used to display images whenever a new image is queried from the
-     * camera. When a new image arrives, it is stored in the a member variable and it sets a flag to indicate that
+     * @brief Qt slot used to display images whenever a new image is queried from the camera.
+     *
+     * When a new image arrives, it is stored in the a member variable and it sets a flag to indicate that
      * a new image is ready for processing.
      *
      * @param image image to be displayed
@@ -110,71 +134,82 @@ class DisplayerFunctional : public Displayer
     void Display(XI_IMG &image) override;
 
     /**
-     * Qt slot that triggers the process to display image once the timer has run out.
+     * @brief Qt slot that triggers the process to display image once the timer has run out.
      */
     void OnDisplayTimeout();
 
   private:
     /**
-     * Thread where the image processing before displaying them should run.
+     * @brief Thread where the image processing before displaying them should run.
      */
     boost::thread m_displayThread;
 
     /**
-     * Indicates if an image has to be displayed.
+     * @brief Indicates if an image has to be displayed.
      */
     bool m_hasPendingImage = false;
 
     /**
-     * Timer to control when an image is displayed.
+     * @brief Timer to control when an image is displayed.
      */
     QTimer m_displayTimer;
 
     /**
-     * Interval in milliseconds indicating how often a new image should be displayed.
+     * @brief Interval in milliseconds indicating how often a new image should be displayed.
      */
     int m_displayIntervalMilliseconds = 40;
 
     /**
-     * Variable containing the data for the new image to be displayed.
+     * @brief Variable containing the data for the new image to be displayed.
      */
     XI_IMG m_nextImage{};
 
     /**
-     * Scaling factor used to convert image from 10bit to 8bit
+     * @brief Scaling factor used to convert image from 10bit to 8bit
      */
     int m_scaling_factor = 4;
 
     /**
-     * explicit mutex declaration
+     * @brief Explicit mutex declaration.
      */
     boost::mutex m_mutexImageDisplay;
 
     /**
-     * Class to do histogram normalization with CLAHE
+     * @brief Class to do histogram normalization with CLAHE.
      */
     cv::Ptr<cv::CLAHE> m_clahe = cv::createCLAHE();
 
     /**
-     * Processes a XIMEA image to display a Raw and RGB representation of the image in the main UI.
+     * @brief Stores the indices of the BGR color channels.
+     *
+     * This vector is used to define the mapping or order of the BGR channels
+     * for processing, ensuring consistency in color-related operations.
+     */
+    std::vector<int> m_bgrChannels;
+
+    /**
+     * @brief Processes a XIMEA image to display a Raw and RGB representation of the image in the main UI.
      *
      * @param image XIMEA image to be processed and displayed through the main UI.
      */
     void ProcessImage(XI_IMG &image);
 
     /**
-     * Waits for an image to be available for processing and calls `ProcessImage` once an image is available.
+     * @brief Waits for an image to be available for processing and calls `ProcessImage` once an image is available.
+     *
      * This method itself is triggered when the display timer runs out.
      */
     [[noreturn]] void ProcessImageOnThread();
 
     /**
      * @brief prepares raw image from XIMEA camera to be displayed, it does
-     * histogram normalization in case it is specified
+     * histogram normalization in case it is specified.
+     * It also applies a LUT to colorize undersaturated and oversaturated regions of the image.
      *
-     * @param raw_image, the image to be processed
+     * @param raw_image the image to be processed.
+     * @param equalize_hist if image should be normalized.
      */
-    void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist);
+    void PrepareRawImage(cv::Mat &raw_image, bool equalize_hist) const;
 
     /**
      * @brief Normalizes a BGR image using the LAB color space.
@@ -188,7 +223,7 @@ class DisplayerFunctional : public Displayer
      * @param bgr_image The BGR image to be normalized. Note that the input image
      * will be modified.
      */
-    void NormalizeBGRImage(cv::Mat &bgr_image);
+    void NormalizeBGRImage(cv::Mat &bgr_image) const;
 
     /**
      * @brief Extracts a specific band (channel) from an image
@@ -200,7 +235,7 @@ class DisplayerFunctional : public Displayer
      * @param band_image The output band image
      * @param band_nr The number of the band to extract
      */
-    void GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr);
+    void GetBand(cv::Mat &image, cv::Mat &band_image, unsigned int band_nr) const;
 
     /**
      * @brief Get the BGR image from the input image by splitting it into separate
@@ -213,15 +248,23 @@ class DisplayerFunctional : public Displayer
      * @param image The input image from which channels will be extracted.
      * @param bgr_image The output BGR image.
      */
-    void GetBGRImage(cv::Mat &image, cv::Mat &rgb_image);
+    void GetBGRImage(cv::Mat &image, cv::Mat &bgr_image) const;
 
     /**
-     * Initializes a channel image based on the raw image.
+     * @brief Initializes a channel image based on the raw image.
      *
      * @param image The raw image
      * @return Image filled with 0's with a size capable of holding a band image after demosaic operation is applied
      */
-    cv::Mat InitializeBandImage(cv::Mat &image);
+    cv::Mat InitializeBandImage(const cv::Mat &image) const;
+
+    /**
+     * @brief Mutex for synchronizing access to the LUT (Lookup Table) data.
+     *
+     * This member ensures thread-safe operations when multiple threads access
+     * or modify the LUT data.
+     */
+    mutable std::mutex m_LutMutex;
 };
 
 /**
@@ -243,21 +286,23 @@ class DisplayerFunctional : public Displayer
 void PrepareBGRImage(cv::Mat &bgr_image, int bgr_norm);
 
 /**
- * Creates a QImage object from an OpenCv matrix and a given image format.
+ * @brief Creates a QImage object from an OpenCv matrix and a given image format.
  *
  * @param image OpenCV matrix.
  * @param format format of image, for example QImage::Format_BGR888.
  * @return QImage.
  * @throws std::invalid_argument if the input matrix is empty or of the wrong type.
  */
-QImage GetQImageFromMatrix(cv::Mat &image, QImage::Format format);
+QImage GetQImageFromMatrix(const cv::Mat &image, QImage::Format format);
 
 /**
- * Computes the saturation percentages for underexposed and overexposed pixels from an image.
+ * @brief Computes the saturation percentages for underexposed and overexposed pixels from an image.
  *
- * @param image OpenCV matrix .
+ * @param image OpenCV matrix.
+ * @param minValue saturation minimum value.
+ * @param maxValue saturation maximum value.
  * @return Percentage of underexposed pixels (first value) and overexposed ones (second value).
  */
-std::pair<double, double> GetSaturationPercentages(cv::Mat &image);
+std::pair<double, double> GetSaturationPercentages(const cv::Mat &image, int minValue, int maxValue);
 
 #endif // DISPLAYFUNCTIONAL_H
