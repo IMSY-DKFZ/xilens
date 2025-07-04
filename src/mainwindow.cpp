@@ -114,6 +114,8 @@ void MainWindow::SetUpConnections()
                                               &MainWindow::HandleViewerFileLineEditTextEdited));
     HANDLE_CONNECTION_RESULT(QObject::connect(ui->viewerFileLineEdit, &QLineEdit::returnPressed, this,
                                               &MainWindow::HandleViewerFileLineEditReturnPressed));
+    HANDLE_CONNECTION_RESULT(QObject::connect(ui->reloadViewerFileToolButton, &QToolButton::clicked, this,
+                                              &MainWindow::HandleReloadViewerFileToolButtonClicked));
     HANDLE_CONNECTION_RESULT(
         QObject::connect(m_display, &Displayer::ImageReadyToUpdateRGB, this, &MainWindow::UpdateRGBImage));
     HANDLE_CONNECTION_RESULT(
@@ -209,49 +211,57 @@ void MainWindow::EnableUi(const bool enable) const
     EnableWidgetsInLayout(ui->mainUiVerticalLayout->layout(), enable);
     SetGraphicsViewScene();
     EnableWidgetsInLayout(ui->recordingControlsHorizontalLayout->layout(), enable);
-    this->ui->logTextLineEdit->setEnabled(enable);
+    ui->logTextLineEdit->setEnabled(enable);
     this->m_bandSelectorSliderPopup->setEnabled(enable);
-    this->ui->autoExposureToolButton->setEnabled(enable);
+    ui->autoExposureToolButton->setEnabled(enable);
 }
 
 void MainWindow::SetUpCustomUiComponents() const
 {
+    // set tool tips
+    m_bandSelectorSliderPopup->setToolTip("Image band to display");
+    m_rgbNormSliderPopup->setToolTip("RGB image intensity level");
+    m_snapshotPopup->m_lineEdit->setToolTip("File name");
+    m_snapshotPopup->m_lineEdit->setPlaceholderText("File name ...");
+    m_snapshotPopup->m_spinBox->setToolTip("Number of images to record");
+    m_saturationSpinBoxesPopup->setToolTips("Under-exposure color", "Over-exposure color", "Minimum value",
+                                            "Maximum value");
     // reload camera list button
     QIcon reloadButtonIcon;
     reloadButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
     reloadButtonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
     reloadButtonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
-    this->ui->reloadCamerasToolButton->setIcon(reloadButtonIcon);
+    ui->reloadCamerasToolButton->setIcon(reloadButtonIcon);
     // contrast tool button
     QIcon saturationButtonIcon;
     saturationButtonIcon.addFile(":/icon/theme/primary/saturation.svg", QSize(), QIcon::Normal);
     saturationButtonIcon.addFile(":/icon/theme/disabled/saturation.svg", QSize(), QIcon::Disabled);
     saturationButtonIcon.addFile(":/icon/theme/active/saturation.svg", QSize(), QIcon::Active);
-    this->ui->saturationToolButton->setIcon(saturationButtonIcon);
+    ui->saturationToolButton->setIcon(saturationButtonIcon);
     // image normalization
     QIcon normalizationButtonIcon;
     normalizationButtonIcon.addFile(":/icon/theme/primary/normalization.svg", QSize(), QIcon::Normal);
     normalizationButtonIcon.addFile(":/icon/theme/disabled/normalization.svg", QSize(), QIcon::Disabled);
     normalizationButtonIcon.addFile(":/icon/theme/active/normalization.svg", QSize(), QIcon::Active);
-    this->ui->normalizeImageToolButton->setIcon(normalizationButtonIcon);
+    ui->normalizeImageToolButton->setIcon(normalizationButtonIcon);
     // auto exposure
     QIcon autoExposureButtonIcon;
     autoExposureButtonIcon.addFile(":/icon/theme/primary/auto_exposure.svg", QSize(), QIcon::Normal);
     autoExposureButtonIcon.addFile(":/icon/theme/disabled/auto_exposure.svg", QSize(), QIcon::Disabled);
     autoExposureButtonIcon.addFile(":/icon/theme/active/auto_exposure.svg", QSize(), QIcon::Active);
-    this->ui->autoExposureToolButton->setIcon(autoExposureButtonIcon);
+    ui->autoExposureToolButton->setIcon(autoExposureButtonIcon);
     // band selector
     QIcon bandSelectorButtonIcon;
     bandSelectorButtonIcon.addFile(":/icon/theme/primary/band_selector.svg", QSize(), QIcon::Normal);
     bandSelectorButtonIcon.addFile(":/icon/theme/disabled/band_selector.svg", QSize(), QIcon::Disabled);
     bandSelectorButtonIcon.addFile(":/icon/theme/active/band_selector.svg", QSize(), QIcon::Active);
-    this->ui->bandSelectorToolButton->setIcon(bandSelectorButtonIcon);
+    ui->bandSelectorToolButton->setIcon(bandSelectorButtonIcon);
     // image intensity
     QIcon imageIntensityButtonIcon;
     imageIntensityButtonIcon.addFile(":/icon/theme/primary/rgb_norm.svg", QSize(), QIcon::Normal);
     imageIntensityButtonIcon.addFile(":/icon/theme/disabled/rgb_norm.svg", QSize(), QIcon::Disabled);
     imageIntensityButtonIcon.addFile(":/icon/theme/active/rgb_norm.svg", QSize(), QIcon::Active);
-    this->ui->rgbNormToolButton->setIcon(imageIntensityButtonIcon);
+    ui->rgbNormToolButton->setIcon(imageIntensityButtonIcon);
     // record
     this->SetRecordButtonIcons(false);
     // record white
@@ -259,25 +269,31 @@ void MainWindow::SetUpCustomUiComponents() const
     recordWhiteButtonIcon.addFile(":/icon/theme/primary/record_white.svg", QSize(), QIcon::Normal);
     recordWhiteButtonIcon.addFile(":/icon/theme/disabled/record_white.svg", QSize(), QIcon::Disabled);
     recordWhiteButtonIcon.addFile(":/icon/theme/active/record_white.svg", QSize(), QIcon::Active);
-    this->ui->recordWhiteToolButton->setIcon(recordWhiteButtonIcon);
+    ui->recordWhiteToolButton->setIcon(recordWhiteButtonIcon);
     // record dark
     QIcon recordDarkButtonIcon;
     recordDarkButtonIcon.addFile(":/icon/theme/primary/record_dark.svg", QSize(), QIcon::Normal);
     recordDarkButtonIcon.addFile(":/icon/theme/disabled/record_dark.svg", QSize(), QIcon::Disabled);
     recordDarkButtonIcon.addFile(":/icon/theme/active/record_dark.svg", QSize(), QIcon::Active);
-    this->ui->recordDarkToolButton->setIcon(recordDarkButtonIcon);
+    ui->recordDarkToolButton->setIcon(recordDarkButtonIcon);
     // record snapshots
     QIcon recordSnapshotsButtonIcon;
     recordSnapshotsButtonIcon.addFile(":/icon/theme/primary/snapshot.svg", QSize(), QIcon::Normal);
     recordSnapshotsButtonIcon.addFile(":/icon/theme/disabled/snapshot.svg", QSize(), QIcon::Disabled);
     recordSnapshotsButtonIcon.addFile(":/icon/theme/active/snapshot.svg", QSize(), QIcon::Active);
-    this->ui->recordSnapshotToolButton->setIcon(recordSnapshotsButtonIcon);
+    ui->recordSnapshotToolButton->setIcon(recordSnapshotsButtonIcon);
     // RGB channel selector
     QIcon rgbChannelButtonIcon;
     rgbChannelButtonIcon.addFile(":/icon/theme/primary/rgb_channel.svg", QSize(), QIcon::Normal);
     rgbChannelButtonIcon.addFile(":/icon/theme/disabled/rgb_channel.svg", QSize(), QIcon::Disabled);
     rgbChannelButtonIcon.addFile(":/icon/theme/active/rgb_channel.svg", QSize(), QIcon::Active);
-    this->ui->rgbChannelToolButton->setIcon(rgbChannelButtonIcon);
+    ui->rgbChannelToolButton->setIcon(rgbChannelButtonIcon);
+    // reload viewer file button
+    QIcon reloadViewerFileButtonIcon;
+    reloadViewerFileButtonIcon.addFile(":/icon/theme/primary/reload.svg", QSize(), QIcon::Normal);
+    reloadViewerFileButtonIcon.addFile(":/icon/theme/disabled/reload.svg", QSize(), QIcon::Disabled);
+    reloadViewerFileButtonIcon.addFile(":/icon/theme/active/reload.svg", QSize(), QIcon::Active);
+    ui->reloadViewerFileToolButton->setIcon(reloadViewerFileButtonIcon);
 }
 
 void MainWindow::Display()
@@ -476,7 +492,7 @@ void MainWindow::StopTemperatureThread()
         }
         m_temperatureIOWork.reset();
         m_temperatureThread.join();
-        this->ui->temperatureLCDNumber->display(0);
+        ui->temperatureLCDNumber->display(0);
         LOG_XILENS(info) << "Stopped temperature thread";
     }
 }
@@ -665,7 +681,7 @@ void MainWindow::SetRecordButtonIcons(const bool isRecording) const
         recordButtonIcon.addFile(":/icon/theme/disabled/record.svg", QSize(), QIcon::Disabled);
         recordButtonIcon.addFile(":/icon/theme/active/record.svg", QSize(), QIcon::Active);
     }
-    this->ui->recordToolButton->setIcon(recordButtonIcon);
+    ui->recordToolButton->setIcon(recordButtonIcon);
 }
 
 void MainWindow::HandleElementsWhileRecording(const bool recordingInProgress) const
@@ -689,7 +705,7 @@ void MainWindow::HandleElementsWhileRecording(const bool recordingInProgress) co
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (this->ui->recordToolButton->isChecked())
+    if (ui->recordToolButton->isChecked())
     {
         HandleRecordButtonClicked(false);
     }
@@ -744,14 +760,14 @@ void MainWindow::OpenFileInViewer(const QString &filePath)
     // only enable slider when more than one image is in the file
     if (nrImages != 0)
     {
-        this->ui->viewerImageSlider->setEnabled(true);
-        this->ui->viewerImageSlider->setMaximum(nrImages);
+        ui->viewerImageSlider->setEnabled(true);
+        ui->viewerImageSlider->setMaximum(nrImages);
     }
     else
     {
-        this->ui->viewerImageSlider->setEnabled(false);
+        ui->viewerImageSlider->setEnabled(false);
     }
-    this->ui->viewerImageSlider->setValue(defaultIndex);
+    ui->viewerImageSlider->setValue(defaultIndex);
     this->HandleViewerImageSliderValueChanged(defaultIndex);
 }
 
@@ -786,7 +802,7 @@ QString MainWindow::LogMessage(const QString &message, const QString &logFile, c
 
 bool MainWindow::GetNormalize() const
 {
-    return this->ui->normalizeImageToolButton->isChecked();
+    return ui->normalizeImageToolButton->isChecked();
 }
 
 unsigned MainWindow::GetBand() const
@@ -951,7 +967,7 @@ void MainWindow::StopRecording()
         QObject::disconnect(&this->m_imageContainer, &ImageContainer::NewImage, this, &MainWindow::UpdateTimer));
     HANDLE_CONNECTION_RESULT(
         QObject::disconnect(m_updateFPSDisplayTimer, &QTimer::timeout, this, &MainWindow::UpdateFPSLCDDisplay));
-    QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, ""));
+    QMetaObject::invokeMethod(ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, ""));
     this->StopTimer();
     this->m_IOWork.reset();
     this->m_IOWork = nullptr;
@@ -1135,6 +1151,15 @@ void MainWindow::HandleViewerFileLineEditReturnPressed()
     {
         LOG_XILENS(error) << "Viewer file path does not exist.";
     }
+}
+
+void MainWindow::HandleReloadViewerFileToolButtonClicked()
+{
+    ui->reloadViewerFileToolButton->setDown(true);
+    QCoreApplication::processEvents();
+
+    HandleViewerFileLineEditReturnPressed();
+    ui->reloadViewerFileToolButton->setDown(false);
 }
 
 void MainWindow::HandleLogTextLineEditReturnPressed()
@@ -1403,7 +1428,7 @@ void MainWindow::UpdateFPSLCDDisplay() const
     const double fps =
         (static_cast<double>(this->m_recordedTimestamps.size()) - 1) * 1000.0 / static_cast<double>(duration);
     const QString displayValue = QString::number(fps, 'f', 1);
-    QMetaObject::invokeMethod(this->ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, displayValue));
+    QMetaObject::invokeMethod(ui->fpsLCDNumber, "display", Qt::QueuedConnection, Q_ARG(QString, displayValue));
 }
 
 void MainWindow::UpdateImage(QImage image, const QGraphicsView *view, std::unique_ptr<QGraphicsPixmapItem> &pixmapItem,
@@ -1424,29 +1449,29 @@ void MainWindow::UpdateImage(QImage image, const QGraphicsView *view, std::uniqu
 
 void MainWindow::UpdateRGBImage(const QImage &image)
 {
-    UpdateImage(image, this->ui->rgbImageGraphicsView, this->m_rgbPixMapItem, this->m_rgbScene.get());
+    UpdateImage(image, ui->rgbImageGraphicsView, this->m_rgbPixMapItem, this->m_rgbScene.get());
 }
 
 void MainWindow::UpdateRawImage(const QImage &image)
 {
-    UpdateImage(image, this->ui->rawImageGraphicsView, this->m_rawPixMapItem, this->m_rawScene.get());
+    UpdateImage(image, ui->rawImageGraphicsView, this->m_rawPixMapItem, this->m_rawScene.get());
 }
 
 void MainWindow::UpdateRawViewerImage(const QImage &image)
 {
-    UpdateImage(image, this->ui->viewerGraphicsView, this->m_rawViewerPixMapItem, this->m_rawViewerScene.get());
+    UpdateImage(image, ui->viewerGraphicsView, this->m_rawViewerPixMapItem, this->m_rawViewerScene.get());
 }
 
 void MainWindow::SetGraphicsViewScene() const
 {
-    this->ui->rgbImageGraphicsView->setScene(this->m_rgbScene.get());
-    this->ui->rawImageGraphicsView->setScene(this->m_rawScene.get());
-    this->ui->viewerGraphicsView->setScene(this->m_rawViewerScene.get());
+    ui->rgbImageGraphicsView->setScene(this->m_rgbScene.get());
+    ui->rawImageGraphicsView->setScene(this->m_rawScene.get());
+    ui->viewerGraphicsView->setScene(this->m_rawViewerScene.get());
 }
 
 bool MainWindow::IsSaturationButtonChecked() const
 {
-    return this->ui->saturationToolButton->isChecked();
+    return ui->saturationToolButton->isChecked();
 }
 
 void MainWindow::SetRecordedCount(const int count)
@@ -1457,9 +1482,9 @@ void MainWindow::SetRecordedCount(const int count)
 void MainWindow::HandleCameraSpecificUiComponents(const QString &cameraType, const QString &cameraModel) const
 {
     const bool enableSpectralComponents = cameraType == CAMERA_TYPE_SPECTRAL;
-    QMetaObject::invokeMethod(this->ui->bandSelectorToolButton, "setEnabled", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(ui->bandSelectorToolButton, "setEnabled", Qt::QueuedConnection,
                               Q_ARG(bool, enableSpectralComponents));
-    QMetaObject::invokeMethod(this->ui->rgbChannelToolButton, "setEnabled", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(ui->rgbChannelToolButton, "setEnabled", Qt::QueuedConnection,
                               Q_ARG(bool, enableSpectralComponents));
     QMetaObject::invokeMethod(this->m_bandSelectorSliderPopup, "setEnabled", Q_ARG(bool, enableSpectralComponents));
 

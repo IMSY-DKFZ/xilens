@@ -591,6 +591,17 @@ class QDoubleSpinBoxesWithColorPickersPopup : public QDoubleSpinBoxesPopup
      */
     void setRightColor(const QColor &color);
 
+    /**
+     * @brief Sets the tool tips for each component of the widget.
+     *
+     * @param leftColorTooltip left color button tool tip.
+     * @param rightColorTooltip right color button tool tip.
+     * @param minValueTooltip minimum value spin box tool tip.
+     * @param maxValueTooltip maximum value spin box tool tip.
+     */
+    void setToolTips(const QString &leftColorTooltip, const QString &rightColorTooltip, const QString &minValueTooltip,
+                     const QString &maxValueTooltip) const;
+
   signals:
     /**
      * @brief Signal emitted when the left color is changed.

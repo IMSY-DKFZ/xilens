@@ -16,17 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New custom Widget to manually select the image channels used to create an RGB image reconstruction for spectral cameras.
 - New separator between displayed images to enlarge either one of them when needed.
 - New menu bar with help and documentation options.
+- New reload button in the viewer tab to reload the viewer file object.
 
 ### Changed
 
-- Refactors snapshot recording method to make it more modular.
+- Refactors the snapshot recording method to make it more modular.
 - Moves controls from toolbox to ToolButtons.
 - Expands image viewer to cover the entire area of the UI.
 
 ### Removed
 
-- Removes unused includes
-- Removes exposure slider
+- Removes unused includes.
+- Removes exposure slider.
 
 ### Fixed
 

@@ -259,6 +259,17 @@ void QDoubleSpinBoxesWithColorPickersPopup::setRightColor(const QColor &color)
     }
 }
 
+void QDoubleSpinBoxesWithColorPickersPopup::setToolTips(const QString &leftColorTooltip,
+                                                        const QString &rightColorTooltip,
+                                                        const QString &minValueTooltip,
+                                                        const QString &maxValueTooltip) const
+{
+    m_leftColorButton->setToolTip(leftColorTooltip);
+    m_rightColorButton->setToolTip(rightColorTooltip);
+    m_spinBox1->setToolTip(minValueTooltip);
+    m_spinBox2->setToolTip(maxValueTooltip);
+}
+
 void QDoubleSpinBoxesWithColorPickersPopup::onLeftColorButtonClicked()
 {
     if (const QColor color = QColorDialog::getColor(m_leftColor, this, "Select Left Color"); color.isValid())
@@ -353,8 +364,8 @@ QRgbChannelSpinBoxesPopup::QRgbChannelSpinBoxesPopup(QWidget *parent)
     m_spinBox2->setRange(1, std::numeric_limits<int>::max());
     m_spinBox3->setRange(1, std::numeric_limits<int>::max());
     m_spinBox1->setToolTip("Red channel");
-    m_spinBox1->setToolTip("Green channel");
-    m_spinBox1->setToolTip("Blue channel");
+    m_spinBox2->setToolTip("Green channel");
+    m_spinBox3->setToolTip("Blue channel");
     m_spinBox1->setMinimumWidth(90);
     m_spinBox2->setMinimumWidth(90);
     m_spinBox3->setMinimumWidth(90);
